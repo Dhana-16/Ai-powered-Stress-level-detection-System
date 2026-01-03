@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroSanctuary | Stress Relief Protocols</title>
+    <meta name="description" content="AI-curated tips and techniques to overcome stress and achieve mental clarity.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & THEME CONFIG
+           ========================================= */
+        :root {
+            /* Core Colors */
+            --bg-deep: #050508;
+            --bg-panel: rgba(20, 25, 40, 0.6);
+            --primary: #00f2ff; /* Cyan - Focus */
+            --secondary: #bd00ff; /* Purple - Creativity */
+            --accent: #ff0055; /* Red - Alert */
+            --success: #00ff88; /* Green - Calm */
+            --warning: #ffcc00; /* Yellow - Energy */
+            --text-main: #ffffff;
+            --text-muted: #a0aab5;
+            
+            /* Dynamic Colors (Changed by User Interaction) */
+            --calm-hue: 180deg; /* Default Cyan */
+
+            /* Typography */
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+
+            /* UI Effects */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            --shadow-neon: 0 0 20px rgba(0, 242, 255, 0.3);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: filter 0.5s ease;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR SYSTEM
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: hsl(var(--calm-hue), 100%, 50%);
+            box-shadow: 0 0 15px hsl(var(--calm-hue), 100%, 50%);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid hsl(var(--calm-hue), 100%, 50%);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND (FLOW FIELD)
+           ========================================= */
+        #flow-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 95%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION & HEADER
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(5, 5, 8, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: var(--glass-border);
+            transition: 0.3s;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-family: var(--font-tech);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: hsl(var(--calm-hue), 100%, 50%);
+            text-shadow: 0 0 10px hsl(var(--calm-hue), 100%, 50%);
+        }
+
+        /* =========================================
+           5. HERO SECTION (BREATHING GUIDE)
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            padding: 0 5%;
+        }
+
+        .hero-content h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        /* Interactive Breathing Circle */
+        .breathing-visual {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .breath-circle {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, hsl(var(--calm-hue), 100%, 70%) 0%, transparent 70%);
+            box-shadow: 0 0 50px hsl(var(--calm-hue), 100%, 30%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+        }
+
+        .breath-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 4s ease-in-out;
+        }
+
+        .ring-1 { width: 300px; height: 300px; }
+        .ring-2 { width: 350px; height: 350px; }
+        .ring-3 { width: 400px; height: 400px; }
+
+        .breath-text {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            z-index: 2;
+        }
+
+        /* Breathing Animation Classes */
+        .breathing-active .ring-1 { width: 400px; height: 400px; border-color: var(--primary); opacity: 0; }
+        .breathing-active .ring-2 { width: 450px; height: 450px; border-color: var(--secondary); opacity: 0; transition-delay: 0.5s;}
+        .breathing-active .ring-3 { width: 500px; height: 500px; border-color: #fff; opacity: 0; transition-delay: 1s;}
+        
+        .breathing-active .breath-circle {
+            animation: breathe 8s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 100px var(--primary); }
+        }
+
+        .start-breath-btn {
+            margin-top: 2rem;
+            padding: 1rem 3rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--primary);
+            color: #fff;
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: 0.3s;
+        }
+
+        .start-breath-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        /* =========================================
+           6. MOOD INTERACTIVITY SECTION
+           ========================================= */
+        .mood-section {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .mood-control {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            outline: none;
+            margin: 2rem 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: none;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .mood-labels {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-tech);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .mood-labels span:nth-child(1) { color: #00ccff; }
+        .mood-labels span:nth-child(2) { color: #ff00ff; }
+        .mood-labels span:nth-child(3) { color: #00ff88; }
+
+        /* =========================================
+           7. TIPS GRID & FILTERS
+           ========================================= */
+        .tips-section {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            color: var(--text-muted);
+            font-family: var(--font-tech);
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .tip-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: 0.4s var(--ease-smooth);
+            position: relative;
+            transform-style: preserve-3d;
+            backdrop-filter: blur(10px);
+        }
+
+        .tip-card:hover {
+            transform: translateY(-10px);
+            border-color: hsl(var(--calm-hue), 100%, 50%);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .card-image {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+            transition: 0.5s;
+        }
+
+        .tip-card:hover .card-image {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .card-btn {
+            color: #fff;
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .card-btn:hover {
+            color: hsl(var(--calm-hue), 100%, 50%);
+        }
+
+        /* =========================================
+           8. LONG CONTENT TEXT SECTIONS
+           ========================================= */
+        .deep-dive-section {
+            padding: 4rem 5%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            margin-bottom: 4rem;
+        }
+
+        .deep-dive-content h3 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .deep-dive-content p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
+        .deep-dive-img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* =========================================
+           9. MODAL / DETAIL VIEW
+           ========================================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: #111;
+            width: 90%;
+            max-width: 800px;
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            padding: 3rem;
+            position: relative;
+            transform: scale(0.8);
+            transition: 0.4s var(--ease-elastic);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            font-family: var(--font-display);
+        }
+
+        /* =========================================
+           10. FOOTER
+           ========================================= */
+        footer {
+            background: #020203;
+            padding: 4rem 5%;
+            border-top: 1px solid #111;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .footer-quote {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text-main);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .hero { grid-template-columns: 1fr; text-align: center; padding-top: 120px; }
+            .deep-dive-section { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .hero-content p { margin: 0 auto 3rem; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s ease;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background -->
+    <canvas id="flow-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="#" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Neuro<span style="color:var(--primary)">Sanctuary</span>
+        </a>
+        <div class="nav-links">
+            <a href="/index" data-hover>Home</a>
+            <a href="/stressreduce" data-hover>Stressless Hub</a>
+            <a href="/tips" style="color:var(--primary);" data-hover>Tips</a>
+            <a href="/login" data-hover>Login</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero: Breathing Guide -->
+        <section class="hero">
+            <div class="hero-content reveal">
+                <h1>Sync Your <br><span class="gradient-text">Neural State</span></h1>
+                <p>Stress disrupts our natural rhythm. Use our real-time breathing guide below to synchronize your heart rate variability (HRV) and enter a state of calm.</p>
+                
+                <div class="mood-control">
+                    <p style="font-family: var(--font-tech); color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">Adjust Atmosphere</p>
+                    <input type="range" min="0" max="360" value="180" id="mood-slider" oninput="changeMood(this.value)">
+                    <div class="mood-labels">
+                        <span>Cyber</span>
+                        <span>Sunset</span>
+                        <span>Zen</span>
+                    </div>
+                </div>
+
+                <button class="start-breath-btn" id="breath-btn" onclick="toggleBreathing()" data-hover>Start Protocol</button>
+            </div>
+
+            <div class="breathing-visual">
+                <div class="breath-circle" id="breath-circle">
+                    <div class="breath-ring ring-1"></div>
+                    <div class="breath-ring ring-2"></div>
+                    <div class="breath-ring ring-3"></div>
+                    <div class="breath-text" id="breath-text">Exhale</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tips Database -->
+        <section class="tips-section">
+            <div class="section-header reveal">
+                <h2>Tactical Stress Relief</h2>
+                <p style="color: var(--text-muted);">AI-curated protocols for immediate mental reset.</p>
+            </div>
+
+            <div class="filters reveal">
+                <button class="filter-btn active" onclick="filterTips('all')" data-hover>All</button>
+                <button class="filter-btn" onclick="filterTips('physical')" data-hover>Physical</button>
+                <button class="filter-btn" onclick="filterTips('mental')" data-hover>Mental</button>
+                <button class="filter-btn" onclick="filterTips('lifestyle')" data-hover>Lifestyle</button>
+            </div>
+
+            <div class="tips-grid" id="tips-container">
+                <!-- Content Injected via JS -->
+            </div>
+        </section>
+
+        <!-- Deep Dives (Long Content) -->
+        <section class="deep-dive-section reveal">
+            <div class="deep-dive-content">
+                <h3>The Science of Sleep</h3>
+                <p>AI analysis of over 10,000 subjects indicates that sleep fragmentation is the #1 predictor of next-day stress levels. When you sleep, your brain's glymphatic system clears out toxins (beta-amyloid) that accumulate during waking hours.</p>
+                <p><strong>The Protocol:</strong> Aim for 7-9 hours of quality sleep. Maintain a consistent sleep-wake cycle, even on weekends. Reduce blue light exposure 1 hour before bed to enhance melatonin production.</p>
+                <a href="#" class="card-btn" data-hover>Read Full Study &rarr;</a>
+            </div>
+            <img src="https://images.unsplash.com/photo-1511295742362-92c96b5cfab3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Sleep Study" class="deep-dive-img">
+        </section>
+
+        <section class="deep-dive-section reveal" style="direction: rtl;">
+            <div class="deep-dive-content" style="direction: ltr;">
+                <h3>Digital Detoxification</h3>
+                <p>Constant connectivity keeps your sympathetic nervous system (fight or flight) in a state of low-level alert. Notifications trigger dopamine loops that prevent true relaxation.</p>
+                <p><strong>The Strategy:</strong> Implement "No-Tech Zones" in your home. The bedroom is strictly for sleep. Use grayscale mode on your phone to reduce visual stimulation.</p>
+                <a href="#" class="card-btn" data-hover>Learn More &rarr;</a>
+            </div>
+            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Digital Detox" class="deep-dive-img">
+        </section>
+
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()" data-hover>&times;</button>
+            <h2 id="modal-title" style="font-family: var(--font-display); margin-bottom: 1rem; font-size: 2rem;">Title</h2>
+            <span id="modal-tag" style="color: var(--primary); font-family: var(--font-tech); text-transform: uppercase; letter-spacing: 2px;">Category</span>
+            <img id="modal-img" src="" style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin: 2rem 0;">
+            <p id="modal-body" style="line-height: 1.8; color: #ccc; font-size: 1.1rem;">Body content goes here...</p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-quote">
+            "Peace comes from within. Do not seek it without."
+        </div>
+        <p style="color: #555;">&copy; 2023 NeuroCalm AI Sanctuary Systems.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // =========================================
+        // 1. EXTENSIVE TIPS DATABASE (Long Page Content)
+        // =========================================
+        const tipsData = [
+            {
+                id: 1,
+                category: 'physical',
+                title: 'The 4-7-8 Technique',
+                desc: 'A rhythmic breathing pattern that acts as a natural tranquilizer for the nervous system.',
+                image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Inhale quietly through the nose for 4 seconds. Hold the breath for 7 seconds. Exhale forcefully through the mouth, making a whoosh sound, for 8 seconds. Repeat this cycle for 4 full breaths. This technique reduces anxiety by forcing the mind to focus on breathing patterns rather than racing thoughts.'
+            },
+            {
+                id: 2,
+                category: 'mental',
+                title: 'Cognitive Reframing',
+                desc: 'Identify and challenge negative thought patterns to alter your perception of stress.',
+                image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'When stress arises, ask yourself: "Is this thought based on facts or fears?" Reframe "I can\'t handle this" to "This is challenging, but I have handled difficult things before." Changing your internal dialogue changes your brain\'s chemical response.'
+            },
+            {
+                id: 3,
+                category: 'lifestyle',
+                title: 'Nature Immersion',
+                desc: 'Spending time in green spaces lowers cortisol levels significantly.',
+                image: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Shinrin-yoku, or "forest bathing," is a Japanese practice of being in nature. Research shows that walking in nature lowers blood pressure and heart rate more effectively than walking in an urban environment. Aim for 20 minutes daily.'
+            },
+            {
+                id: 4,
+                category: 'physical',
+                title: 'Progressive Muscle Relaxation',
+                desc: 'Systematically tensing and relaxing muscle groups to release physical tension.',
+                image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Start at your toes. Curl them tightly for 5 seconds, then release. Move to your calves, thighs, abdomen, hands, shoulders, and face. By tensing muscles first, you become more aware of what relaxation actually feels like.'
+            },
+            {
+                id: 5,
+                category: 'mental',
+                title: 'The 5-4-3-2-1 Method',
+                desc: 'A grounding technique to snap you out of an anxiety spiral using your 5 senses.',
+                image: 'https://images.unsplash.com/photo-1509122272171-4b4644223763?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Acknowledge 5 things you see. Acknowledge 4 things you can touch. Acknowledge 3 things you hear. Acknowledge 2 things you can smell. Acknowledge 1 thing you can taste. This pulls your brain out of the future/past and anchors it in the present.'
+            },
+            {
+                id: 6,
+                category: 'lifestyle',
+                title: 'Hydration & Nutrition',
+                desc: 'Dehydration mimics symptoms of anxiety (fatigue, headache).',
+                image: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Reduce caffeine and alcohol intake, as they can increase anxiety levels. Incorporate magnesium-rich foods like spinach and almonds, which help relax muscles and calm the nervous system. Drink at least 8 glasses of water daily.'
+            },
+            {
+                id: 7,
+                category: 'physical',
+                title: 'Aerobic Exercise',
+                desc: 'Cardio releases endorphins, the body\'s natural painkillers.',
+                image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Engage in at least 30 minutes of moderate exercise like running, swimming, or cycling. Exercise reduces levels of the body\'s stress hormones, such as adrenaline and cortisol. It also stimulates the production of endorphins.'
+            },
+            {
+                id: 8,
+                category: 'mental',
+                title: 'Journaling',
+                desc: 'Externalizing your thoughts helps declutter the mind.',
+                image: 'https://images.unsplash.com/photo-1515378960530-7c0da6231fb1?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Write down what stresses you out. Getting it out of your head and onto paper allows you to stop ruminating. Try "gratitude journaling" to shift focus from what\'s wrong to what\'s right.'
+            },
+            {
+                id: 9,
+                category: 'lifestyle',
+                title: 'Social Connection',
+                desc: 'Isolation increases stress. Connecting with loved ones releases oxytocin.',
+                image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                body: 'Schedule regular video calls or meetups with friends and family. Talking about your feelings with someone you trust can provide a fresh perspective and emotional relief.'
+            }
+        ];
+
+        // =========================================
+        // 2. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 3. MOOD INTERACTIVITY
+        // =========================================
+        function changeMood(val) {
+            // Update CSS variable for hue rotation
+            document.documentElement.style.setProperty('--calm-hue', `${val}deg`);
+        }
+
+        // =========================================
+        // 4. BREATHING GUIDE LOGIC
+        // =========================================
+        let isBreathing = false;
+        let breathInterval;
+
+        function toggleBreathing() {
+            const visual = document.querySelector('.breathing-visual');
+            const btn = document.getElementById('breath-btn');
+            const text = document.getElementById('breath-text');
+
+            if (!isBreathing) {
+                visual.classList.add('breathing-active');
+                btn.innerText = "Stop Protocol";
+                btn.style.background = "var(--accent)";
+                btn.style.borderColor = "var(--accent)";
+                isBreathing = true;
+                
+                // Text cycle
+                let inhale = true;
+                breathInterval = setInterval(() => {
+                    text.innerText = inhale ? "Inhale" : "Exhale";
+                    inhale = !inhale;
+                }, 4000);
+                text.innerText = "Inhale";
+
+            } else {
+                visual.classList.remove('breathing-active');
+                btn.innerText = "Start Protocol";
+                btn.style.background = "rgba(255,255,255,0.1)";
+                btn.style.borderColor = "var(--primary)";
+                isBreathing = false;
+                clearInterval(breathInterval);
+                text.innerText = "Exhale";
+            }
+        }
+
+        // =========================================
+        // 5. TIPS RENDERING & FILTERING
+        // =========================================
+        const container = document.getElementById('tips-container');
+
+        function renderTips(filter) {
+            container.innerHTML = '';
+            
+            tipsData.forEach(tip => {
+                if (filter === 'all' || tip.category === filter) {
+                    const card = document.createElement('div');
+                    card.className = 'tip-card reveal';
+                    card.innerHTML = `
+                        <img src="${tip.image}" class="card-image" alt="${tip.title}">
+                        <div class="card-content">
+                            <span class="card-tag">${tip.category}</span>
+                            <h3 class="card-title">${tip.title}</h3>
+                            <p class="card-desc">${tip.desc}</p>
+                            <a href="#" class="card-btn" onclick="openModal(${tip.id})" data-hover>Read More <span>&rarr;</span></a>
+                        </div>
+                    `;
+                    
+                    // Add 3D Tilt
+                    card.addEventListener('mousemove', (e) => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+                        
+                        const rotateX = ((y - centerY) / centerY) * -5;
+                        const rotateY = ((x - centerX) / centerX) * 5;
+
+                        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px)`;
+                    });
+
+                    card.addEventListener('mouseleave', () => {
+                        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+                    });
+
+                    container.appendChild(card);
+                }
+            });
+
+            // Re-trigger observer for new elements
+            observeReveal();
+        }
+
+        function filterTips(category) {
+            // Update buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            renderTips(category);
+        }
+
+        // Initial Render
+        renderTips('all');
+
+        // =========================================
+        // 6. MODAL LOGIC
+        // =========================================
+        function openModal(id) {
+            const tip = tipsData.find(t => t.id === id);
+            const modal = document.getElementById('modal');
+            
+            document.getElementById('modal-title').innerText = tip.title;
+            document.getElementById('modal-tag').innerText = tip.category;
+            document.getElementById('modal-body').innerText = tip.body;
+            document.getElementById('modal-img').src = tip.image;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+
+        // =========================================
+        // 7. SCROLL REVEAL
+        // =========================================
+        function observeReveal() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+        observeReveal();
+
+        // =========================================
+        // 8. CANVAS FLOW FIELD ANIMATION
+        // =========================================
+        const canvas = document.getElementById('flow-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let width = canvas.width;
+        let height = canvas.height;
+        
+        // Noise settings for fluid effect
+        const particles = [];
+        const particleCount = 300;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+                this.color = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Mouse interaction (gentle flow)
+                // Simple noise simulation for "calm" movement
+                const time = Date.now() * 0.0005;
+                const angle = Math.cos(this.x * 0.005 + time) + Math.sin(this.y * 0.005 + time);
+                
+                this.vx += Math.cos(angle) * 0.01;
+                this.vy += Math.sin(angle) * 0.01;
+
+                // Friction
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+
+                // Wrap around screen
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Init Particles
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateFlow() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw trails
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animateFlow);
+        }
+
+        animateFlow();
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostic | Engineer Stress AI</title>
+    <meta name="description" content="AI-powered stress level detection system optimized for engineering workflows.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050505;
+            --bg-panel: rgba(16, 20, 24, 0.85);
+            --primary: #00ff9d; /* Matrix Green / Terminal Success */
+            --secondary: #00e1ff; /* Cyan / Electric */
+            --accent: #ff0055; /* Error Red / Critical Alert */
+            --warning: #ffcc00; /* Warning Yellow */
+            --code-purple: #bd00ff; /* Syntax Purple */
+            --text-main: #e0e6ed;
+            --text-muted: #64748b;
+            --font-code: 'Fira Code', monospace;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --glass-border: 1px solid rgba(0, 255, 157, 0.2);
+            --terminal-glow: 0 0 10px rgba(0, 255, 157, 0.3);
+            --ease-smooth: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR (Crosshair)
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--secondary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            mix-blend-mode: difference;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 255, 157, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #circuit-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. MAIN CONTAINER & NAV
+           ========================================= */
+        .app-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            padding: 2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            background: rgba(5,5,5,0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .brand {
+            font-family: var(--font-code);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .system-status {
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--primary);
+            animation: blink 2s infinite;
+        }
+
+        /* =========================================
+           5. SECTIONS (Start, Quiz, Result)
+           ========================================= */
+        section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.5s var(--ease-smooth), transform 0.5s var(--ease-smooth);
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.98);
+        }
+
+        section.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: scale(1);
+            position: relative;
+        }
+
+        /* Start Section */
+        .intro-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--primary);
+            padding: 4rem;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 255, 157, 0.05);
+        }
+
+        .intro-card::before {
+            content: 'root@engineer-ai:~$ ./run_diagnostics.sh';
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--bg-deep);
+            padding: 0 10px;
+            font-family: var(--font-code);
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: var(--secondary);
+            font-family: var(--font-code);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-start {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 1.5rem 4rem;
+            font-family: var(--font-code);
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            cursor: none;
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: 0.4s;
+            z-index: -1;
+        }
+
+        .btn-start:hover {
+            color: #000;
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        .btn-start:hover::before {
+            left: 0;
+        }
+
+        /* Quiz Interface */
+        .terminal-window {
+            width: 100%;
+            max-width: 900px;
+            background: #0f1216;
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            display: none; /* Hidden by default */
+        }
+        
+        .terminal-window.active {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .terminal-header {
+            background: #1e2229;
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .terminal-body {
+            padding: 2rem;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .line-numbers {
+            color: #444;
+            font-family: var(--font-code);
+            position: absolute;
+            left: 0;
+            top: 2rem;
+            width: 40px;
+            text-align: right;
+            padding-right: 10px;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .code-area {
+            margin-left: 50px;
+            font-family: var(--font-code);
+        }
+
+        .query-text {
+            color: var(--secondary);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            color: var(--text-main);
+            padding: 1.2rem;
+            text-align: left;
+            font-family: var(--font-code);
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: rgba(0, 255, 157, 0.05);
+            transform: translateX(5px);
+        }
+
+        .option-btn::before {
+            content: '>';
+            position: absolute;
+            left: -15px;
+            color: var(--primary);
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover::before {
+            opacity: 1;
+            left: 10px;
+        }
+
+        .progress-container {
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .progress-text {
+            font-family: var(--font-code);
+            color: var(--text-muted);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Processing Screen */
+        .processing-content {
+            text-align: center;
+        }
+
+        .spinner {
+            width: 100px;
+            height: 100px;
+            border: 5px solid rgba(0, 255, 157, 0.1);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        .terminal-log {
+            font-family: var(--font-code);
+            color: var(--text-muted);
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .log-entry { margin-bottom: 5px; opacity: 0; animation: fadeIn 0.3s forwards; }
+        .log-entry.success { color: var(--primary); }
+        .log-entry.warning { color: var(--warning); }
+
+        /* Result Screen */
+        .result-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--glass-border);
+            padding: 3rem;
+            max-width: 900px;
+            width: 100%;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            display: none;
+        }
+        
+        .result-card.active { display: block; animation: zoomIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .gauge-container {
+            width: 150px;
+            height: 150px;
+            position: relative;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #1e2229;
+            stroke-width: 10;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 10;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 440;
+            transition: stroke-dashoffset 1.5s ease-out, stroke 0.5s;
+            stroke-linecap: round;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .diagnosis-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            text-transform: uppercase;
+        }
+
+        .diagnosis-desc {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            max-width: 400px;
+        }
+
+        .recommendations {
+            margin-top: 2rem;
+        }
+
+        .rec-title {
+            font-family: var(--font-code);
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .rec-item {
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 15px;
+        }
+
+        .rec-icon { color: var(--primary); font-size: 1.2rem; }
+        .rec-text { color: #ccc; font-size: 0.95rem; }
+
+        .btn-restart {
+            margin-top: 3rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            font-family: var(--font-code);
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .btn-restart:hover { background: var(--secondary); color: #000; }
+
+        /* Animations */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .intro-card { padding: 2rem; width: 90%; }
+            h1 { font-size: 2rem; }
+            .options-grid { grid-template-columns: 1fr; }
+            .gauge-container { width: 100px; height: 100px; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="circuit-canvas"></canvas>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="scanlines"></div>
+
+    <!-- Main App -->
+    <div class="app-container">
+        <nav>
+            <div class="brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+                ENGINEER_AI
+            </div>
+            <div class="system-status">
+                SYSTEM: <span style="color:var(--primary)">ONLINE</span>
+                <div class="status-dot"></div>
+            </div>
+        </nav>
+
+        <!-- 1. Start Section -->
+        <section id="start-screen" class="active">
+            <div class="intro-card" data-hover>
+                <h1>System Diagnostic</h1>
+                <p class="subtitle">Detecting burnout levels in Engineering Environments.</p>
+                <p style="color: #666; margin-bottom: 2rem; font-family: var(--font-code); font-size: 0.9rem;">
+                    > Initiating Neural Link...<br>
+                    > Loading 20-point Integrity Check...
+                </p>
+                <button class="btn-start" onclick="startDiagnostic()" data-hover>
+                    Initialize Test [START]
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. Quiz Section -->
+        <section id="quiz-screen">
+            <div class="terminal-window active" id="term-window">
+                <div class="terminal-header">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="terminal-body">
+                    <div class="line-numbers">
+                        01<br>02<br>03<br>04<br>05<br>06
+                    </div>
+                    <div class="code-area">
+                        <div class="query-text" id="question-text">
+                            // Loading query...
+                        </div>
+                        <div class="options-grid" id="options-container">
+                            <!-- Options injected here -->
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <div class="progress-text" id="progress-text">0/20</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Processing Section -->
+        <section id="processing-screen">
+            <div class="processing-content">
+                <div class="spinner"></div>
+                <h2 style="font-family: var(--font-display); color: var(--text-main);">Compiling Data...</h2>
+                <div class="terminal-log" id="terminal-log">
+                    <!-- Logs injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Result Section -->
+        <section id="result-screen">
+            <div class="result-card" id="result-card">
+                <div class="result-header">
+                    <div class="score-display">
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 160 160">
+                                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                                <circle class="gauge-fill" id="gauge-circle" cx="80" cy="80" r="70"></circle>
+                            </svg>
+                            <div class="score-value" id="final-score">0</div>
+                        </div>
+                        <div>
+                            <div class="diagnosis-title" id="diagnosis-title">ANALYZING</div>
+                            <div class="diagnosis-desc" id="diagnosis-desc">Please wait...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recommendations">
+                    <h3 class="rec-title">System Recommendations (patch_v1.0)</h3>
+                    <div id="rec-list">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <button class="btn-restart" onclick="restartApp()" data-hover>> ./reset_system.sh</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. QUESTION DATABASE (20 Questions)
+        // =========================================
+        const questions = [
+            {
+                q: "How many hours do you typically code per day?",
+                options: [
+                    { text: "< 6 hours (Balanced)", weight: 1 },
+                    { text: "6-8 hours (Standard)", weight: 2 },
+                    { text: "8-12 hours (High)", weight: 3 },
+                    { text: "> 12 hours (Critical)", weight: 5 }
+                ]
+            },
+            {
+                q: "How often are you on-call for production issues?",
+                options: [
+                    { text: "Never / Rarely", weight: 1 },
+                    { text: "Once a month", weight: 2 },
+                    { text: "Weekly rotations", weight: 4 },
+                    { text: "Daily / Always on", weight: 5 }
+                ]
+            },
+            {
+                q: "How do you feel about the current 'Technical Debt' in your main project?",
+                options: [
+                    { text: "It's manageable", weight: 1 },
+                    { text: "It causes minor delays", weight: 3 },
+                    { text: "It's a nightmare to refactor", weight: 4 },
+                    { text: "I fear touching it (Legacy)", weight: 5 }
+                ]
+            },
+            {
+                q: "What is your primary deployment frequency?",
+                options: [
+                    { text: "Automated CI/CD (Daily)", weight: 1 },
+                    { text: "Weekly/Bi-weekly", weight: 2 },
+                    { text: "Monthly manually", weight: 3 },
+                    { text: "Big Bang release (Panic)", weight: 5 }
+                ]
+            },
+            {
+                q: "How often do you skip lunch/breaks to finish a feature?",
+                options: [
+                    { text: "Never", weight: 1 },
+                    { text: "Rarely", weight: 2 },
+                    { text: "Often", weight: 4 },
+                    { text: "Every single day", weight: 5 }
+                ]
+            },
+            {
+                q: "Rate your sleep quality during weekdays.",
+                options: [
+                    { text: "8+ hours, restful", weight: 1 },
+                    { text: "6-8 hours, okay", weight: 2 },
+                    { text: "4-6 hours, tired", weight: 4 },
+                    { text: "< 4 hours, zombie mode", weight: 5 }
+                ]
+            },
+            {
+                q: "How do you react to a 'Critical Bug' found on Friday evening?",
+                options: [
+                    { text: "Fix it Monday", weight: 1 },
+                    { text: "Assess and schedule", weight: 2 },
+                    { text: "Work overtime to fix", weight: 4 },
+                    { text: "Panic attack & weekend work", weight: 5 }
+                ]
+            },
+            {
+                q: "Do you experience 'Imposter Syndrome'?",
+                options: [
+                    { text: "No, I'm confident", weight: 1 },
+                    { text: "Sometimes", weight: 2 },
+                    { text: "Often", weight: 3 },
+                    { text: "Constantly, I feel fake", weight: 5 }
+                ]
+            },
+            {
+                q: "How many Slack/Teams notifications do you ignore daily?",
+                options: [
+                    { text: "None, I reply instantly", weight: 2 }, // Stress of availability
+                    { text: "A few non-urgent ones", weight: 1 },
+                    { text: "I mute channels to focus", weight: 1 },
+                    { text: "Too many to count", weight: 4 }
+                ]
+            },
+            {
+                q: "How good is the documentation for your current task?",
+                options: [
+                    { text: "Excellent, clear docs", weight: 1 },
+                    { text: "Decent, needs updates", weight: 2 },
+                    { text: "Outdated / Wrong", weight: 4 },
+                    { text: "Non-existent (Read the code)", weight: 5 }
+                ]
+            },
+            {
+                q: "How many meetings do you attend per week?",
+                options: [
+                    { text: "< 5 hours", weight: 1 },
+                    { text: "5-10 hours", weight: 2 },
+                    { text: "10-20 hours", weight: 4 },
+                    { text: "> 20 hours (Meeting Hell)", weight: 5 }
+                ]
+            },
+            {
+                q: "Do you have a hobby completely unrelated to tech?",
+                options: [
+                    { text: "Yes, active daily", weight: 1 },
+                    { text: "Yes, occasionally", weight: 2 },
+                    { text: "No, not enough time", weight: 4 },
+                    { text: "What is a hobby?", weight: 5 }
+                ]
+            },
+            {
+                q: "How often does your computer crash or your tools break?",
+                options: [
+                    { text: "Rarely", weight: 1 },
+                    { text: "Sometimes", weight: 2 },
+                    { text: "Often", weight: 3 },
+                    { text: "Constantly wasting time", weight: 5 }
+                ]
+            },
+            {
+                q: "How supportive is your manager with blockers?",
+                options: [
+                    { text: "Very supportive", weight: 1 },
+                    { text: "Mostly supportive", weight: 2 },
+                    { text: "Indifferent", weight: 4 },
+                    { text: "They add more pressure", weight: 5 }
+                ]
+            },
+            {
+                q: "Rate your caffeine intake.",
+                options: [
+                    { text: "0-1 cup", weight: 1 },
+                    { text: "2-3 cups", weight: 2 },
+                    { text: "4-6 cups", weight: 3 },
+                    { text: "IV Drip required", weight: 5 }
+                ]
+            },
+            {
+                q: "Do you feel you are learning new technologies regularly?",
+                options: [
+                    { text: "Yes, constantly growing", weight: 1 },
+                    { text: "Sometimes", weight: 2 },
+                    { text: "Rarely", weight: 4 },
+                    { text: "Stuck with legacy stack", weight: 5 }
+                ]
+            },
+            {
+                q: "How is your relationship with QA/Testers?",
+                options: [
+                    { text: "Great, collaborative", weight: 1 },
+                    { text: "Professional", weight: 2 },
+                    { text: "Tense", weight: 3 },
+                    { text: "Adversarial (Bug wars)", weight: 5 }
+                ]
+            },
+            {
+                q: "Do you work from home (WFH) or Office?",
+                options: [
+                    { text: "Hybrid (Perfect balance)", weight: 1 },
+                    { text: "WFH (Flexible)", weight: 1 },
+                    { text: "Office (Commute is okay)", weight: 2 },
+                    { text: "Long commute / Bad WFH setup", weight: 5 }
+                ]
+            },
+            {
+                q: "Do you stare at a screen until your eyes hurt?",
+                options: [
+                    { text: "Never, I take breaks", weight: 1 },
+                    { text: "Rarely", weight: 2 },
+                    { text: "Daily eye strain", weight: 4 },
+                    { text: "My vision is blurring", weight: 5 }
+                ]
+            },
+            {
+                q: "Finally, would you recommend this job to a friend?",
+                options: [
+                    { text: "Absolutely", weight: 1 },
+                    { text: "Maybe", weight: 2 },
+                    { text: "Probably not", weight: 4 },
+                    { text: "Hell no", weight: 5 }
+                ]
+            }
+        ];
+
+        // =========================================
+        // 3. STATE MANAGEMENT
+        // =========================================
+        let currentQuestion = 0;
+        let totalScore = 0;
+        const maxPossibleScore = 20 * 5; // 20 questions, max weight 5
+
+        // DOM Elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            processing: document.getElementById('processing-screen'),
+            result: document.getElementById('result-screen')
+        };
+
+        const quizElements = {
+            text: document.getElementById('question-text'),
+            options: document.getElementById('options-container'),
+            progressFill: document.getElementById('progress-fill'),
+            progressText: document.getElementById('progress-text')
+        };
+
+        const resultElements = {
+            gauge: document.getElementById('gauge-circle'),
+            score: document.getElementById('final-score'),
+            title: document.getElementById('diagnosis-title'),
+            desc: document.getElementById('diagnosis-desc'),
+            recList: document.getElementById('rec-list'),
+            card: document.getElementById('result-card')
+        };
+
+        // =========================================
+        // 4. NAVIGATION LOGIC
+        // =========================================
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        function startDiagnostic() {
+            switchScreen('quiz');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            
+            // Update Text with typing effect
+            quizElements.text.innerHTML = `// QUERY_ID_${(currentQuestion + 1).toString().padStart(2, '0')}<br>${q.q}`;
+            
+            // Update Options
+            quizElements.options.innerHTML = '';
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `> ${opt.text}`;
+                btn.onclick = () => handleAnswer(opt.weight);
+                // Add staggered animation
+                btn.style.animation = `fadeIn 0.3s forwards ${index * 0.1}s`;
+                btn.style.opacity = '0';
+                quizElements.options.appendChild(btn);
+            });
+
+            // Update Progress
+            const progress = ((currentQuestion) / questions.length) * 100;
+            quizElements.progressFill.style.width = `${progress}%`;
+            quizElements.progressText.innerText = `${currentQuestion}/${questions.length}`;
+        }
+
+        function handleAnswer(weight) {
+            totalScore += weight;
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                // Small delay for smooth transition
+                setTimeout(loadQuestion, 300);
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            switchScreen('processing');
+            runProcessingAnimation();
+        }
+
+        // =========================================
+        // 5. PROCESSING ANIMATION
+        // =========================================
+        function runProcessingAnimation() {
+            const logContainer = document.getElementById('terminal-log');
+            const logs = [
+                "> Aggregating input vectors...",
+                "> Calculating stack overflow risk...",
+                "> Analyzing caffeine to blood ratio...",
+                "> Checking for memory leaks (Human)...",
+                "> Running heuristic model v4.2...",
+                "> Optimizing result set..."
+            ];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i >= logs.length) {
+                    clearInterval(interval);
+                    setTimeout(showResults, 1000);
+                    return;
+                }
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerText = logs[i];
+                logContainer.appendChild(div);
+                i++;
+            }, 600);
+        }
+
+        // =========================================
+        // 6. RESULT LOGIC
+        // =========================================
+        function showResults() {
+            switchScreen('result');
+            resultElements.card.classList.add('active');
+
+            // Calculate Percentage (0-100)
+            // Lower is better (Low Stress), Higher is worse (High Stress)
+            const percentage = Math.round((totalScore / maxPossibleScore) * 100);
+            
+            // Animate Gauge
+            const circumference = 440; // 2 * PI * 70
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            // Color determination
+            let color = '#00ff9d'; // Green
+            let status = "SYSTEM OPTIMAL";
+            let desc = "Your stress levels are within normal operating parameters. Maintain current protocols.";
+
+            if (percentage > 40) {
+                color = '#ffcc00'; // Yellow
+                status = "MODERATE LOAD";
+                desc = "Detecting increased pressure on the system. Consider implementing refactoring (breaks) soon.";
+            }
+            if (percentage > 70) {
+                color = '#ff0055'; // Red
+                status = "CRITICAL FAILURE";
+                desc = "System overload imminent. Immediate intervention required to prevent total crash.";
+            }
+
+            // Update UI
+            setTimeout(() => {
+                resultElements.gauge.style.stroke = color;
+                resultElements.gauge.style.strokeDashoffset = offset;
+                
+                // Count up number
+                let start = 0;
+                const counter = setInterval(() => {
+                    if (start >= percentage) clearInterval(counter);
+                    else {
+                        start++;
+                        resultElements.score.innerText = start;
+                    }
+                }, 20);
+
+                resultElements.title.innerText = status;
+                resultElements.title.style.color = color;
+                resultElements.desc.innerText = desc;
+
+                generateRecommendations(percentage);
+            }, 500);
+        }
+
+        function generateRecommendations(score) {
+            let recs = [];
+            if (score < 40) {
+                recs = [
+                    { icon: "✓", text: "Keep up the great work-life balance." },
+                    { icon: "✓", text: "Consider mentoring juniors to maintain flow." }
+                ];
+            } else if (score < 70) {
+                recs = [
+                    { icon: "!", text: "Enforce a 'No Meetings' day weekly." },
+                    { icon: "!", text: "Automate repetitive tasks to save mental energy." },
+                    { icon: "!", text: "Increase hydration and screen breaks." }
+                ];
+            } else {
+                recs = [
+                    { icon: "X", text: "CRITICAL: Take PTO immediately if possible." },
+                    { icon: "X", text: "Disable notifications after 6 PM." },
+                    { icon: "X", text: "Sleep 8 hours minimum (Non-negotiable)." },
+                    { icon: "X", text: "Speak to HR or a manager about workload." }
+                ];
+            }
+
+            resultElements.recList.innerHTML = recs.map(r => `
+                <div class="rec-item">
+                    <div class="rec-icon">${r.icon}</div>
+                    <div class="rec-text">${r.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function restartApp() {
+            currentQuestion = 0;
+            totalScore = 0;
+            resultElements.card.classList.remove('active');
+            setTimeout(() => {
+                switchScreen('start');
+            }, 500);
+        }
+
+        // =========================================
+        // 7. BACKGROUND ANIMATIONS (Canvas)
+        // =========================================
+        
+        // Canvas 1: Circuit Board
+        const c1 = document.getElementById('circuit-canvas');
+        const ctx1 = c1.getContext('2d');
+        let cw = c1.width = window.innerWidth;
+        let ch = c1.height = window.innerHeight;
+        let points = [];
+        
+        // Circuit Points
+        for(let i=0; i<60; i++) {
+            points.push({
+                x: Math.random() * cw,
+                y: Math.random() * ch,
+                vx: (Math.random()-0.5)*0.5,
+                vy: (Math.random()-0.5)*0.5
+            });
+        }
+
+        function drawCircuits() {
+            ctx1.clearRect(0,0,cw,ch);
+            ctx1.strokeStyle = 'rgba(0, 255, 157, 0.1)';
+            ctx1.lineWidth = 1;
+
+            for(let i=0; i<points.length; i++) {
+                let p = points[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if(p.x < 0 || p.x > cw) p.vx *= -1;
+                if(p.y < 0 || p.y > ch) p.vy *= -1;
+
+                ctx1.beginPath();
+                ctx1.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx1.fillStyle = 'rgba(0, 255, 157, 0.3)';
+                ctx1.fill();
+
+                // Draw lines to close points
+                for(let j=i; j<points.length; j++) {
+                    let p2 = points[j];
+                    let dx = p.x - p2.x;
+                    let dy = p.y - p2.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if(dist < 150) {
+                        ctx1.beginPath();
+                        ctx1.moveTo(p.x, p.y);
+                        ctx1.lineTo(p2.x, p2.y);
+                        ctx1.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(drawCircuits);
+        }
+        drawCircuits();
+
+        // Canvas 2: Digital Rain (Matrix)
+        const c2 = document.getElementById('matrix-canvas');
+        const ctx2 = c2.getContext('2d');
+        c2.width = window.innerWidth;
+        c2.height = window.innerHeight;
+        
+        const chars = "010101XYZ<>/{}[]";
+        const fontSize = 14;
+        const columns = c2.width / fontSize;
+        const drops = [];
+        for(let x=0; x<columns; x++) drops[x] = 1;
+
+        function drawMatrix() {
+            ctx2.fillStyle = 'rgba(5, 5, 5, 0.05)'; // Fade trail
+            ctx2.fillRect(0, 0, c2.width, c2.height);
+            
+            ctx2.fillStyle = '#0F0'; // Green text
+            ctx2.font = fontSize + 'px monospace';
+            
+            for(let i=0; i<drops.length; i++) {
+                const text = chars[Math.floor(Math.random()*chars.length)];
+                ctx2.fillStyle = Math.random() > 0.98 ? '#fff' : '#00ff9d'; // Occasional white flicker
+                ctx2.fillText(text, i*fontSize, drops[i]*fontSize);
+                
+                if(drops[i]*fontSize > c2.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+            setTimeout(drawMatrix, 50);
+        }
+        drawMatrix();
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            cw = c1.width = window.innerWidth;
+            ch = c1.height = window.innerHeight;
+            c2.width = window.innerWidth;
+            c2.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>

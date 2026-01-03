@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Maker Assessment | NeuroCalm AI</title>
+    <meta name="description" content="A specialized stress detection assessment for housewives, understanding daily struggles in Tamil Nadu.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050508;
+            --bg-panel: rgba(15, 20, 35, 0.75);
+            --primary: #00f2ff; /* Cyan */
+            --primary-dim: rgba(0, 242, 255, 0.15);
+            --secondary: #d946ef; /* Fuchsia - Soft but vibrant */
+            --secondary-dim: rgba(217, 70, 239, 0.1);
+            --accent: #f43f5e; /* Rose - Emotional/Stress */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Hind Siliguri', sans-serif; /* Good for readability */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--secondary);
+            box-shadow: 0 0 15px var(--secondary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND
+           ========================================= */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .kolam-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Abstract geometric pattern inspired by Kolams */
+            background-image: 
+                radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-deep) 70%),
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT STRUCTURE
+           ========================================= */
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4rem 1.5rem 8rem;
+        }
+
+        .header-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        /* =========================================
+           5. CONTEXT & INTRO SECTION
+           ========================================= */
+        .intro-card {
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInUp 1s var(--ease-smooth);
+        }
+
+        .intro-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            background: rgba(217, 70, 239, 0.15);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            font-family: var(--font-tech);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
+
+        .intro-card h1 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        .intro-card p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .tamil-quote {
+            font-style: italic;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+            padding-left: 20px;
+            text-align: left;
+            margin: 2rem auto;
+            max-width: 600px;
+            background: rgba(0, 242, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+        }
+
+        /* =========================================
+           6. ASSESSMENT WIZARD
+           ========================================= */
+        .wizard-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(25px);
+            border: var(--glass-border);
+            border-radius: 30px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            width: 0%;
+            transition: width 0.5s var(--ease-smooth);
+            box-shadow: 0 0 10px var(--secondary);
+        }
+
+        /* Question Area */
+        .question-card {
+            display: none; /* Toggled via JS */
+            animation: slideIn 0.5s var(--ease-smooth);
+        }
+
+        .question-card.active {
+            display: block;
+        }
+
+        .q-number {
+            font-family: var(--font-tech);
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: block;
+            opacity: 0.7;
+        }
+
+        .q-text {
+            font-size: 2rem;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 3rem;
+            min-height: 120px; /* Maintain height */
+        }
+
+        /* Options (Likert Scale) */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 1.2rem;
+            border-radius: 12px;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-align: center;
+            transition: all 0.3s var(--ease-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            border-color: var(--secondary);
+            color: #fff;
+            background: rgba(217, 70, 239, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--secondary);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .option-btn:hover::before {
+            opacity: 1;
+        }
+
+        /* =========================================
+           7. RESULT SECTION
+           ========================================= */
+        .result-container {
+            display: none;
+            text-align: center;
+            animation: fadeIn 1s var(--ease-smooth);
+            width: 100%;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 10px solid rgba(255,255,255,0.05);
+            margin: 0 auto 2rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .score-circle::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 10px solid transparent;
+            border-top-color: var(--primary);
+            border-right-color: var(--secondary);
+            animation: spin 3s linear infinite;
+        }
+
+        .score-value {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 900;
+        }
+
+        .score-label {
+            font-family: var(--font-tech);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .result-message {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .result-desc {
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .tamil-advice {
+            background: rgba(0, 242, 255, 0.05);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tamil-advice h4 {
+            color: var(--primary);
+            font-family: var(--font-display);
+            margin-bottom: 1rem;
+        }
+
+        /* =========================================
+           8. LOADING / ANALYSIS ANIMATION
+           ========================================= */
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 8, 0.95);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .brain-scan {
+            width: 100px;
+            height: 100px;
+            position: relative;
+        }
+
+        .brain-scan::before, .brain-scan::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid transparent;
+        }
+
+        .brain-scan::before {
+            inset: 0;
+            border-top-color: var(--primary);
+            animation: spin 2s linear infinite;
+        }
+
+        .brain-scan::after {
+            inset: 10px;
+            border-bottom-color: var(--secondary);
+            animation: spin 1.5s linear infinite reverse;
+        }
+
+        .loading-text {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            margin-top: 2rem;
+            letter-spacing: 2px;
+            animation: blink 0.5s infinite;
+        }
+
+        /* =========================================
+           9. FOOTER
+           ========================================= */
+        footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: #444;
+            font-size: 0.9rem;
+            border-top: 1px solid #111;
+            padding-top: 2rem;
+            width: 100%;
+        }
+
+        /* =========================================
+           10. ANIMATIONS
+           ========================================= */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .intro-card h1 { font-size: 2rem; }
+            .wizard-container { padding: 1.5rem; }
+            .q-text { font-size: 1.4rem; }
+            .options-grid { grid-template-columns: 1fr 1fr; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="particle-canvas"></canvas>
+    <div class="kolam-grid"></div>
+
+    <div class="main-wrapper">
+        
+        <!-- Logo -->
+        <div class="header-logo">
+            NEURO<span style="color:var(--primary)">CALM</span>
+        </div>
+
+        <!-- Intro Section -->
+        <div class="intro-card reveal">
+            <span class="intro-badge">Home Makers of Tamil Nadu</span>
+            <h1>The Silent Strength of the Home</h1>
+            <p>
+                You are the engine that keeps the household running. From the early morning filter coffee to the late-night tiffins, your work is endless and often invisible. 
+                Our AI is designed to understand the unique emotional and physical load carried by housewives—balancing family, in-laws, and your own identity.
+            </p>
+            
+            <div class="tamil-quote">
+                "Veettukku Veliyaa Vaa..." (A cry for personal space, often unheard.)
+                <br><br>
+                <small style="color:var(--text-muted)">This assessment analyzes your emotional load, not just your "mood".</small>
+            </div>
+
+            <button class="btn-start" style="
+                background: var(--primary); color: #000; border: none; 
+                padding: 1rem 3rem; font-family: var(--font-display); 
+                font-weight: 700; font-size: 1.1rem; border-radius: 50px; 
+                text-transform: uppercase; letter-spacing: 2px; 
+                box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+                transition: 0.3s;
+            " onclick="startAssessment()" data-hover>
+                Begin Analysis
+            </button>
+        </div>
+
+        <!-- Wizard / Assessment Container -->
+        <div class="wizard-container reveal" id="assessment-box">
+            
+            <!-- Progress Bar -->
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-bar"></div>
+            </div>
+
+            <!-- Loading Screen -->
+            <div class="loading-overlay" id="loading-screen">
+                <div class="brain-scan"></div>
+                <div class="loading-text">ANALYZING NEURAL PATTERNS...</div>
+            </div>
+
+            <!-- Questions Container -->
+            <div id="questions-wrapper">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Result Container -->
+            <div class="result-container" id="result-box">
+                <div class="score-circle">
+                    <div class="score-value" id="final-score">0</div>
+                    <div class="score-label">Stress Index</div>
+                </div>
+                
+                <h2 class="result-message" id="result-heading">Analysis Complete</h2>
+                <p class="result-desc" id="result-desc">Your data has been processed.</p>
+
+                <div class="tamil-advice">
+                    <h4>Personalized Advice</h4>
+                    <p id="advice-text">Based on your inputs...</p>
+                </div>
+
+                <button class="btn-start" style="margin-top:2rem; background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 0.8rem 2rem; border-radius: 50px; font-family: var(--font-tech);" onclick="location.reload()">
+                    Re-Assess
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2023 NeuroCalm AI. Empowering Women through Technology.</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA: 20 QUESTIONS (Tamil Nadu Context)
+        // =========================================
+        const questions = [
+            { text: "Do you feel physically exhausted by the time you finish your morning kitchen duties (filter coffee, tiffin, packing lunch boxes)?", category: "Physical" },
+            { text: "Do you feel that your opinions in household decisions are often overlooked or dismissed by family members?", category: "Voice" },
+            { text: "Do you constantly worry about 'what others will say' regarding your home management or children?", category: "Social" },
+            { text: "Do you miss having 'time for yourself' (to read, sleep, or just breathe) without interruption?", category: "Identity" },
+            { text: "Do you feel anxious about pleasing your in-laws (Mamiyar/Machinan) to avoid conflicts?", category: "Family" },
+            { text: "Does your husband offer genuine help with household chores without being asked?", category: "Support" }, // Reverse scoring logic needed in reality, but here we sum "stress points".
+            { text: "Are you worried about your children's grades and feel solely responsible for their academic performance?", category: "Parenting" },
+            { text: "Do you eat leftovers or rush your meals while feeding the family fresh food?", category: "Self-Care" },
+            { text: "Do you feel isolated when you see other women going to work or pursuing careers?", category: "Comparison" },
+            { text: "Do you struggle financially because you don't have an independent income source?", category: "Security" },
+            { text: "Do you hide your tears or frustration behind a smile to keep the house 'peaceful'?", category: "Emotional" },
+            { text: "Do you feel that your life is revolving entirely around others' needs and schedules?", category: "Burnout" },
+            { text: "Do you dread the extra work during festivals (Kolam, cooking, cleaning) while others enjoy?", category: "Festival" },
+            { text: "Do you feel guilty when you say 'No' to a family request?", category: "Guilt" },
+            { text: "Are you losing interest in hobbies or passions you had before marriage?", category: "Identity" },
+            { text: "Do you suffer from physical ailments (back pain, thyroid, headaches) that you ignore?", category: "Physical" },
+            { text: "Do you feel judged by neighbors or relatives for your appearance or lifestyle?", category: "Social" },
+            { text: "Do you feel your husband does not understand the mental load of running the house?", category: "Support" },
+            { text: "Do you feel a sense of hopelessness or lack of purpose in your daily routine?", category: "Existential" }
+        ];
+
+        let currentQIndex = 0;
+        let totalScore = 0;
+        const answers = {}; // Store answers for complex logic if needed
+
+        // =========================================
+        // 2. CUSTOM CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover], .option-btn, button').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 3. CANVAS ANIMATION (Floating Embers)
+        // =========================================
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.color = Math.random() > 0.5 ? 'rgba(217, 70, 239, 0.3)' : 'rgba(0, 242, 255, 0.3)'; // Purple/Cyan
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if(this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if(this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        for(let i=0; i<50; i++) particles.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => p.update());
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // =========================================
+        // 4. ASSESSMENT LOGIC
+        // =========================================
+        function startAssessment() {
+            document.querySelector('.intro-card').style.display = 'none';
+            document.getElementById('assessment-box').style.display = 'flex';
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('questions-wrapper');
+            container.innerHTML = ''; // Clear previous
+
+            const qData = questions[currentQIndex];
+            
+            // Update Progress Bar
+            const progressPct = ((currentQIndex) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPct}%`;
+
+            // Create Card
+            const card = document.createElement('div');
+            card.className = 'question-card active';
+            card.innerHTML = `
+                <span class="q-number">QUESTION ${currentQIndex + 1} / ${questions.length}</span>
+                <div class="q-text">${qData.text}</div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="handleAnswer(1)">Strongly Disagree</div>
+                    <div class="option-btn" onclick="handleAnswer(2)">Disagree</div>
+                    <div class="option-btn" onclick="handleAnswer(3)">Neutral</div>
+                    <div class="option-btn" onclick="handleAnswer(4)">Agree</div>
+                    <div class="option-btn" onclick="handleAnswer(5)">Strongly Agree</div>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        function handleAnswer(score) {
+            totalScore += score;
+            
+            // Visual transition
+            const container = document.getElementById('questions-wrapper');
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                currentQIndex++;
+                if (currentQIndex < questions.length) {
+                    renderQuestion();
+                    container.style.opacity = '1';
+                } else {
+                    finishAssessment();
+                }
+            }, 300);
+        }
+
+        function finishAssessment() {
+            document.getElementById('questions-wrapper').style.display = 'none';
+            document.getElementById('loading-screen').style.display = 'flex';
+            document.getElementById('progress-bar').style.width = '100%';
+
+            // Fake processing delay
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                showResults();
+            }, 3000);
+        }
+
+        function showResults() {
+            const resultBox = document.getElementById('result-box');
+            resultBox.style.display = 'block';
+            
+            const maxScore = questions.length * 5; // 100
+            const stressPercentage = Math.round((totalScore / maxScore) * 100);
+            
+            // Animate Score
+            const scoreVal = document.getElementById('final-score');
+            let currentDisplay = 0;
+            const interval = setInterval(() => {
+                currentDisplay++;
+                scoreVal.innerText = stressPercentage;
+                if (currentDisplay >= stressPercentage) clearInterval(interval);
+            }, 20);
+
+            // Determine Result Text
+            const heading = document.getElementById('result-heading');
+            const desc = document.getElementById('result-desc');
+            const advice = document.getElementById('advice-text');
+            const circle = document.querySelector('.score-circle');
+
+            if (stressPercentage < 40) {
+                heading.innerText = "Manageable Stress";
+                heading.style.color = "var(--success)";
+                desc.innerText = "You are managing your responsibilities well. While life is busy, you seem to have found a balance that works for you.";
+                advice.innerHTML = "<strong>Udan Pirappu (New Beginning):</strong> Maintain this balance. However, remember that asking for help is not a weakness. Take time for your hobbies.";
+                circle.style.borderColor = "var(--success)";
+            } else if (stressPercentage < 70) {
+                heading.innerText = "Elevated Stress";
+                heading.style.color = "var(--warning)";
+                desc.innerText = "You are carrying a heavy load. The demands of family and society are starting to weigh on you mentally.";
+                advice.innerHTML = "<strong>Kavalai Padatha (Don't Worry):</strong> It's okay to slow down. Talk to your husband about sharing the kitchen load. Set boundaries with in-laws. Your mental health is as important as the family's.";
+                circle.style.borderColor = "var(--warning)";
+            } else {
+                heading.innerText = "Critical Stress Level";
+                heading.style.color = "var(--accent)";
+                desc.innerText = "You are on the edge of burnout. You have been suppressing your emotions for too long.";
+                advice.innerHTML = "<strong>Kangal Irukkanum (You must have the strength):</strong> Please prioritize yourself immediately. Seek a support group or a counselor. Do not be a 'good wife' at the cost of your own happiness. Break the cycle of silence.";
+                circle.style.borderColor = "var(--accent)";
+            }
+        }
+
+        // Reveal Animation helper
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroHarmony | Musician's Stress Protocol</title>
+    <meta name="description" content="AI-powered stress detection and management designed specifically for musicians, performers, and audio professionals.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050507;
+            --bg-panel: rgba(15, 10, 25, 0.7);
+            --primary: #00f2ff; /* Cyan Neon */
+            --secondary: #bd00ff; /* Purple Neon */
+            --accent: #ff0055; /* Pink/Red Neon */
+            --musical-gold: #ffd700; /* Gold for musical theme */
+            --success: #00ff88;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--musical-gold);
+            box-shadow: 0 0 10px var(--musical-gold);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(189, 0, 255, 0.1);
+            border-color: var(--musical-gold);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND & MUSICAL FX
+           ========================================= */
+        #audio-wave-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .floating-notes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .note {
+            position: absolute;
+            font-size: 1.5rem;
+            color: rgba(255, 215, 0, 0.2); /* Faint Gold */
+            animation: floatNote linear infinite;
+            font-family: serif;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 215, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 215, 0, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 90%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.3s;
+            background: rgba(5, 5, 7, 0.5);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span { color: var(--musical-gold); }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--musical-gold);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after { width: 100%; }
+
+        /* =========================================
+           5. HERO SECTION (The "Start" Button)
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            padding-top: 100px;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            padding: 0 2rem;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--musical-gold);
+            color: var(--musical-gold);
+            border-radius: 50px;
+            font-family: var(--font-tech);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: rgba(255, 215, 0, 0.05);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* The Start Button */
+        .start-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.2rem 4rem;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #000;
+            background: var(--musical-gold);
+            border: none;
+            border-radius: 50px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s var(--ease-elastic);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            z-index: 2;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: 0.5s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            background: #fff;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.6);
+            color: var(--bg-dark);
+        }
+
+        .start-btn:hover::before { left: 100%; }
+
+        /* =========================================
+           6. SECTIONS (Split Layouts)
+           ========================================= */
+        section {
+            padding: 8rem 2rem;
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: center;
+        }
+
+        .content-side h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .content-side h2 span { color: var(--secondary); }
+
+        .content-side p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .visual-side {
+            position: relative;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Equalizer Visual CSS */
+        .equalizer {
+            display: flex;
+            gap: 10px;
+            height: 200px;
+            align-items: flex-end;
+        }
+
+        .bar {
+            width: 15px;
+            background: linear-gradient(to top, var(--secondary), var(--primary));
+            border-radius: 5px 5px 0 0;
+            animation: equalize 1s infinite ease-in-out alternate;
+        }
+
+        /* Vinyl Record Animation */
+        .vinyl-record {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle, #111 10%, #222 11%, #111 12%, #333 50%, #111 51%, #222 100%);
+            border: 2px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            position: relative;
+            animation: spin 4s linear infinite;
+        }
+        
+        .vinyl-label {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px; height: 100px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-family: var(--font-tech);
+        }
+
+        /* =========================================
+           7. INTERACTIVE DEMO AREA
+           ========================================= */
+        .demo-console {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .console-screen {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 10px;
+            height: 200px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            color: var(--success);
+            font-size: 1.5rem;
+            position: relative;
+        }
+        
+        .scan-line {
+            position: absolute;
+            width: 100%; height: 5px;
+            background: rgba(0, 242, 255, 0.5);
+            top: 0; left: 0;
+            animation: scanMove 2s infinite linear;
+        }
+
+        .console-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .control-btn:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .control-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        /* =========================================
+           8. ANIMATIONS KEYFRAMES
+           ========================================= */
+        @keyframes floatNote {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes scanMove { 0% { top: 0; } 100% { top: 100%; } }
+
+        @keyframes equalize {
+            0% { height: 10%; }
+            100% { height: 100%; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: 1s var(--ease-smooth);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* =========================================
+           9. RESPONSIVE
+           ========================================= */
+        @media (max-width: 968px) {
+            .split-layout { grid-template-columns: 1fr; text-align: center; }
+            .hero h1 { font-size: 3rem; }
+            .nav-links { display: none; }
+            .visual-side { margin-top: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <div class="grid-bg"></div>
+    <canvas id="audio-wave-canvas"></canvas>
+    <div class="floating-notes" id="notes-container">
+        <!-- Notes injected by JS -->
+    </div>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--musical-gold)">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+            Neuro<span>Calm</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/category" data-hover>Categories</a></li>
+            <li><a href="/register" data-hover>Join</a></li>
+            <li><a href="/login" data-hover>Login</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="badge">Musician Protocol v2.0</div>
+            <h1>Harmonize Your <br><span style="color:var(--primary)">Mental Rhythm</span></h1>
+            <p>From backstage jitters to tour fatigue. NeuroCalm AI calibrates your stress response to ensure you perform at your peak, every single note.</p>
+            
+            <button class="start-btn" onclick="startExperience()" data-hover>
+                <svg style="margin-right:10px; width:24px;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Start Tuning
+            </button>
+        </div>
+    </section>
+
+    <!-- Content Section 1: The Problem -->
+    <section class="split-layout">
+        <div class="content-side reveal">
+            <h2>Silence the <br><span>Stage Fright</span></h2>
+            <p>Performance anxiety is a physiological nightmare. Rapid heart rates and shallow breathing ruin timing and pitch.</p>
+            <p>Our AI detects the onset of panic 5 minutes before you feel it, using micro-expression analysis and PPG heart rate monitoring via your camera.</p>
+            <ul style="list-style: none; margin-top: 2rem; color: var(--text-muted);">
+                <li style="margin-bottom:10px;"><span style="color:var(--accent)">✖</span> Pre-show panic attacks</li>
+                <li style="margin-bottom:10px;"><span style="color:var(--accent)">✖</span> Hand tremors during solos</li>
+                <li style="margin-bottom:10px;"><span style="color:var(--accent)">✖</span> Vocal strain from tension</li>
+            </ul>
+        </div>
+        <div class="visual-side reveal">
+            <!-- Vinyl Visual -->
+            <div class="vinyl-record" id="vinyl">
+                <div class="vinyl-label">AI</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Section 2: The Solution -->
+    <section class="split-layout" style="direction: rtl;">
+        <div class="content-side reveal" style="direction: ltr;">
+            <h2>Orchestrate Your <br><span>Recovery</span></h2>
+            <p>Touring is exhausting. Irregular sleep and loud environments spike cortisol levels, leading to burnout.</p>
+            <p>NeuroCalm integrates with your schedule to suggest optimal sleep windows and guides you through frequency-based breathing exercises that sync with your music.</p>
+            <div style="margin-top:2rem; padding:1.5rem; background: rgba(255,255,255,0.05); border-left: 3px solid var(--success); border-radius: 5px;">
+                <h4 style="color:#fff; font-family:var(--font-display); margin-bottom:0.5rem;">Feature: Sonic Resonance</h4>
+                <p style="margin:0; font-size:0.9rem;">AI generates binaural beats specifically tuned to counteract the frequency of your current stress hormones.</p>
+            </div>
+        </div>
+        <div class="visual-side reveal">
+            <!-- Equalizer Visual -->
+            <div class="equalizer">
+                <div class="bar" style="animation-duration: 0.8s"></div>
+                <div class="bar" style="animation-duration: 1.2s"></div>
+                <div class="bar" style="animation-duration: 0.5s"></div>
+                <div class="bar" style="animation-duration: 1.5s"></div>
+                <div class="bar" style="animation-duration: 0.9s"></div>
+                <div class="bar" style="animation-duration: 1.1s"></div>
+                <div class="bar" style="animation-duration: 0.7s"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Demo Section -->
+    <section class="reveal">
+        <div style="text-align: center; margin-bottom: 4rem;">
+            <h2 style="font-family: var(--font-display); font-size: 2.5rem;">Try The <span style="color:var(--primary)">Bio-Sync</span></h2>
+            <p style="color: var(--text-muted);">Simulate a pre-show calibration routine.</p>
+        </div>
+
+        <div class="demo-console">
+            <div class="console-screen" id="console-output">
+                <div class="scan-line"></div>
+                <span id="output-text">SYSTEM READY...</span>
+            </div>
+            <div class="console-controls">
+                <button class="control-btn" onclick="runDemo('calm')" data-hover>Breathing: 4-7-8</button>
+                <button class="control-btn" onclick="runDemo('focus')" data-hover>Deep Focus Mode</button>
+                <button class="control-btn" onclick="runDemo('reset')" data-hover>Reset Baseline</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="border-top: 1px solid #111; padding: 4rem 2rem; text-align: center; position: relative; z-index: 10; background: #020203;">
+        <p style="color: #555;">&copy; 2023 NeuroCalm AI. Designed for the Artist.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. MUSICAL NOTES GENERATOR
+        // =========================================
+        const notesContainer = document.getElementById('notes-container');
+        const noteSymbols = ['♪', '♫', '♬', '♩', '♭', '♯'];
+
+        function createNote() {
+            const note = document.createElement('div');
+            note.classList.add('note');
+            note.innerText = noteSymbols[Math.floor(Math.random() * noteSymbols.length)];
+            note.style.left = Math.random() * 100 + 'vw';
+            note.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+            note.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            note.style.opacity = Math.random() * 0.3 + 0.1;
+            
+            notesContainer.appendChild(note);
+
+            // Cleanup
+            setTimeout(() => {
+                note.remove();
+            }, 20000);
+        }
+
+        // Create notes periodically
+        setInterval(createNote, 500);
+
+        // =========================================
+        // 3. AUDIO WAVE BACKGROUND (CANVAS)
+        // =========================================
+        const canvas = document.getElementById('audio-wave-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let width = canvas.width;
+        let height = canvas.height;
+        let waves = [];
+        let waveOffset = 0;
+
+        // Wave settings
+        const waveCount = 3;
+        for (let i = 0; i < waveCount; i++) {
+            waves.push({
+                y: height / 2,
+                length: 0.005 + (i * 0.002),
+                amplitude: 50 + (i * 20),
+                speed: 0.01 + (i * 0.005),
+                color: i === 0 ? 'rgba(255, 215, 0, 0.2)' : (i === 1 ? 'rgba(0, 242, 255, 0.2)' : 'rgba(189, 0, 255, 0.2)')
+            });
+        }
+
+        // Mouse interaction
+        let mouse = { x: 0, y: 0 };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function animateWaves() {
+            ctx.clearRect(0, 0, width, height);
+            waveOffset += 0.02;
+
+            waves.forEach((wave, i) => {
+                ctx.beginPath();
+                ctx.moveTo(0, height / 2);
+
+                for (let x = 0; x < width; x++) {
+                    // Combine sine wave with mouse influence
+                    let dist = Math.abs(x - mouse.x);
+                    let influence = Math.max(0, 1 - dist / 500);
+                    
+                    let y = wave.y + Math.sin(x * wave.length + waveOffset + i) * wave.amplitude;
+                    
+                    // Add mouse distortion
+                    if (influence > 0) {
+                        y += (mouse.y - height/2) * influence * 0.5;
+                    }
+
+                    ctx.lineTo(x, y);
+                }
+
+                ctx.strokeStyle = wave.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            requestAnimationFrame(animateWaves);
+        }
+
+        animateWaves();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            waves.forEach(w => w.y = height / 2);
+        });
+
+        // =========================================
+        // 4. START BUTTON & DEMO LOGIC
+        // =========================================
+        const consoleOutput = document.getElementById('output-text');
+        const vinyl = document.getElementById('vinyl');
+
+        function startExperience() {
+            // Scroll to demo
+            document.querySelector('.demo-console').scrollIntoView({ behavior: 'smooth' });
+            
+            // Initial Visual Effect
+            consoleOutput.innerHTML = "INITIALIZING SYNC...";
+            consoleOutput.style.color = "var(--musical-gold)";
+            
+            setTimeout(() => {
+                consoleOutput.innerHTML = "CONNECTING TO BIOMETRICS...";
+                vinyl.style.animationDuration = "0.5s"; // Speed up vinyl
+            }, 1000);
+            window.location.href = "/musician_ques"; 
+        }
+
+        function runDemo(type) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (type === 'calm') {
+                consoleOutput.innerHTML = "BREATHING: INHALE (4s)...";
+                consoleOutput.style.color = "var(--success)";
+                vinyl.style.animationDuration = "10s"; // Slow down
+                vinyl.style.boxShadow = "0 0 50px var(--success)";
+                
+                setTimeout(() => consoleOutput.innerHTML = "BREATHING: HOLD (7s)...", 2000);
+                setTimeout(() => consoleOutput.innerHTML = "BREATHING: EXHALE (8s)...", 7000);
+
+            } else if (type === 'focus') {
+                consoleOutput.innerHTML = "BRAINWAVES: BETA TO GAMMA";
+                consoleOutput.style.color = "var(--primary)";
+                vinyl.style.animationDuration = "2s"; // Fast
+                vinyl.style.boxShadow = "0 0 50px var(--primary)";
+
+            } else if (type === 'reset') {
+                consoleOutput.innerHTML = "SYSTEM READY";
+                consoleOutput.style.color = "#fff";
+                vinyl.style.animationDuration = "4s"; // Normal
+                vinyl.style.boxShadow = "0 0 30px rgba(0,0,0,0.8)";
+                document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            }
+        }
+
+        // =========================================
+        // 5. SCROLL REVEAL
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>

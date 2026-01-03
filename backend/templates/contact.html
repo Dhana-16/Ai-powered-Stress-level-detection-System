@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Establish Uplink | NeuroCalm AI</title>
+    <meta name="description" content="Contact the NeuroCalm AI support team and neural architects.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #030305;
+            --bg-panel: rgba(12, 18, 30, 0.75);
+            --primary: #00f2ff; /* Cyan Neon */
+            --primary-glow: rgba(0, 242, 255, 0.4);
+            --secondary: #bd00ff; /* Purple Neon */
+            --secondary-glow: rgba(189, 0, 255, 0.4);
+            --accent: #ff0055; /* Red/Pink */
+            --success: #00ff88;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR SYSTEM
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--secondary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(189, 0, 255, 0.1);
+            border-color: var(--primary);
+            mix-blend-mode: screen;
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND (CONSTELLATION)
+           ========================================= */
+        #constellation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.3s;
+        }
+
+        nav.scrolled {
+            background: rgba(3, 3, 5, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 1rem 4rem;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span { color: var(--primary); }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 0 2rem;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(180deg, #fff, #8892b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+        }
+
+        .btn-glow {
+            padding: 1rem 3rem;
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+            display: inline-block;
+        }
+
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: 0.4s;
+            z-index: -1;
+        }
+
+        .btn-glow:hover::before {
+            left: 0;
+        }
+
+        .btn-glow:hover {
+            color: #000;
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        /* =========================================
+           6. CONTACT FORM (THE UPLINK)
+           ========================================= */
+        .contact-section {
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        .uplink-container {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 4rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .info-panel {
+            padding-top: 2rem;
+        }
+
+        .info-item {
+            margin-bottom: 3rem;
+            padding-left: 2rem;
+            border-left: 2px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+        }
+
+        .info-item:hover {
+            border-left-color: var(--secondary);
+            padding-left: 2.5rem;
+        }
+
+        .info-item h3 {
+            font-family: var(--font-display);
+            color: #fff;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-item p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .social-grid {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .social-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 242, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        /* 3D Form Card */
+        .form-wrapper {
+            perspective: 1000px;
+        }
+
+        .holo-form {
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            transform-style: preserve-3d;
+            transition: transform 0.1s;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .holo-form::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            z-index: -1;
+        }
+
+        .form-header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+
+        .form-header h2 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        textarea.input-field {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--secondary);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: none;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
+        }
+
+        /* =========================================
+           7. DIAGNOSTIC CHECKLIST (INTERACTIVE)
+           ========================================= */
+        .diagnostic-section {
+            padding: 6rem 2rem;
+            background: linear-gradient(to bottom, transparent, rgba(0, 242, 255, 0.02), transparent);
+            position: relative;
+            z-index: 10;
+        }
+
+        .diag-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .diag-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+
+        .diag-item:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--accent);
+        }
+
+        .diag-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--text-muted);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+        }
+
+        .diag-item.active .diag-check {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .diag-item.active h4 {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .diag-content h4 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 0.2rem;
+        }
+
+        .diag-content p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* =========================================
+           8. FAQ & OFFICES (LONG CONTENT)
+           ========================================= */
+        .content-blocks {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            z-index: 10;
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .faq-item {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: none;
+            font-weight: 600;
+            color: #fff;
+            transition: 0.3s;
+        }
+
+        .faq-question:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--primary);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .faq-answer p {
+            padding: 0 1.5rem 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .faq-item.open .faq-answer {
+            max-height: 200px;
+        }
+
+        /* Office Cards */
+        .office-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            transition: 0.3s;
+        }
+
+        .office-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary);
+        }
+
+        .office-card h3 {
+            color: var(--primary);
+            font-family: var(--font-display);
+            margin-bottom: 1rem;
+        }
+
+        .office-card ul {
+            list-style: none;
+            color: var(--text-muted);
+        }
+
+        .office-card li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* =========================================
+           9. FOOTER
+           ========================================= */
+        footer {
+            background: #020203;
+            padding: 5rem 2rem 2rem;
+            border-top: 1px solid #111;
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-col h4 {
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-family: var(--font-display);
+        }
+
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 0.8rem; }
+        .footer-col ul li a { color: var(--text-muted); text-decoration: none; transition: 0.3s; }
+        .footer-col ul li a:hover { color: var(--primary); padding-left: 5px; }
+
+        .copyright {
+            text-align: center;
+            color: #444;
+            font-family: var(--font-mono);
+            border-top: 1px solid #111;
+            padding-top: 2rem;
+        }
+
+        /* =========================================
+           10. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 968px) {
+            .hero h1 { font-size: 3rem; }
+            .uplink-container, .content-blocks { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background -->
+    <canvas id="constellation-canvas"></canvas>
+    <div class="grid-bg"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="index.html" class="logo">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NEURO<span>CALM</span>
+        </a>
+        <div class="nav-links">
+            <a href="/index" data-hover>Home</a>
+            <a href="/category" data-hover>Categories</a>
+            <a href="/register" data-hover>Access</a>
+            <a href="/contact" style="color: var(--primary);" data-hover>Contact</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content reveal">
+            <h1>ESTABLISH UPLINK</h1>
+            <p>Connect with our Neural Support Team. Whether you need technical assistance, partnership details, or have feedback on the AI detection algorithm, we are listening.</p>
+            <a href="#contact-form" class="btn-glow" data-hover>Initialize Contact</a>
+        </div>
+    </section>
+
+    <!-- Main Contact Form -->
+    <section id="contact-form" class="contact-section">
+        <div class="uplink-container">
+            <!-- Left: Info -->
+            <div class="info-panel reveal">
+                <div class="info-item">
+                    <h3>Direct Frequency</h3>
+                    <p>+1 (555) 019-2834</p>
+                    <p>Mon-Fri, 9am - 6pm EST</p>
+                </div>
+                <div class="info-item">
+                    <h3>Secure Uplink</h3>
+                    <p>uplink@neurocalm.ai</p>
+                    <p>support@neurocalm.ai</p>
+                </div>
+                <div class="info-item">
+                    <h3>Neural Hub</h3>
+                    <p>1010 Cyber Avenue, Sector 7<br>San Francisco, CA 94105</p>
+                </div>
+
+                <div style="margin-top: 4rem;">
+                    <h4 style="font-family: var(--font-display); margin-bottom: 1rem;">Follow the Network</h4>
+                    <div class="social-grid">
+                        <a href="#" class="social-btn" data-hover>TW</a>
+                        <a href="#" class="social-btn" data-hover>LI</a>
+                        <a href="#" class="social-btn" data-hover>IG</a>
+                        <a href="#" class="social-btn" data-hover>GH</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: 3D Form -->
+            <div class="form-wrapper reveal">
+                <form class="holo-form" id="tilt-card" onsubmit="event.preventDefault(); alert('Transmission Sent Successfully.');">
+                    <div class="form-header">
+                        <h2>Data Transmission</h2>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Please fill all required fields.</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <input type="text" class="input-field" placeholder="Identity Name" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" class="input-field" placeholder="Subject / Protocol">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="email" class="input-field" placeholder="Uplink Address (Email)" required>
+                    </div>
+
+                    <div class="input-group">
+                        <textarea class="input-field" placeholder="Enter your message data here..." required></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <select class="input-field" style="color: #aaa;">
+                            <option>Select Inquiry Type...</option>
+                            <option>Technical Support</option>
+                            <option>Billing & Accounts</option>
+                            <option>Research Partnership</option>
+                            <option>Bug Report</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="submit-btn" data-hover>Transmit Data</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Diagnostic -->
+    <section class="diagnostic-section">
+        <div class="diag-container">
+            <h2 class="section-title reveal">Pre-Contact Diagnostic</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 3rem;" class="reveal">Before contacting support, please check if your issue matches these common system nodes.</p>
+            
+            <div class="diag-item reveal" onclick="toggleDiag(this)" data-hover>
+                <div class="diag-check"></div>
+                <div class="diag-content">
+                    <h4>Cannot Access Biometric Feed</h4>
+                    <p>Ensure your camera permissions are enabled and browser is updated.</p>
+                </div>
+            </div>
+            <div class="diag-item reveal" onclick="toggleDiag(this)" data-hover>
+                <div class="diag-check"></div>
+                <div class="diag-content">
+                    <h4>Stress Score Seems Inaccurate</h4>
+                    <p>Recalibrate your category settings in the assessment module.</p>
+                </div>
+            </div>
+            <div class="diag-item reveal" onclick="toggleDiag(this)" data-hover>
+                <div class="diag-check"></div>
+                <div class="diag-content">
+                    <h4>App Lagging / Slow Performance</h4>
+                    <p>Check your internet connection latency and close heavy background processes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ & Offices -->
+    <section class="content-blocks">
+        <!-- FAQ -->
+        <div class="faq-column reveal">
+            <h2 class="section-title" style="text-align: left;">System FAQs</h2>
+            
+            <div class="faq-item" onclick="toggleFaq(this)" data-hover>
+                <div class="faq-question">
+                    <span>How does the AI analyze stress?</span>
+                    <span style="font-size: 1.5rem;">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Our AI uses rPPG (Remote Photoplethysmography) to detect subtle color changes in your skin caused by blood flow, combined with facial micro-expression analysis.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)" data-hover>
+                <div class="faq-question">
+                    <span>Is my biometric data secure?</span>
+                    <span style="font-size: 1.5rem;">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Absolutely. All processing is done locally in your browser via WebAssembly. No raw video or facial data leaves your device.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)" data-hover>
+                <div class="faq-question">
+                    <span>Can I integrate with my fitness tracker?</span>
+                    <span style="font-size: 1.5rem;">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Yes, our Synchronizer plan offers API access to sync with Apple Health, Google Fit, and Garmin devices.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Offices -->
+        <div class="office-column reveal">
+            <h2 class="section-title" style="text-align: left;">Global Nodes</h2>
+            
+            <div class="office-card">
+                <h3>North America</h3>
+                <ul>
+                    <li>📍 San Francisco, CA (HQ)</li>
+                    <li>📍 New York, NY</li>
+                    <li>📍 Toronto, Canada</li>
+                </ul>
+            </div>
+
+            <div class="office-card">
+                <h3>Europe</h3>
+                <ul>
+                    <li>📍 London, UK</li>
+                    <li>📍 Berlin, Germany</li>
+                    <li>📍 Dublin, Ireland</li>
+                </ul>
+            </div>
+
+            <div class="office-card">
+                <h3>Asia Pacific</h3>
+                <ul>
+                    <li>📍 Tokyo, Japan</li>
+                    <li>📍 Singapore</li>
+                    <li>📍 Bangalore, India</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <a href="#" class="logo" style="margin-bottom: 1rem; display: inline-block;">NEURO<span>CALM</span></a>
+                <p style="color: var(--text-muted); line-height: 1.6;">Revolutionizing mental health monitoring through advanced artificial intelligence and biometric analysis.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="#">Technology</a></li>
+                    <li><a href="#">Security</a></li>
+                    <li><a href="#">API Docs</a></li>
+                    <li><a href="#">Status</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Press</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2023 NeuroCalm AI. All rights reserved. System Status: OPTIMAL.
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        // =========================================
+        // 1. CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. CONSTELLATION CANVAS ANIMATION
+        // =========================================
+        const canvas = document.getElementById('constellation-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() * 1) - 0.5;
+                this.speedY = (Math.random() * 1) - 0.5;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Wall collision
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+
+                // Mouse interaction
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < mouse.radius) {
+                    const forceDirectionX = dx / distance;
+                    const forceDirectionY = dy / distance;
+                    const force = (mouse.radius - distance) / mouse.radius;
+                    const directionX = forceDirectionX * force * 3; // Push strength
+                    const directionY = forceDirectionY * force * 3;
+                    
+                    this.x -= directionX;
+                    this.y -= directionY;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const numberOfParticles = (canvas.width * canvas.height) / 15000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                // Connect lines
+                for (let j = i; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance/100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        initParticles();
+        animate();
+
+        // =========================================
+        // 3. 3D FORM TILT
+        // =========================================
+        const card = document.getElementById('tilt-card');
+        const container = document.querySelector('.form-wrapper');
+
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * -5;
+            const rotateY = ((x - centerX) / centerX) * 5;
+
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        container.addEventListener('mouseleave', () => {
+            card.style.transform = `rotateX(0) rotateY(0)`;
+        });
+
+        // =========================================
+        // 4. INTERACTION LOGIC
+        // =========================================
+        function toggleDiag(el) {
+            el.classList.toggle('active');
+        }
+
+        function toggleFaq(el) {
+            // Close others
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if(item !== el) item.classList.remove('open');
+            });
+            el.classList.toggle('open');
+            
+            const icon = el.querySelector('.faq-question span:last-child');
+            icon.innerText = el.classList.contains('open') ? '-' : '+';
+        }
+
+        // =========================================
+        // 5. SCROLL & NAVBAR
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if(window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+    </script>
+</body>
+</html>

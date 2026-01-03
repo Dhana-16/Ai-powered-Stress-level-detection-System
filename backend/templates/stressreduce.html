@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanctuary Mode | Stress Reduction System</title>
+    <meta name="description" content="AI-powered stress reduction, breathing exercises, and mindfulness tools.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & THEME SETUP
+           ========================================= */
+        :root {
+            /* Calm / Nature Palette */
+            --bg-sky-top: #2b5876;
+            --bg-sky-bot: #4e4376;
+            --grass-light: #76b852;
+            --grass-dark: #8DC26F;
+            --glass-white: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #ffffff;
+            --text-dark: #1a2a3a;
+            
+            /* Accent Colors */
+            --primary: #00d2ff; /* Tech Blue */
+            --accent: #ff9a9e;  /* Soft Pink */
+            --success: #a8ff78; /* Leaf Green */
+            
+            /* Typography */
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Quicksand', sans-serif;
+            
+            /* Transitions */
+            --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: linear-gradient(to bottom, var(--bg-sky-top), var(--bg-sky-bot));
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & TOOLTIPS
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--success);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND CANVAS
+           ========================================= */
+        #nature-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Vignette to blend UI with background */
+        .overlay-blend {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.4) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION & CONTROLS
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .logo svg {
+            fill: var(--success);
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .weather-toggle {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-family: var(--font-tech);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .weather-toggle:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 20px;
+            background: #444;
+            border-radius: 10px;
+            position: relative;
+            cursor: none;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch.active { background: var(--success); }
+        .toggle-switch.active::after { left: 22px; }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            padding-top: 80px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.4);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 600px;
+            margin-bottom: 3rem;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .btn-start {
+            padding: 1.2rem 4rem;
+            font-size: 1.5rem;
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, var(--grass-light), var(--success));
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s var(--ease-bounce);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-start:hover::before {
+            left: 100%;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            animation: ripple 2s infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes ripple {
+            0% { width: 100%; height: 100%; opacity: 1; }
+            100% { width: 150%; height: 150%; opacity: 0; }
+        }
+
+        /* =========================================
+           6. BREATHING MODAL OVERLAY
+           ========================================= */
+        #breathing-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        #breathing-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .breathing-circle-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .breathing-orb {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(168, 255, 120, 0.6), rgba(0, 210, 255, 0.4));
+            box-shadow: 0 0 60px rgba(0, 210, 255, 0.6);
+            transform: scale(1);
+        }
+
+        .breathing-text {
+            position: absolute;
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: #fff;
+            text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        .close-breath {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            background: transparent;
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-family: var(--font-tech);
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .close-breath:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Animation Classes for JS */
+        .inhale { animation: breatheIn 4s ease-in-out forwards; }
+        .hold { animation: breatheHold 4s linear forwards; }
+        .exhale { animation: breatheOut 4s ease-in-out forwards; }
+
+        @keyframes breatheIn { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.8); opacity: 1; } }
+        @keyframes breatheHold { 0% { transform: scale(1.8); opacity: 1; } 100% { transform: scale(1.8); opacity: 0.8; } }
+        @keyframes breatheOut { 0% { transform: scale(1.8); opacity: 0.8; } 100% { transform: scale(1); opacity: 0.6; } }
+
+        /* =========================================
+           7. CONTENT GRID SYSTEM
+           ========================================= */
+        .main-content {
+            position: relative;
+            z-index: 10;
+            padding: 4rem 2rem;
+            background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.6));
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto 6rem;
+        }
+
+        .card {
+            background: var(--glass-white);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            transition: 0.4s var(--ease-smooth);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #fff;
+            font-size: 1.8rem;
+        }
+
+        .card h3 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .card p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .card ul {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .card ul li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+        }
+
+        .card ul li::before {
+            content: '•';
+            color: var(--success);
+        }
+
+        .card-action {
+            margin-top: auto;
+            align-self: flex-start;
+            color: var(--primary);
+            font-weight: 700;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-action:hover { color: #fff; }
+
+        /* Special Cards */
+        .card.large { grid-column: span 2; }
+        
+        /* Audio Visualizer (Simulated) */
+        .audio-viz {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 5px;
+            height: 60px;
+            margin-top: 1rem;
+        }
+        .bar {
+            width: 8px;
+            background: var(--success);
+            border-radius: 4px;
+            animation: equalize 1s infinite ease-in-out;
+        }
+        .bar:nth-child(2) { animation-delay: 0.1s; height: 80%; }
+        .bar:nth-child(3) { animation-delay: 0.2s; height: 60%; }
+        .bar:nth-child(4) { animation-delay: 0.3s; height: 90%; }
+        .bar:nth-child(5) { animation-delay: 0.4s; height: 50%; }
+
+        @keyframes equalize {
+            0%, 100% { height: 20%; }
+            50% { height: 100%; }
+        }
+
+        /* =========================================
+           8. PRIVACY & FOOTER
+           ========================================= */
+        .privacy-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: rgba(0,0,0,0.8);
+            border-radius: 24px;
+            max-width: 1000px;
+            margin: 0 auto 4rem;
+        }
+
+        .privacy-badges {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .badge svg { width: 20px; height: 20px; fill: var(--success); }
+
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* =========================================
+           9. RESPONSIVE
+           ========================================= */
+        @media (max-width: 968px) {
+            .hero h1 { font-size: 3rem; }
+            .card.large { grid-column: auto; }
+            .grid-container { grid-template-columns: 1fr; }
+            .nav-controls { display: none; } /* Simplify for mobile */
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Dynamic Background -->
+    <canvas id="nature-canvas"></canvas>
+    <div class="overlay-blend"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="32" height="32" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NEUROCALM
+        </a>
+        <div class="nav-controls">
+            <div class="weather-toggle" data-hover>
+                <span>RAIN MODE</span>
+                <div class="toggle-switch" id="rain-toggle"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breathing Overlay -->
+    <div id="breathing-overlay">
+        <button class="close-breath" id="close-breath" data-hover>EXIT SESSION</button>
+        <div class="breathing-circle-container">
+            <div class="breathing-orb" id="breath-orb"></div>
+            <div class="breathing-text" id="breath-text">Ready</div>
+        </div>
+        <p style="margin-top: 2rem; color: rgba(255,255,255,0.7); font-family: var(--font-tech);">Follow the circle</p>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="pulse-ring"></div>
+        <h1>Sanctuary <br><span style="color: var(--success)">Mode</span></h1>
+        <p>Activate the biophilic environment. Engage breathing protocols. Let the neural noise dissipate.</p>
+        <button class="btn-start" id="start-btn" data-hover>Start Calm</button>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Section 1: Breathing & Relaxation -->
+        <div class="section-header">
+            <h2>🌬️ Breathing Protocols</h2>
+            <p>Advanced respiratory pacing for autonomic nervous system regulation.</p>
+        </div>
+
+        <div class="grid-container">
+            <!-- Breathing Visualizer Card -->
+            <div class="card large">
+                <div class="card-icon">🫁</div>
+                <h3>Interactive Breathing Orb</h3>
+                <p>Experience our signature visual breathing guide. Sync your inhalation and exhalation with the expanding and contracting orb to lower cortisol levels instantly.</p>
+                <div class="audio-viz">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+                <br>
+                <ul>
+                    <li>Box Breathing (4-4-4-4)</li>
+                    <li>4-7-8 Relaxation Technique</li>
+                    <li>Paced Breathing with Haptic Vibration</li>
+                    <li>Auto-Adjust Speed based on detected Heart Rate</li>
+                </ul>
+                <a href="#" class="card-action" onclick="document.getElementById('start-btn').click()">Launch Guide -></a>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🧘</div>
+                <h3>Quick Calm</h3>
+                <p>Emergency stress reset. 1-minute intensive focus mode designed for immediate relief.</p>
+                <ul>
+                    <li>Instant focus trigger</li>
+                    <li>Visual anchors</li>
+                    <li>Audio cues</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 2: Audio & Sound -->
+        <div class="section-header">
+            <h2>🎧 Sound Therapy Engine</h2>
+            <p>High-fidelity audio generation using Web Audio API for immersive environments.</p>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-icon">🌊</div>
+                <h3>Nature Sounds</h3>
+                <ul>
+                    <li>Ocean Waves (Brown Noise)</li>
+                    <li>Rain on Foliage</li>
+                    <li>Forest Ambience</li>
+                    <li>Wind Through Trees</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🧠</div>
+                <h3>Binaural Beats</h3>
+                <p>Frequency-following response to induce Theta waves for deep relaxation.</p>
+                <ul>
+                    <li>Delta (Deep Sleep)</li>
+                    <li>Theta (Meditation)</li>
+                    <li>Alpha (Relaxed Alertness)</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🎵</div>
+                <h3>Smart Playlists</h3>
+                <p>AI-curated music based on your detected stress category.</p>
+            </div>
+        </div>
+
+        <!-- Section 3: Mindfulness -->
+        <div class="section-header">
+            <h2>🧘 Mindfulness Matrix</h2>
+        </div>
+
+        <div class="grid-container">
+            <div class="card large">
+                <div class="card-icon">📿</div>
+                <h3>Guided Meditation</h3>
+                <p>Combining text prompts with synthesized audio guidance for full spectrum mindfulness.</p>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.2); padding:1rem; border-radius:10px;">
+                        <h4 style="color:var(--success)">Body Scan</h4>
+                        <p style="font-size:0.8rem">Progressive muscle relaxation.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2); padding:1rem; border-radius:10px;">
+                        <h4 style="color:var(--accent)">Gratitude</h4>
+                        <p style="font-size:0.8rem">Reflective journaling prompts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Visual Tools -->
+        <div class="section-header">
+            <h2>🎨 Visual Calming Tools</h2>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-icon">🌈</div>
+                <h3>Color Therapy</h3>
+                <p>Dynamic chromotherapy backgrounds designed to shift mood.</p>
+                <div style="height:10px; width:100%; background:linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet); border-radius:5px; margin-top:10px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👁️</div>
+                <h3>Eye Relaxation</h3>
+                <p>Auto-morphing focus dots to reduce digital eye strain.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">✨</div>
+                <h3>Star Field</h3>
+                <p>Deep space neural flow visuals.</p>
+            </div>
+        </div>
+
+        <!-- Section 5: AI & Tracking -->
+        <div class="section-header">
+            <h2>🤖 AI & Self-Awareness</h2>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-icon">🤖</div>
+                <h3>Mood AI Assistant</h3>
+                <ul>
+                    <li>Context-aware coping suggestions</li>
+                    <li>Smart reminders to relax</li>
+                    <li>Emotional journaling</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h3>Stress Trend Graph</h3>
+                <p>Visualize your journey over time. Identify triggers and patterns.</p>
+                <div style="margin-top:1rem; height:4px; width:100%; background:#444; border-radius:2px;">
+                    <div style="height:100%; width:60%; background:var(--primary);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 6: Sleep & Quick Relief -->
+        <div class="section-header">
+            <h2>🛌 Sleep & Relief</h2>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-icon">🌙</div>
+                <h3>Sleep Mode</h3>
+                <p>Dark theme optimization with bedtime stories and soundscapes.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <h3>30-Second Grounding</h3>
+                <p>The 5-4-3-2-1 sensory technique for instant anxiety reduction.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">💡</div>
+                <h3>Affirmation Generator</h3>
+                <p>Daily positive reinforcement.</p>
+            </div>
+        </div>
+
+        <!-- Privacy Section -->
+        <div class="privacy-section">
+            <h2>🔐 Privacy & Safety First</h2>
+            <p>Your mental health data is sacred. We prioritize ethical design.</p>
+            <div class="privacy-badges">
+                <div class="badge"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg> Local Processing</div>
+                <div class="badge"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> No Data Stored</div>
+                <div class="badge"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> Non-Clinical</div>
+                <div class="badge"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H6v-2h4V7h2v4h4v2h-4v4z"/></svg> Emergency Links</div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2023 NeuroCalm AI. Sanctuary Mode Active. Take care of yourself.</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .card, .toggle-switch').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. CANVAS NATURE ENGINE (The Complex Part)
+        // =========================================
+        const canvas = document.getElementById('nature-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let time = 0;
+        let isRaining = false;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- OBJECTS ---
+
+        // Grass Blades
+        class GrassBlade {
+            constructor(x, h, color) {
+                this.x = x;
+                this.h = h;
+                this.color = color;
+                this.angle = Math.random() * Math.PI / 4 - Math.PI / 8; // Initial bend
+            }
+
+            draw() {
+                // Calculate sway using sine wave based on time and x position
+                const sway = Math.sin(time * 0.002 + this.x * 0.005) * 0.2;
+                
+                ctx.beginPath();
+                ctx.moveTo(this.x, height);
+                ctx.quadraticCurveTo(
+                    this.x + Math.sin(this.angle + sway) * 20, 
+                    height - this.h / 2, 
+                    this.x + Math.sin(this.angle + sway) * 40, 
+                    height - this.h
+                );
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = this.color;
+                ctx.stroke();
+            }
+        }
+
+        const grass = [];
+        function initGrass() {
+            grass.length = 0;
+            for (let i = 0; i < width; i += 8) {
+                const h = 40 + Math.random() * 60;
+                // Varying greens
+                const color = `hsl(${90 + Math.random() * 40}, ${60 + Math.random() * 20}%, ${40 + Math.random() * 20}%)`;
+                grass.push(new GrassBlade(i, h, color));
+            }
+        }
+
+        // Butterflies / Birds
+        class Butterfly {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * (height * 0.6);
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = 5 + Math.random() * 5;
+                this.color = `hsl(${Math.random() * 360}, 80%, 70%)`;
+                this.flapSpeed = 0.1 + Math.random() * 0.2;
+                this.flapOffset = Math.random() * 10;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off edges
+                if(this.x < 0 || this.x > width) this.vx *= -1;
+                if(this.y < 0 || this.y > height * 0.8) this.vy *= -1;
+
+                // Mouse interaction (attract/repel)
+                const dx = cursorDot.getBoundingClientRect().left - this.x;
+                const dy = cursorDot.getBoundingClientRect().top - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < 150) {
+                    this.vx += dx * 0.0005;
+                    this.vy += dy * 0.0005;
+                }
+            }
+
+            draw() {
+                const flap = Math.sin(time * this.flapSpeed + this.flapOffset);
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                // Rotate in direction of movement
+                ctx.rotate(Math.atan2(this.vy, this.vx));
+                
+                ctx.fillStyle = this.color;
+                
+                // Wings
+                ctx.beginPath();
+                ctx.ellipse(0, -5 * flap, this.size, this.size/2, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.ellipse(0, 5 * flap, this.size, this.size/2, -0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        const butterflies = [];
+        for(let i=0; i<15; i++) butterflies.push(new Butterfly());
+
+        // Clouds
+        class Cloud {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * (height * 0.4);
+                this.speed = 0.2 + Math.random() * 0.3;
+                this.size = 50 + Math.random() * 100;
+            }
+            update() {
+                this.x += this.speed;
+                if(this.x > width + this.size) this.x = -this.size;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.arc(this.x + this.size*0.7, this.y - this.size*0.2, this.size*0.8, 0, Math.PI*2);
+                ctx.arc(this.x - this.size*0.7, this.y - this.size*0.2, this.size*0.8, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+        const clouds = [];
+        for(let i=0; i<5; i++) clouds.push(new Cloud());
+
+        // Rain
+        class RainDrop {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vy = 5 + Math.random() * 5;
+                this.len = 10 + Math.random() * 10;
+            }
+            update() {
+                this.y += this.vy;
+                if(this.y > height) {
+                    this.y = -10;
+                    this.x = Math.random() * width;
+                }
+            }
+            draw() {
+                ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, this.y + this.len);
+                ctx.stroke();
+            }
+        }
+        const rainDrops = [];
+        for(let i=0; i<200; i++) rainDrops.push(new RainDrop());
+
+        // --- RENDER LOOP ---
+        function animate() {
+            // Background Clear (with trail for dreamy effect)
+            ctx.fillStyle = isRaining ? 'rgba(20, 30, 40, 0.3)' : 'rgba(43, 88, 118, 0.3)'; 
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw Sky Gradient
+            const grad = ctx.createLinearGradient(0, 0, 0, height);
+            grad.addColorStop(0, isRaining ? '#2b32b2' : '#56CCF2');
+            grad.addColorStop(1, isRaining ? '#141e30' : '#2F80ED');
+            ctx.globalCompositeOperation = 'destination-over'; // Draw behind existing elements (trails)
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Update Entities
+            clouds.forEach(c => { c.update(); c.draw(); });
+            
+            if(isRaining) {
+                rainDrops.forEach(r => { r.update(); r.draw(); });
+            }
+
+            grass.forEach(g => g.draw());
+            
+            butterflies.forEach(b => {
+                b.update();
+                b.draw();
+            });
+
+            time++;
+            requestAnimationFrame(animate);
+        }
+
+        initGrass();
+        animate();
+
+        // =========================================
+        // 3. UI INTERACTIONS
+        // =========================================
+        
+        // Rain Toggle
+        const rainToggle = document.getElementById('rain-toggle');
+        rainToggle.addEventListener('click', () => {
+            isRaining = !isRaining;
+            rainToggle.classList.toggle('active');
+            // Change grass color slightly when raining
+            if(isRaining) {
+                document.documentElement.style.setProperty('--grass-light', '#4a7c59');
+                document.documentElement.style.setProperty('--grass-dark', '#2e5942');
+            } else {
+                document.documentElement.style.setProperty('--grass-light', '#76b852');
+                document.documentElement.style.setProperty('--grass-dark', '#8DC26F');
+            }
+        });
+
+        // Breathing Engine
+        const startBtn = document.getElementById('start-btn');
+        const overlay = document.getElementById('breathing-overlay');
+        const closeBreath = document.getElementById('close-breath');
+        const orb = document.getElementById('breath-orb');
+        const text = document.getElementById('breath-text');
+        
+        let breathingInterval;
+
+        function startBreathing() {
+            overlay.classList.add('active');
+            
+            // 4-4-4-4 Cycle (12s total)
+            let cycle = 0;
+            
+            function runCycle() {
+                // Inhale
+                text.innerText = "INHALE";
+                orb.className = "breathing-orb inhale";
+                
+                setTimeout(() => {
+                    // Hold
+                    text.innerText = "HOLD";
+                    orb.className = "breathing-orb hold";
+                    
+                    setTimeout(() => {
+                        // Exhale
+                        text.innerText = "EXHALE";
+                        orb.className = "breathing-orb exhale";
+                        
+                        setTimeout(() => {
+                            // Hold Empty
+                            text.innerText = "HOLD";
+                            orb.className = "breathing-orb hold";
+                        }, 4000); // Exhale time
+                        
+                    }, 4000); // Hold time
+                    
+                }, 4000); // Inhale time
+            }
+
+            runCycle();
+            breathingInterval = setInterval(runCycle, 16000); // 4s * 4 steps
+        }
+
+        function stopBreathing() {
+            overlay.classList.remove('active');
+            clearInterval(breathingInterval);
+            orb.className = "breathing-orb";
+            text.innerText = "Ready";
+        }
+
+        startBtn.addEventListener('click', startBreathing);
+        closeBreath.addEventListener('click', stopBreathing);
+
+    </script>
+</body>
+</html>

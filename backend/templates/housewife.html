@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housewife Profile | NeuroCalm AI</title>
+    <meta name="description" content="Stress analysis for homemakers in Tamil Nadu. Understanding the invisible cognitive load of domestic labor.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050205;
+            --bg-panel: rgba(20, 10, 20, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Red */
+            --turmeric: #ff9933; /* New: Warm/Tamil Culture Color */
+            --success: #00ff88;
+            --text-main: #e0e6ed;
+            --text-muted: #94a3b8;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Hind', sans-serif; /* Better for text readability */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR SYSTEM
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--turmeric);
+            box-shadow: 0 0 10px var(--turmeric);
+        }
+
+        .cursor-outline {
+            width: 35px;
+            height: 35px;
+            border: 1px solid var(--turmeric);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 55px;
+            height: 55px;
+            background-color: rgba(255, 153, 51, 0.1);
+            border-color: #fff;
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND (KOLAM CANVAS)
+           ========================================= */
+        #kolam-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 90%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT UTILITIES
+           ========================================= */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section {
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--turmeric), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateX(-50%) translateY(0);}
+            40% {transform: translateX(-50%) translateY(-10px);}
+            60% {transform: translateX(-50%) translateY(-5px);}
+        }
+
+        /* =========================================
+           6. INTERACTIVE GAME: TASK MANAGER
+           ========================================= */
+        .game-container {
+            background: var(--bg-panel);
+            backdrop-filter: blur(15px);
+            border: var(--glass-border);
+            border-radius: 30px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 153, 51, 0.1);
+        }
+
+        .game-area {
+            width: 100%;
+            height: 400px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .task-bubble {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-tech);
+            font-size: 0.8rem;
+            color: #fff;
+            cursor: none;
+            transition: 0.1s;
+            animation: floatUp 4s linear forwards;
+            user-select: none;
+        }
+
+        .task-bubble:hover {
+            transform: scale(1.2);
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(450px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-family: var(--font-tech);
+            font-size: 1.2rem;
+            color: var(--turmeric);
+        }
+
+        /* =========================================
+           7. STRUGGLE CARDS (Grid)
+           ========================================= */
+        .struggle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .struggle-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 2.5rem;
+            border-radius: 16px;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .struggle-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--turmeric);
+            background: rgba(255, 153, 51, 0.05);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--turmeric);
+        }
+
+        .struggle-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .struggle-card p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        /* =========================================
+           8. VOICE ANALYZER SIMULATION
+           ========================================= */
+        .analyzer-ui {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .visualizer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            height: 100px;
+            margin: 2rem 0;
+        }
+
+        .bar {
+            width: 8px;
+            background: var(--secondary);
+            height: 10px;
+            border-radius: 4px;
+            transition: height 0.1s;
+        }
+
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--bg-deep);
+            border: 2px solid var(--turmeric);
+            color: var(--turmeric);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: 0.3s;
+            margin: 0 auto;
+        }
+
+        .mic-btn:hover {
+            background: var(--turmeric);
+            color: #000;
+            box-shadow: 0 0 30px var(--turmeric);
+        }
+
+        .mic-btn.recording {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 0, 85, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); }
+        }
+
+        /* =========================================
+           9. DATA VISUALIZATION (TAMIL CONTEXT)
+           ========================================= */
+        .timeline-item {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            align-items: center;
+        }
+
+        .time {
+            font-family: var(--font-mono);
+            color: var(--turmeric);
+            font-size: 1.2rem;
+            min-width: 120px;
+        }
+
+        .event-box {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            padding: 1.5rem;
+            border-left: 4px solid var(--turmeric);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .event-box h4 {
+            color: #fff;
+            font-family: var(--font-display);
+            margin-bottom: 0.5rem;
+        }
+
+        /* =========================================
+           10. FOOTER
+           ========================================= */
+        footer {
+            border-top: 1px solid #111;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: #020203;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: var(--turmeric);
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 50px;
+            border: none;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 153, 51, 0.4);
+            background: #fff;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3rem; }
+            .timeline-item { flex-direction: column; align-items: flex-start; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s ease;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Procedural Kolam Background -->
+    <canvas id="kolam-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Navigation (Simplified for standalone) -->
+    <nav style="position: fixed; top: 0; width: 100%; padding: 1.5rem 3rem; display: flex; justify-content: space-between; align-items: center; z-index: 100; mix-blend-mode: difference;">
+        <a href="/index" style="font-family: var(--font-display); font-weight: 900; color: #fff; text-decoration: none; font-size: 1.2rem;">NEURO<span style="color:var(--turmeric)">CALM</span></a>
+        <a href="/category" style="color: #fff; text-decoration: none; font-family: var(--font-tech); border: 1px solid #fff; padding: 0.5rem 1.5rem; border-radius: 20px; font-size: 0.9rem;">BACK TO CATEGORIES</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container reveal">
+            <span style="color: var(--turmeric); font-family: var(--font-tech); letter-spacing: 4px; text-transform: uppercase; font-size: 1rem; margin-bottom: 1rem; display: block;">Demographic Profile</span>
+            <h1>Housewife<br><span class="gradient-text">Tamil Nadu Context</span></h1>
+            <p>The Silent Architects of the Home. Analyzing the cognitive load of domestic labor, societal expectations, and the "invisible shift" that never ends.</p>
+            <div class="scroll-indicator">
+                <svg width="30" height="50" viewBox="0 0 24 40" fill="none" stroke="var(--turmeric)" stroke-width="2">
+                    <rect x="1" y="1" width="22" height="38" rx="11" ry="11"/>
+                    <circle cx="12" cy="12" r="3" fill="var(--turmeric)"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 1: The Multitasking Simulation (Interactive Game) -->
+    <section class="section">
+        <div class="container">
+            <div class="game-container reveal">
+                <h2 style="font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 1rem; color: #fff;">Interactive Test: <span style="color:var(--turmeric)">The Morning Rush</span></h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Housewives often manage 15+ interruptions per hour. This simulator mimics the "Mental Load" of managing breakfast, school prep, and household tasks simultaneously.
+                </p>
+                
+                <div class="score-board">
+                    <span>TASKS CLEARED: <span id="score">0</span></span>
+                    <span>STRESS LEVEL: <span id="stress-level" style="color: var(--accent)">LOW</span></span>
+                </div>
+
+                <div class="game-area" id="game-area">
+                    <!-- Bubbles injected by JS -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #555; font-family: var(--font-tech); pointer-events: none;">CLICK TASKS TO COMPLETE</div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button class="btn" onclick="startGame()" data-hover>Start Simulation</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: The Struggles (Data Cards) -->
+    <section class="section">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 5rem;">
+                <h2 style="font-family: var(--font-display); font-size: 3rem; color: #fff; margin-bottom: 1rem;">Identified Stressors</h2>
+                <p style="color: var(--text-muted);">AI-detected patterns common in Tamil Nadu households.</p>
+            </div>
+
+            <div class="struggle-grid">
+                <div class="struggle-card reveal" data-hover>
+                    <div class="card-icon">⏰</div>
+                    <h3>24/7 Availability</h3>
+                    <p>Unlike a 9-to-5 job, domestic work has no fixed hours. The "Second Shift" often begins after the household sleeps, leading to chronic sleep deprivation and cortisol spikes.</p>
+                </div>
+
+                <div class="struggle-card reveal" style="transition-delay: 0.1s;" data-hover>
+                    <div class="card-icon">👨‍👩‍👧‍👦</div>
+                    <h3>Joint Family Dynamics</h3>
+                    <p>Navigating the expectations of in-laws, particularly in traditional joint families, creates a constant background anxiety regarding judgment and "correct" behavior.</p>
+                </div>
+
+                <div class="struggle-card reveal" style="transition-delay: 0.2s;" data-hover>
+                    <div class="card-icon">💸</div>
+                    <h3>Financial Invisibility</h3>
+                    <p>Managing household budgets with limited funds is a high-stress cognitive task. Despite handling money daily, they often lack independent financial agency, increasing helplessness.</p>
+                </div>
+
+                <div class="struggle-card reveal" style="transition-delay: 0.3s;" data-hover>
+                    <div class="card-icon">🎓</div>
+                    <h3>Education Pressure</h3>
+                    <p>In Tamil Nadu's competitive academic environment, the burden of children's exam performance falls disproportionately on the mother, leading to vicarious stress.</p>
+                </div>
+
+                <div class="struggle-card reveal" style="transition-delay: 0.4s;" data-hover>
+                    <div class="card-icon">🌡️</div>
+                    <h3>Physical Environment</h3>
+                    <p>Kitchen heat, water scarcity, and power cuts in suburban/rural Tamil Nadu add a layer of physiological stress to daily chores.</p>
+                </div>
+
+                <div class="struggle-card reveal" style="transition-delay: 0.5s;" data-hover>
+                    <div class="card-icon">🤫</div>
+                    <h3>Social Isolation</h3>
+                    <p>Domestic confinement limits social interaction. The lack of a peer support group exacerbates feelings of loneliness and depression.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Voice Mood Analyzer (Simulated) -->
+    <section class="section" style="background: rgba(0,0,0,0.3);">
+        <div class="container">
+            <div class="analyzer-ui reveal">
+                <h2 style="font-family: var(--font-display); color: #fff; margin-bottom: 1rem;">Voice Emotion Analysis</h2>
+                <p style="color: var(--text-muted);">Speak (or think) about a recent frustration. Our neural net visualizes the emotional weight.</p>
+
+                <div class="visualizer" id="visualizer">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+
+                <div class="mic-btn" id="mic-btn" onclick="toggleRecording()">
+                    🎤
+                </div>
+
+                <div id="analysis-result" style="margin-top: 2rem; font-family: var(--font-tech); color: var(--secondary); min-height: 60px;">
+                    Waiting for input...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: A Day in the Life (Timeline) -->
+    <section class="section">
+        <div class="container">
+            <h2 style="font-family: var(--font-display); color: #fff; margin-bottom: 4rem;">The "Invisible" Timeline</h2>
+            
+            <div class="timeline-item reveal">
+                <div class="time">04:30 AM</div>
+                <div class="event-box">
+                    <h4>Coffee & Kolam</h4>
+                    <p style="color: var(--text-muted)">Waking up before the sun to start the kolam and filter coffee. This is the only quiet time of the day.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item reveal">
+                <div class="time">07:00 AM</div>
+                <div class="event-box">
+                    <h4>Tiffin Prep & School Run</h4>
+                    <p style="color: var(--text-muted)">Coordinating breakfast, packing lunch boxes, and ensuring children reach school on time. High cortisol window.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item reveal">
+                <div class="time">10:00 AM</div>
+                <div class="event-box">
+                    <h4>Cleaning & Water Management</h4>
+                    <p style="color: var(--text-muted)">Managing household chores and rationing water during municipal shortages. Physically demanding.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item reveal">
+                <div class="time">02:00 PM</div>
+                <div class="event-box">
+                    <h4>Lunch & Rest</h4>
+                    <p style="color: var(--text-muted)">Often interrupted by doorbells or calls from extended family. True rest is rare.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item reveal">
+                <div class="time">08:00 PM</div>
+                <div class="event-box">
+                    <h4>Studies & Dinner</h4>
+                    <p style="color: var(--text-muted)">Helping children with homework while preparing dinner. The cognitive load peaks here.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <h2 style="font-family: var(--font-display); color: #fff; margin-bottom: 2rem;">You Are Not Alone</h2>
+            <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 3rem;">
+                The NeuroCalm AI system validates your experience. Stress is a physiological response to an overwhelming environment. It is not a failure of character.
+            </p>
+            <a href="/housewives_ques" class="btn" data-hover>Start Full Assessment</a>
+            <p style="margin-top: 3rem; color: #444; font-size: 0.8rem;">&copy; 2023 NeuroCalm AI. Dedicated to the homemakers of Tamil Nadu.</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. PROCEDURAL KOLAM ANIMATION (Background)
+        // =========================================
+        const canvas = document.getElementById('kolam-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let mouseX = 0, mouseY = 0;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('mousemove', e => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        class KolamDot {
+            constructor(angle, radius) {
+                this.angle = angle;
+                this.radius = radius;
+                this.size = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? '#ff9933' : '#bd00ff';
+            }
+
+            draw() {
+                // Create a spiral/flower pattern effect
+                const x = width/2 + Math.cos(this.angle) * this.radius;
+                const y = height/2 + Math.sin(this.angle) * this.radius;
+
+                // Repel from mouse
+                const dx = x - mouseX;
+                const dy = y - mouseY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                let finalX = x;
+                let finalY = y;
+
+                if(dist < 200) {
+                    const angle = Math.atan2(dy, dx);
+                    finalX += Math.cos(angle) * 20;
+                    finalY += Math.sin(angle) * 20;
+                }
+
+                ctx.beginPath();
+                ctx.arc(finalX, finalY, this.size, 0, Math.PI*2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                // Draw lines to center (Mundalam - part of Kolam)
+                ctx.beginPath();
+                ctx.moveTo(width/2, height/2);
+                ctx.lineTo(finalX, finalY);
+                ctx.strokeStyle = `rgba(255, 153, 51, 0.05)`;
+                ctx.stroke();
+            }
+        }
+
+        // Initialize Kolam Pattern
+        for(let i=0; i<150; i++) {
+            // Create concentric circles/loops
+            const r = 50 + (i * 4);
+            const angle = i * 0.5; // Spiral
+            particles.push(new KolamDot(angle, r));
+        }
+
+        let time = 0;
+        function animateKolam() {
+            ctx.clearRect(0, 0, width, height);
+            time += 0.002;
+
+            particles.forEach(p => {
+                p.angle += 0.005 * (p.radius / 100); // Inner spins faster
+                p.draw();
+            });
+
+            requestAnimationFrame(animateKolam);
+        }
+        animateKolam();
+
+        // =========================================
+        // 3. GAME: THE MORNING RUSH
+        // =========================================
+        const gameArea = document.getElementById('game-area');
+        const scoreEl = document.getElementById('score');
+        const stressEl = document.getElementById('stress-level');
+        let gameActive = false;
+        let score = 0;
+        let stress = 0;
+        let gameInterval;
+
+        const tasks = ["COOK", "CLEAN", "WASH", "KIDS", "SHOP", "CALL", "PAY"];
+
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            stress = 0;
+            scoreEl.innerText = 0;
+            stressEl.innerText = "LOW";
+            stressEl.style.color = "var(--success)";
+            gameArea.innerHTML = ""; // Clear
+            
+            if(gameInterval) clearInterval(gameInterval);
+
+            gameInterval = setInterval(() => {
+                if(!gameActive) return;
+                spawnTask();
+                // Stress increases naturally over time
+                increaseStress();
+            }, 800); // Spawn rate
+        }
+
+        function spawnTask() {
+            const bubble = document.createElement('div');
+            bubble.className = 'task-bubble';
+            bubble.innerText = tasks[Math.floor(Math.random() * tasks.length)];
+            
+            // Random position
+            const left = Math.random() * (gameArea.offsetWidth - 80);
+            bubble.style.left = `${left}px`;
+            
+            // Interaction
+            bubble.addEventListener('mousedown', () => {
+                bubble.remove();
+                score++;
+                scoreEl.innerText = score;
+                // Completing tasks reduces stress slightly
+                if(stress > 0) {
+                    stress -= 5;
+                    updateStressUI();
+                }
+            });
+
+            gameArea.appendChild(bubble);
+
+            // Auto remove after animation (4s) and increase stress
+            setTimeout(() => {
+                if(bubble.parentNode) {
+                    bubble.remove();
+                    increaseStress();
+                }
+            }, 4000);
+        }
+
+        function increaseStress() {
+            stress += 5;
+            if(stress > 100) stress = 100;
+            updateStressUI();
+        }
+
+        function updateStressUI() {
+            if(stress < 30) {
+                stressEl.innerText = "LOW";
+                stressEl.style.color = "var(--success)";
+            } else if (stress < 70) {
+                stressEl.innerText = "MODERATE";
+                stressEl.style.color = "var(--turmeric)";
+            } else {
+                stressEl.innerText = "CRITICAL";
+                stressEl.style.color = "var(--accent)";
+            }
+        }
+
+        // =========================================
+        // 4. VOICE ANALYZER SIMULATION
+        // =========================================
+        let recording = false;
+        let visualInterval;
+        const micBtn = document.getElementById('mic-btn');
+        const resultText = document.getElementById('analysis-result');
+        const bars = document.querySelectorAll('.bar');
+
+        function toggleRecording() {
+            recording = !recording;
+            
+            if(recording) {
+                micBtn.classList.add('recording');
+                resultText.innerText = "Analyzing voice patterns...";
+                startVisualizer();
+            } else {
+                micBtn.classList.remove('recording');
+                stopVisualizer();
+                generateResult();
+            }
+        }
+
+        function startVisualizer() {
+            visualInterval = setInterval(() => {
+                bars.forEach(bar => {
+                    const h = Math.random() * 80 + 10;
+                    bar.style.height = `${h}px`;
+                    bar.style.background = Math.random() > 0.7 ? 'var(--accent)' : 'var(--secondary)';
+                });
+            }, 100);
+        }
+
+        function stopVisualizer() {
+            clearInterval(visualInterval);
+            bars.forEach(bar => {
+                bar.style.height = '10px';
+                bar.style.background = 'var(--secondary)';
+            });
+        }
+
+        function generateResult() {
+            // Simulated AI Result based on context
+            const results = [
+                "DETECTED: High Fatigue Indicators. Suggesting 20min rest protocol.",
+                "ANALYSIS: Vocal strain suggests prolonged shouting or loud environments.",
+                "RESULT: Signs of 'Emotional Suppression' detected. Ventilation recommended.",
+                "PATTERN: Anxiety spikes detected. Cortisol levels estimated high."
+            ];
+            
+            // Typing effect
+            resultText.innerHTML = "";
+            const text = results[Math.floor(Math.random() * results.length)];
+            let i = 0;
+            const type = setInterval(() => {
+                resultText.innerHTML += text.charAt(i);
+                i++;
+                if(i >= text.length) clearInterval(type);
+            }, 30);
+        }
+
+        // =========================================
+        // 5. SCROLL REVEAL
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>

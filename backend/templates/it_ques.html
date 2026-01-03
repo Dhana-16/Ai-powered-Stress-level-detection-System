@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Stress Assessment | NeuroCalm AI</title>
+    <meta name="description" content="Advanced AI stress detection for IT professionals and developers.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050508;
+            --bg-panel: rgba(15, 20, 35, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #7000ff; /* Deep Purple */
+            --accent: #ff003c; /* Cyber Red */
+            --warning: #ffcc00;
+            --success: #00ff9d;
+            --text-main: #e0e6ed;
+            --text-muted: #94a3b8;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --neon-glow: 0 0 10px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
+            --danger-glow: 0 0 10px rgba(255, 0, 60, 0.5);
+            
+            --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow: hidden; /* App-like feel */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* =========================================
+           2. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        #network-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .overlay-vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 90%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           3. CUSTOM CURSOR SYSTEM
+           ========================================= */
+        .cursor-dot,
+        .cursor-ring {
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .cursor-ring {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-ring.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           4. APP CONTAINER & SECTIONS
+           ========================================= */
+        #app {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            padding: 2rem;
+        }
+
+        .page-section.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: scale(1);
+        }
+
+        /* =========================================
+           5. LANDING SECTION
+           ========================================= */
+        .landing-content {
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .glitch-title {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            color: #fff;
+            position: relative;
+            letter-spacing: -2px;
+            text-shadow: 2px 2px 0px var(--secondary), -2px -2px 0px var(--primary);
+        }
+
+        .subtitle {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .start-btn-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .start-btn {
+            position: relative;
+            padding: 1.5rem 4rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            overflow: hidden;
+            transition: var(--transition-fast);
+            clip-path: polygon(15% 0, 100% 0, 100% 70%, 85% 100%, 0 100%, 0 30%);
+        }
+
+        .start-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 30px var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: 0.5s;
+            opacity: 0;
+        }
+
+        .start-btn:hover::before {
+            left: 100%;
+            opacity: 1;
+        }
+
+        /* =========================================
+           6. QUIZ SECTION
+           ========================================= */
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 2rem;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            box-shadow: 0 0 10px var(--primary);
+            transition: width 0.5s ease;
+        }
+
+        .question-count {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .question-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 3rem;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-align: left;
+            transition: var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover, .option-btn.selected {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--primary);
+            color: #fff;
+            padding-left: 2rem;
+        }
+
+        .option-btn:hover::after {
+            content: '>>';
+            position: absolute;
+            left: 1rem;
+            color: var(--primary);
+        }
+
+        /* =========================================
+           7. PROCESSING SECTION
+           ========================================= */
+        .processing-ui {
+            text-align: center;
+        }
+
+        .loader-ring {
+            width: 150px;
+            height: 150px;
+            border: 4px solid rgba(255,255,255,0.05);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+
+        .loader-ring::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 4px solid rgba(255,255,255,0.05);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 2s linear infinite reverse;
+        }
+
+        .terminal-text {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            height: 1.5rem;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* =========================================
+           8. RESULT DASHBOARD
+           ========================================= */
+        .dashboard {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        /* Score Card */
+        .score-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Circular Progress (SVG) */
+        .circular-chart {
+            display: block;
+            margin: 10px auto;
+            max-width: 80%;
+            max-height: 250px;
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: #1e293b;
+            stroke-width: 2.5; /* thinner */
+        }
+
+        .circle {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            animation: progress 1.5s ease-out forwards;
+        }
+
+        @keyframes progress {
+            0% { stroke-dasharray: 0 100; }
+        }
+
+        .percentage {
+            fill: #fff;
+            font-family: var(--font-display);
+            font-weight: bold;
+            font-size: 0.5em;
+            text-anchor: middle;
+        }
+
+        .status-label {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin: 1rem 0;
+            text-transform: uppercase;
+        }
+
+        /* Analysis Breakdown */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .bar-chart-item {
+            background: rgba(255,255,255,0.02);
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 1s ease-out 0.5s;
+        }
+
+        /* Advice Section */
+        .advice-section {
+            grid-column: span 2;
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        .advice-section h3 {
+            font-family: var(--font-display);
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .action-btn {
+            margin-top: 2rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: #fff;
+            padding: 1rem 2rem;
+            font-family: var(--font-display);
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* =========================================
+           9. RESPONSIVE
+           ========================================= */
+        @media (max-width: 900px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .glitch-title { font-size: 2.5rem; }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="matrix-canvas"></canvas>
+    <canvas id="network-canvas"></canvas>
+    <div class="overlay-vignette"></div>
+
+    <div id="app">
+        <!-- 1. LANDING PAGE -->
+        <section id="landing-page" class="page-section active">
+            <div class="landing-content">
+                <div class="subtitle">System Ready // v.2.0.45</div>
+                <h1 class="glitch-title">IT PROFESSIONAL<br>STRESS ANALYSIS</h1>
+                <p style="color: var(--text-muted); margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Detect Burnout, Anxiety, and Physical Fatigue using our proprietary Neural Algorithm tailored for Developers, Engineers, and Tech Specialists.
+                </p>
+                
+                <div class="start-btn-container">
+                    <button class="start-btn" onclick="startAssessment()">
+                        Initialize Scan
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. QUIZ PAGE -->
+        <section id="quiz-page" class="page-section">
+            <div class="quiz-container">
+                <div class="progress-wrapper">
+                    <div class="progress-fill" id="progress-bar"></div>
+                </div>
+                <div class="question-count"><span id="current-q">1</span> / <span id="total-q">20</span></div>
+                
+                <div class="question-text" id="question-text">
+                    Loading Question Data...
+                </div>
+
+                <div class="options-grid" id="options-container">
+                    <!-- Options injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. PROCESSING PAGE -->
+        <section id="processing-page" class="page-section">
+            <div class="processing-ui">
+                <div class="loader-ring"></div>
+                <div class="terminal-text" id="terminal-output">Initializing Neural Weights...</div>
+                <p style="color: var(--text-muted); margin-top: 1rem;">Analyzing 20 Biometric Markers</p>
+            </div>
+        </section>
+
+        <!-- 4. RESULT PAGE -->
+        <section id="result-page" class="page-section">
+            <div class="dashboard">
+                <!-- Main Score -->
+                <div class="score-card">
+                    <h2 style="margin-bottom: 1rem; color: var(--text-muted);">Total Stress Index</h2>
+                    
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                        <path class="circle-bg"
+                            d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path class="circle" id="score-circle"
+                            stroke-dasharray="0, 100"
+                            stroke="#00f2ff"
+                            d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <text x="18" y="20.35" class="percentage" id="score-text">0%</text>
+                    </svg>
+
+                    <div class="status-label" id="status-text">Normal</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Based on 20 Indicators</p>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="analysis-grid">
+                    <div class="bar-chart-item">
+                        <div class="bar-label"><span>Burnout Level</span><span id="burnout-val">0%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" id="burnout-bar" style="background: var(--accent);"></div></div>
+                    </div>
+                    <div class="bar-chart-item">
+                        <div class="bar-label"><span>Anxiety / Imposter</span><span id="anxiety-val">0%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" id="anxiety-bar" style="background: var(--secondary);"></div></div>
+                    </div>
+                    <div class="bar-chart-item">
+                        <div class="bar-label"><span>Physical Fatigue</span><span id="fatigue-val">0%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" id="fatigue-bar" style="background: var(--warning);"></div></div>
+                    </div>
+                    <div class="bar-chart-item">
+                        <div class="bar-label"><span>Workspace Ergonomics</span><span id="ergo-val">0%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" id="ergo-bar" style="background: var(--success);"></div></div>
+                    </div>
+                </div>
+
+                <!-- Recommendation -->
+                <div class="advice-section">
+                    <h3>AI Recommendation Protocol</h3>
+                    <p id="recommendation-text" style="line-height: 1.6; color: #ccc;">
+                        Analysis complete.
+                    </p>
+                    <button class="action-btn" onclick="location.reload()">Re-Initialize System</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA: IT SPECIFIC QUESTIONS
+        // =========================================
+        const questions = [
+            {
+                q: "On average, how many hours do you spend coding/debugging per day?",
+                options: [
+                    { text: "Less than 4 hours", score: 1 },
+                    { text: "4 - 6 hours", score: 2 },
+                    { text: "7 - 10 hours", score: 4 },
+                    { text: "10+ hours (Crunch Mode)", score: 5 }
+                ]
+            },
+            {
+                q: "How often do you experience 'Imposter Syndrome' (feeling like you aren't good enough)?",
+                options: [
+                    { text: "Never", score: 1 },
+                    { text: "Rarely", score: 2 },
+                    { text: "Sometimes", score: 3 },
+                    { text: "Constantly", score: 5 }
+                ]
+            },
+            {
+                q: "How do you react when the CI/CD pipeline fails right before a deadline?",
+                options: [
+                    { text: "Calmly debug", score: 1 },
+                    { text: "Mildly annoyed", score: 2 },
+                    { text: "Significant spike in heart rate", score: 4 },
+                    { text: "Panic mode / Rage", score: 5 }
+                ]
+            },
+            {
+                q: "How would you rate the quality of your sleep (insomnia due to coding)?",
+                options: [
+                    { text: "Excellent (8+ hours)", score: 1 },
+                    { text: "Good, occasional tiredness", score: 2 },
+                    { text: "Poor, waking up often", score: 4 },
+                    { text: "Non-existent / Coding all night", score: 5 }
+                ]
+            },
+            {
+                q: "How much caffeine do you consume daily to stay productive?",
+                options: [
+                    { text: "None or 1 cup", score: 1 },
+                    { text: "2-3 cups", score: 2 },
+                    { text: "4-5 cups (Energy drinks)", score: 4 },
+                    { text: "I am essentially running on caffeine", score: 5 }
+                ]
+            },
+            {
+                q: "How often do you work on weekends or holidays?",
+                options: [
+                    { text: "Never (Work-Life Balance is key)", score: 1 },
+                    { text: "Rarely, only emergencies", score: 2 },
+                    { text: "Most Saturdays", score: 4 },
+                    { text: "Every day / Always on call", score: 5 }
+                ]
+            },
+            {
+                q: "How stressed do you feel when dealing with Legacy Code?",
+                options: [
+                    { text: "It's just code", score: 1 },
+                    { text: "Annoying but manageable", score: 2 },
+                    { text: "High anxiety", score: 4 },
+                    { text: "Existential dread", score: 5 }
+                ]
+            },
+            {
+                q: "Do you experience physical symptoms (Eye strain, Back pain, Wrist pain)?",
+                options: [
+                    { text: "No, ergonomic setup is perfect", score: 1 },
+                    { text: "Mild discomfort", score: 2 },
+                    { text: "Frequent pain", score: 4 },
+                    { text: "Constant pain", score: 5 }
+                ]
+            },
+            {
+                q: "How often do you have to learn a completely new tech stack?",
+                options: [
+                    { text: "Rarely, stable stack", score: 1 },
+                    { text: "Occasionally, I enjoy it", score: 2 },
+                    { text: "Often, it's overwhelming", score: 3 },
+                    { text: "Constantly, I can't keep up", score: 5 }
+                ]
+            },
+            {
+                q: "How many meetings do you attend per day that interrupt your 'Flow State'?",
+                options: [
+                    { text: "0 - 1", score: 1 },
+                    { text: "2 - 3", score: 2 },
+                    { text: "4 - 5", score: 4 },
+                    { text: "My calendar is blocked solid", score: 5 }
+                ]
+            },
+            {
+                q: "How do you handle tight deadlines set by non-technical managers?",
+                options: [
+                    { text: "Communicate realistic timelines", score: 1 },
+                    { text: "Slight stress, but manage", score: 2 },
+                    { text: "Work overtime to meet them", score: 4 },
+                    { text: "Extreme stress / Burnout risk", score: 5 }
+                ]
+            },
+            {
+                q: "How is your posture during long coding sessions?",
+                options: [
+                    { text: "Always upright, standing desk", score: 1 },
+                    { text: "Good posture, reminders help", score: 2 },
+                    { text: "Slouching often", score: 4 },
+                    { text: "Hunched over keyboard like a gargoyle", score: 5 }
+                ]
+            },
+            {
+                q: "When a bug is reported in production, what is your immediate reaction?",
+                options: [
+                    { text: "Let's fix it.", score: 1 },
+                    { text: "Ugh, another one.", score: 2 },
+                    { text: "Panic / Heart racing", score: 4 },
+                    { text: "I feel physically sick", score: 5 }
+                ]
+            },
+            {
+                q: "Do you feel isolated working remotely?",
+                options: [
+                    { text: "No, I prefer it", score: 1 },
+                    { text: "Sometimes miss the office", score: 2 },
+                    { text: "Often feel lonely", score: 4 },
+                    { text: "Total isolation, no social life", score: 5 }
+                ]
+            },
+            {
+                q: "How often do you take breaks to look away from the screen (20-20-20 rule)?",
+                options: [
+                    { text: "Religiously every 20 mins", score: 1 },
+                    { text: "Every hour", score: 2 },
+                    { text: "Only when I eat/go to bathroom", score: 4 },
+                    { text: "What is a break?", score: 5 }
+                ]
+            },
+            {
+                q: "How do you handle 'Scope Creep' in projects?",
+                options: [
+                    { text: "Push back firmly", score: 1 },
+                    { text: "Discuss adjustments", score: 2 },
+                    { text: "Just do it quietly", score: 4 },
+                    { text: "It ruins my weekend", score: 5 }
+                ]
+            },
+            {
+                q: "Are you worried about AI replacing your job?",
+                options: [
+                    { text: "Not at all, it's a tool", score: 1 },
+                    { text: "A little concerned", score: 2 },
+                    { text: "Significant anxiety", score: 4 },
+                    { text: "Constant fear", score: 5 }
+                ]
+            },
+            {
+                q: "How often do you exercise physically?",
+                options: [
+                    { text: "Daily", score: 1 },
+                    { text: "3-4 times a week", score: 2 },
+                    { text: "Rarely", score: 4 },
+                    { text: "Never", score: 5 }
+                ]
+            },
+            {
+                q: "How is your diet while working?",
+                options: [
+                    { text: "Home cooked healthy meals", score: 1 },
+                    { text: "Balanced", score: 2 },
+                    { text: "Fast food / Delivery often", score: 4 },
+                    { text: "Junk food and energy drinks only", score: 5 }
+                ]
+            },
+            {
+                q: "Overall, how would you rate your current happiness in your IT career?",
+                options: [
+                    { text: "Extremely Happy", score: 1 },
+                    { text: "Content", score: 2 },
+                    { text: "Unsatisfied", score: 4 },
+                    { text: "Miserable / Want to quit", score: 5 }
+                ]
+            }
+        ];
+
+        // =========================================
+        // 2. STATE MANAGEMENT
+        // =========================================
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+        const maxPossibleScore = 100; // Approx max based on 20 questions * 5 points
+
+        // DOM Elements
+        const landingPage = document.getElementById('landing-page');
+        const quizPage = document.getElementById('quiz-page');
+        const processingPage = document.getElementById('processing-page');
+        const resultPage = document.getElementById('result-page');
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const progressBar = document.getElementById('progress-bar');
+        const currentQEl = document.getElementById('current-q');
+        const totalQEl = document.getElementById('total-q');
+
+        // =========================================
+        // 3. CORE FUNCTIONS
+        // =========================================
+        function switchSection(from, to) {
+            from.classList.remove('active');
+            setTimeout(() => {
+                from.style.display = 'none';
+                to.style.display = 'flex';
+                // Trigger reflow
+                void to.offsetWidth; 
+                to.classList.add('active');
+            }, 500);
+        }
+
+        function startAssessment() {
+            totalQEl.innerText = questions.length;
+            landingPage.style.display = 'none';
+            quizPage.style.display = 'flex';
+            setTimeout(() => quizPage.classList.add('active'), 50);
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestionIndex];
+            
+            // Animate text out
+            questionText.style.opacity = 0;
+            optionsContainer.style.opacity = 0;
+
+            setTimeout(() => {
+                questionText.innerText = q.q;
+                currentQEl.innerText = currentQuestionIndex + 1;
+                
+                // Update Progress
+                const progress = ((currentQuestionIndex) / questions.length) * 100;
+                progressBar.style.width = `${progress}%`;
+
+                // Render Options
+                optionsContainer.innerHTML = '';
+                q.options.forEach((opt, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt.text;
+                    btn.onclick = () => selectOption(opt.score);
+                    btn.style.animation = `fadeInUp 0.5s ease forwards ${index * 0.1}s`;
+                    btn.style.opacity = 0; // Initial state for animation
+                    optionsContainer.appendChild(btn);
+                });
+
+                // Fade in
+                questionText.style.opacity = 1;
+                optionsContainer.style.opacity = 1;
+            }, 300);
+        }
+
+        function selectOption(score) {
+            totalScore += score;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            switchSection(quizPage, processingPage);
+            
+            // Fake Processing Logic
+            const terminal = document.getElementById('terminal-output');
+            const messages = [
+                "Aggregating Input Vectors...",
+                "Checking Neural Pathways...",
+                "Analyzing Caffeine Levels...",
+                "Comparing against Legacy Database...",
+                "Generating Stress Protocol..."
+            ];
+
+            let msgIndex = 0;
+            const interval = setInterval(() => {
+                if(msgIndex < messages.length) {
+                    terminal.innerText = messages[msgIndex];
+                    msgIndex++;
+                } else {
+                    clearInterval(interval);
+                    calculateResults();
+                }
+            }, 800);
+        }
+
+        // =========================================
+        // 4. RESULT CALCULATION & VISUALIZATION
+        // =========================================
+        function calculateResults() {
+            switchSection(processingPage, resultPage);
+
+            // 1. Total Score Percentage
+            const percentage = Math.min(100, Math.round((totalScore / 80) * 100)); // Approximate max score 80
+            
+            // 2. Sub-scores (Simulated logic for variety)
+            const burnout = Math.min(100, Math.round((Math.random() * 20 + percentage * 0.8)));
+            const anxiety = Math.min(100, Math.round((Math.random() * 20 + percentage * 0.7)));
+            const fatigue = Math.min(100, Math.round((Math.random() * 20 + percentage * 0.9)));
+            // Ergo is inverse logic usually, but simplified here
+            const ergo = Math.max(0, 100 - Math.round((Math.random() * 20 + percentage * 0.5)));
+
+            // 3. Update DOM
+            updateCircle(percentage);
+            document.getElementById('score-text').innerText = `${percentage}%`;
+            
+            // Update Status Text
+            const statusEl = document.getElementById('status-text');
+            if (percentage < 30) {
+                statusEl.innerText = "LOW STRESS";
+                statusEl.style.color = "var(--success)";
+            } else if (percentage < 60) {
+                statusEl.innerText = "MODERATE STRESS";
+                statusEl.style.color = "var(--warning)";
+            } else {
+                statusEl.innerText = "HIGH STRESS";
+                statusEl.style.color = "var(--accent)";
+            }
+
+            // Update Bars
+            updateBar('burnout-bar', 'burnout-val', burnout);
+            updateBar('anxiety-bar', 'anxiety-val', anxiety);
+            updateBar('fatigue-bar', 'fatigue-val', fatigue);
+            updateBar('ergo-bar', 'ergo-val', ergo);
+
+            // Generate Recommendation
+            generateAdvice(percentage);
+        }
+
+        function updateBar(barId, valId, val) {
+            const bar = document.getElementById(barId);
+            const valTxt = document.getElementById(valId);
+            setTimeout(() => {
+                bar.style.width = `${val}%`;
+                valTxt.innerText = `${val}%`;
+            }, 100);
+        }
+
+        function updateCircle(percent) {
+            const circle = document.getElementById('score-circle');
+            // Stroke-dasharray: value, 100
+            // We need to animate it from 0 to percent
+            circle.style.strokeDasharray = `${percent}, 100`;
+            
+            // Change color based on score
+            if(percent > 60) circle.style.stroke = "var(--accent)";
+            else if(percent > 30) circle.style.stroke = "var(--warning)";
+            else circle.style.stroke = "var(--success)";
+        }
+
+        function generateAdvice(score) {
+            const adviceText = document.getElementById('recommendation-text');
+            let advice = "";
+
+            if (score < 30) {
+                advice = "Your stress levels are optimal for a high-pressure field like IT. You have excellent work-life balance and coping mechanisms. Continue your current routine, but remain vigilant during 'crunch' periods.";
+            } else if (score < 60) {
+                advice = "You are showing early signs of IT-related fatigue. While manageable, we recommend implementing the 20-20-20 rule for your eyes and setting strict boundaries for weekend coding. Consider slightly reducing caffeine intake.";
+            } else {
+                advice = "CRITICAL WARNING: You are experiencing high levels of burnout and anxiety. Immediate intervention is recommended. Take a 'Digital Detox' weekend, consult with a mental health professional, and speak with management about workload delegation. Your health takes precedence over any deadline.";
+            }
+            adviceText.innerText = advice;
+        }
+
+        // =========================================
+        // 5. CANVAS ANIMATIONS (Background)
+        // =========================================
+        
+        // --- Matrix Rain ---
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        const mCtx = matrixCanvas.getContext('2d');
+        
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+
+        const chars = "010101101[]{}<>//\\**##<>$$&&";
+        const fontSize = 14;
+        const columns = matrixCanvas.width / fontSize;
+        const drops = [];
+
+        for(let x=0; x<columns; x++) drops[x] = 1;
+
+        function drawMatrix() {
+            mCtx.fillStyle = "rgba(5, 5, 8, 0.05)";
+            mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+            mCtx.fillStyle = "#00f2ff";
+            mCtx.font = fontSize + "px monospace";
+
+            for(let i=0; i<drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                mCtx.fillText(text, i*fontSize, drops[i]*fontSize);
+
+                if(drops[i]*fontSize > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        // --- Network Particles ---
+        const netCanvas = document.getElementById('network-canvas');
+        const nCtx = netCanvas.getContext('2d');
+        
+        netCanvas.width = window.innerWidth;
+        netCanvas.height = window.innerHeight;
+
+        let particles = [];
+        const mouse = { x: null, y: null };
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * netCanvas.width;
+                this.y = Math.random() * netCanvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if(this.x < 0 || this.x > netCanvas.width) this.vx *= -1;
+                if(this.y < 0 || this.y > netCanvas.height) this.vy *= -1;
+            }
+            draw() {
+                nCtx.fillStyle = "rgba(189, 0, 255, 0.5)";
+                nCtx.beginPath();
+                nCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                nCtx.fill();
+            }
+        }
+
+        for(let i=0; i<60; i++) particles.push(new Particle());
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function animateNetwork() {
+            nCtx.clearRect(0,0, netCanvas.width, netCanvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+                
+                // Connections
+                particles.forEach(p2 => {
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        nCtx.strokeStyle = `rgba(0, 242, 255, ${1 - dist/150})`;
+                        nCtx.lineWidth = 0.5;
+                        nCtx.beginPath();
+                        nCtx.moveTo(p.x, p.y);
+                        nCtx.lineTo(p2.x, p2.y);
+                        nCtx.stroke();
+                    }
+                });
+
+                // Mouse Interaction
+                if(mouse.x) {
+                    const dx = p.x - mouse.x;
+                    const dy = p.y - mouse.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 200) {
+                        nCtx.strokeStyle = `rgba(255, 255, 255, ${1 - dist/200})`;
+                        nCtx.beginPath();
+                        nCtx.moveTo(p.x, p.y);
+                        nCtx.lineTo(mouse.x, mouse.y);
+                        nCtx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animateNetwork);
+        }
+        animateNetwork();
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+            netCanvas.width = window.innerWidth;
+            netCanvas.height = window.innerHeight;
+        });
+
+        // =========================================
+        // 6. CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorRing = document.querySelector('.cursor-ring');
+
+        document.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            
+            cursorRing.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // Hover effects
+        const hoverItems = document.querySelectorAll('button, a, .option-btn');
+        hoverItems.forEach(item => {
+            item.addEventListener('mouseenter', () => cursorRing.classList.add('hovered'));
+            item.addEventListener('mouseleave', () => cursorRing.classList.remove('hovered'));
+        });
+
+        // Add Keyframe for animation
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+    </script>
+</body>
+</html>

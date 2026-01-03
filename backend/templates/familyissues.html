@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Dynamics & Stress | NeuroCalm AI</title>
+    <meta name="description" content="Analyzing the impact of family issues on mental health through advanced AI stress detection.">
+    
+    <!-- Google Fonts: Mixing Tech with Human (Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Orbitron:wght@400;500;700;900&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            /* Tech Colors */
+            --bg-deep: #050507;
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --glass-panel: rgba(20, 20, 30, 0.5);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            
+            /* Emotional / Family Colors */
+            --emotion-warm: #ffaa55; /* Amber/Bond */
+            --emotion-deep: #d63384; /* Rose/Passion */
+            --emotion-soft: #ffccd5; /* Soft Pink */
+            
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Outfit', sans-serif;
+            --font-human: 'Lora', serif; /* Serif for emotional text */
+            
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR (Emotional/Tech Hybrid)
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--emotion-warm); /* Warm core */
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary); /* Tech outline */
+            transition: width 0.3s, height 0.3s, border-color 0.3s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            border-color: var(--emotion-warm);
+            background-color: rgba(255, 170, 85, 0.1);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #heartbeat-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-deep) 95%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.4s;
+        }
+
+        nav.scrolled {
+            background: rgba(5, 5, 7, 0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 1rem 4rem;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover { color: #fff; }
+
+        /* =========================================
+           5. HERO SECTION (Emotional Intro)
+           ========================================= */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            padding: 0 10%;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            background: rgba(255, 170, 85, 0.1);
+            color: var(--emotion-warm);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 170, 85, 0.3);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-family: var(--font-human);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .highlight-warm {
+            color: var(--emotion-warm);
+            font-style: italic;
+            -webkit-text-fill-color: var(--emotion-warm);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            font-family: var(--font-tech);
+        }
+
+        /* Abstract Family Graphic (CSS Art) */
+        .family-graphic {
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 500px;
+            height: 500px;
+            z-index: 1;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .node {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--emotion-warm), transparent 70%);
+            filter: blur(20px);
+            animation: floatNode 8s infinite ease-in-out;
+        }
+
+        .n1 { width: 150px; height: 150px; top: 20%; left: 30%; animation-delay: 0s; }
+        .n2 { width: 100px; height: 100px; top: 50%; left: 50%; animation-delay: 2s; background: radial-gradient(circle, var(--emotion-deep), transparent 70%); }
+        .n3 { width: 120px; height: 120px; top: 30%; left: 60%; animation-delay: 4s; }
+
+        .connector {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--emotion-warm), transparent);
+            transform-origin: left center;
+        }
+
+        /* =========================================
+           6. ISSUE CARDS (The Problems)
+           ========================================= */
+        .section-padding {
+            padding: 8rem 10%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            margin-bottom: 5rem;
+            text-align: center;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .issue-card {
+            background: var(--glass-panel);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            transition: 0.4s var(--ease-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .issue-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--emotion-warm);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .issue-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--emotion-warm);
+            margin-bottom: 1.5rem;
+        }
+
+        .issue-card h3 {
+            font-family: var(--font-human);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .issue-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           7. EMOTIONAL DEEP DIVE (Long Page Content)
+           ========================================= */
+        .deep-dive {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-bottom: 8rem;
+        }
+
+        .deep-dive.reverse { direction: rtl; }
+        .deep-dive.reverse .deep-text { direction: ltr; }
+
+        .deep-text h3 {
+            font-family: var(--font-human);
+            font-size: 2.2rem;
+            color: var(--emotion-warm);
+            margin-bottom: 1.5rem;
+        }
+
+        .deep-text p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-visual {
+            height: 300px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Simulating Stress Wave */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z' fill='%23ffaa55' opacity='0.1'/%3E%3C/svg%3E");
+            background-size: 50% 100%;
+            animation: waveMove 10s linear infinite;
+        }
+
+        /* =========================================
+           8. AI SOLUTION & DETECTOR SECTION
+           ========================================= */
+        .solution-section {
+            background: linear-gradient(to bottom, transparent, rgba(189, 0, 255, 0.05), transparent);
+            text-align: center;
+        }
+
+        .scan-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 1.5rem 3.5rem;
+            background: linear-gradient(90deg, var(--emotion-warm), var(--emotion-deep));
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+            box-shadow: 0 10px 30px rgba(214, 51, 132, 0.3);
+            margin-top: 2rem;
+        }
+
+        .scan-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .scan-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(214, 51, 132, 0.5);
+        }
+        
+        .scan-btn:hover::before {
+            left: 100%;
+        }
+
+        /* =========================================
+           9. ANIMATIONS & UTILS
+           ========================================= */
+        @keyframes waveMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        @keyframes floatNode {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 170, 85, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 170, 85, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 170, 85, 0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: 1s var(--ease-smooth);
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 968px) {
+            h1 { font-size: 3rem; }
+            .hero { padding: 0 5%; text-align: center; }
+            .hero-content { margin: 0 auto; }
+            .family-graphic { display: none; }
+            .deep-dive, .deep-dive.reverse { grid-template-columns: 1fr; direction: ltr; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="neural-canvas"></canvas> <!-- Tech/Connections -->
+    <canvas id="heartbeat-canvas"></canvas> <!-- Emotion/Warmth -->
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--emotion-warm)">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            Neuro<span style="color:var(--emotion-warm)">Family</span>
+        </a>
+        <div class="nav-links">
+            <a href="/index" data-hover>Home</a>
+            <a href="/category" data-hover>Categories</a>
+            <a href="/familyissues" data-hover style="color:var(--emotion-warm)">Family Stress</a>
+            <a href="/login" data-hover>Login</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content reveal">
+            <span class="hero-tag">Family Dynamics Analysis</span>
+            <h1>Family Ties, <br><span class="highlight-warm">Unseen Strain.</span></h1>
+            <p>Our most cherished relationships can also be the source of our deepest stress. NeuroCalm AI analyzes the silent emotional load carried within the home, helping you restore harmony and connection.</p>
+            <a href="/familyissues_ques" class="scan-btn" data-hover>
+                Detect Stress Level
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4h2v4zm0-6h-2V7h2v4z"/></svg>
+            </a>
+        </div>
+        
+        <!-- Abstract Graphic -->
+        <div class="family-graphic">
+            <div class="node n1"></div>
+            <div class="node n2"></div>
+            <div class="node n3"></div>
+            <div class="connector" style="width: 150px; top: 35%; left: 35%; transform: rotate(25deg);"></div>
+            <div class="connector" style="width: 120px; top: 40%; left: 55%; transform: rotate(60deg);"></div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="section-padding">
+        <div class="section-header reveal">
+            <h2>The Weight of Home</h2>
+            <p style="color:var(--text-muted)">Identifying the invisible stressors within the family unit.</p>
+        </div>
+
+        <div class="grid-3">
+            <!-- Card 1 -->
+            <div class="issue-card reveal" data-hover>
+                <div class="issue-icon">💸</div>
+                <h3>Financial Pressure</h3>
+                <p>The burden of providing, debts, and managing household budgets creates a chronic background anxiety that affects every interaction.</p>
+            </div>
+            <!-- Card 2 -->
+            <div class="issue-card reveal" style="transition-delay: 0.1s;" data-hover>
+                <div class="issue-icon">⚡</div>
+                <h3>Communication Breakdown</h3>
+                <p>Misunderstandings and lack of emotional validation lead to a buildup of cortisol, often resulting in frequent conflicts.</p>
+            </div>
+            <!-- Card 3 -->
+            <div class="issue-card reveal" style="transition-delay: 0.2s;" data-hover>
+                <div class="issue-icon">🤝</div>
+                <h3>Caregiver Fatigue</h3>
+                <p>Balancing work, parenting, and caring for aging parents depletes emotional reserves, leading to burnout and resentment.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deep Dive 1 -->
+    <section class="section-padding">
+        <div class="deep-dive reveal">
+            <div class="deep-text">
+                <h3>The Ripple Effect</h3>
+                <p>Stress is contagious. When one family member is under high duress, the neurochemistry of the entire household shifts. Children mirror parental anxiety, and partners absorb emotional overflow.</p>
+                <p>NeuroCalm AI detects these subtle changes in tone and biometrics, flagging moments where family stress reaches critical levels before an argument erupts.</p>
+            </div>
+            <div class="data-visual">
+                <div class="wave"></div>
+                <div style="position: absolute; top:20px; left:20px; font-family:var(--font-mono); color:var(--emotion-warm); font-size:0.8rem;">
+                    > ANALYZING AURAL PATTERNS...<br>
+                    > TENSION DETECTED: 78%<br>
+                    > STATUS: ELEVATED
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deep Dive 2 -->
+    <section class="section-padding">
+        <div class="deep-dive reverse reveal">
+            <div class="deep-text">
+                <h3>Restoring the Bond</h3>
+                <p>Understanding the source of stress is the first step to healing. Whether it's grief, separation, or simply the chaos of modern life, acknowledging the emotional weight is vital.</p>
+                <p>Our system provides actionable "cool-down" protocols designed for family dynamics, encouraging empathy and active listening during heated moments.</p>
+            </div>
+            <div class="data-visual" style="background: radial-gradient(circle, rgba(189,0,255,0.1), transparent 70%);">
+                <!-- Abstract visual of healing nodes connecting -->
+                <div style="position: absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:150px; height:150px; border:2px solid var(--emotion-warm); border-radius:50%; animation: pulse 2s infinite;"></div>
+                <div style="position: absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:100px; height:100px; border:2px solid var(--secondary); border-radius:50%; animation: pulse 2s infinite 0.5s;"></div>
+                <div style="position: absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:50px; height:50px; background:#fff; border-radius:50%;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detection CTA -->
+    <section class="section-padding solution-section" id="detect">
+        <div class="reveal">
+            <h2 style="font-family: var(--font-display); font-size: 3rem;">Is your home environment <span style="color: var(--emotion-warm)">harmonious</span>?</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 1rem auto 3rem;">
+                Don't let hidden tension erode your relationships. Use our AI-powered scanner to detect current stress levels within your immediate environment.
+            </p>
+            <a href="index.html" class="scan-btn" style="animation: pulse 2s infinite;" data-hover>
+                Launch Family Stress Detector
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="border-top: 1px solid #111; padding: 4rem 0; text-align: center; position: relative; z-index: 10; color: #555;">
+        <p>&copy; 2023 NeuroCalm AI. Fostering better family dynamics through technology.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. NEURAL CANVAS (Standard Tech Network)
+        // =========================================
+        const canvas1 = document.getElementById('neural-canvas');
+        const ctx1 = canvas1.getContext('2d');
+        let particlesArray;
+
+        canvas1.width = window.innerWidth;
+        canvas1.height = window.innerHeight;
+
+        const mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas1.width;
+                this.y = Math.random() * canvas1.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() * 1.5 - 0.75);
+                this.speedY = (Math.random() * 1.5 - 0.75);
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff'; // Tech colors
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas1.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas1.height || this.y < 0) this.speedY = -this.speedY;
+                
+                // Mouse interaction (Gentle Repel)
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if(distance < mouse.radius) {
+                    const angle = Math.atan2(dy, dx);
+                    this.x -= Math.cos(angle) * 1;
+                    this.y -= Math.sin(angle) * 1;
+                }
+
+                ctx1.fillStyle = this.color;
+                ctx1.beginPath();
+                ctx1.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx1.fill();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas1.height * canvas1.width) / 12000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = dx * dx + dy * dy;
+
+                    if (distance < (canvas1.width/7) * (canvas1.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx1.strokeStyle = 'rgba(0, 242, 255,' + opacityValue * 0.15 + ')';
+                        ctx1.lineWidth = 1;
+                        ctx1.beginPath();
+                        ctx1.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx1.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx1.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateNeural() {
+            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+            requestAnimationFrame(animateNeural);
+        }
+
+        initParticles();
+        animateNeural();
+
+        // =========================================
+        // 3. HEARTBEAT CANVAS (Warm/Emotional Particles)
+        // =========================================
+        const canvas2 = document.getElementById('heartbeat-canvas');
+        const ctx2 = canvas2.getContext('2d');
+        let hearts = [];
+
+        canvas2.width = window.innerWidth;
+        canvas2.height = window.innerHeight;
+
+        class Heart {
+            constructor() {
+                this.x = Math.random() * canvas2.width;
+                this.y = canvas2.height + Math.random() * 100;
+                this.size = Math.random() * 5 + 2;
+                this.speedY = Math.random() * 0.5 + 0.2;
+                this.color = '#ffaa55'; // Warm Amber
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y -= this.speedY;
+                if(this.y < -10) {
+                    this.y = canvas2.height + Math.random() * 100;
+                    this.x = Math.random() * canvas2.width;
+                }
+                ctx2.globalAlpha = this.opacity;
+                ctx2.fillStyle = this.color;
+                ctx2.beginPath();
+                ctx2.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx2.fill();
+                ctx2.globalAlpha = 1;
+            }
+        }
+
+        function initHearts() {
+            for(let i=0; i<50; i++) {
+                hearts.push(new Heart());
+            }
+        }
+
+        function animateHearts() {
+            ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+            hearts.forEach(h => h.update());
+            requestAnimationFrame(animateHearts);
+        }
+
+        initHearts();
+        animateHearts();
+
+        // =========================================
+        // 4. SCROLL REVEAL
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas1.width = window.innerWidth;
+            canvas1.height = window.innerHeight;
+            canvas2.width = window.innerWidth;
+            canvas2.height = window.innerHeight;
+            initParticles();
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if(window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+    </script>
+</body>
+</html>

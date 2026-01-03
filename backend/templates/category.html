@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Category | NeuroCalm AI</title>
+    <meta name="description" content="Select your demographic category for personalized AI stress analysis.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050507;
+            --bg-card: rgba(20, 20, 35, 0.4);
+            --bg-card-hover: rgba(30, 30, 50, 0.7);
+            --primary: #00f2ff; /* Cyan Neon */
+            --secondary: #bd00ff; /* Purple Neon */
+            --accent: #ff0055; /* Pink Neon */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #a0a0b0;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & UTILITIES
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            mix-blend-mode: difference;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.2);
+            border-color: var(--secondary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #bg-canvas-1 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        #bg-canvas-2 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.2;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 95%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1.5rem 0;
+            transition: all 0.4s var(--ease-smooth);
+        }
+
+        header.scrolled {
+            background: rgba(5, 5, 7, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: var(--glass-border);
+            padding: 1rem 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .back-btn {
+            border: 1px solid var(--secondary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            color: var(--secondary);
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: var(--secondary);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(189, 0, 255, 0.4);
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            padding-top: 180px;
+            padding-bottom: 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.7;
+        }
+
+        .mouse {
+            width: 26px;
+            height: 40px;
+            border: 2px solid var(--text-muted);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .wheel {
+            width: 4px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 2px;
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: scrollWheel 2s infinite;
+        }
+
+        @keyframes scrollWheel {
+            0% { top: 6px; opacity: 1; }
+            100% { top: 20px; opacity: 0; }
+        }
+
+        /* =========================================
+           6. BENTO GRID SYSTEM (THE CORE)
+           ========================================= */
+        .category-section {
+            padding: 2rem 0 8rem;
+            position: relative;
+        }
+
+        .grid-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            perspective: 1000px; /* For 3D Tilt */
+        }
+
+        .card {
+            position: relative;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            text-decoration: none;
+            color: var(--text-main);
+            overflow: hidden;
+            transition: transform 0.1s linear, box-shadow 0.3s ease, border-color 0.3s ease;
+            transform-style: preserve-3d;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 260px;
+            backdrop-filter: blur(10px);
+            group: card;
+        }
+
+        /* Special Card Sizes for visual variety */
+        .card.large {
+            grid-column: span 2;
+            grid-row: span 2;
+            background: linear-gradient(135deg, rgba(189, 0, 255, 0.1), rgba(0,0,0,0));
+        }
+
+        .card.wide {
+            grid-column: span 2;
+        }
+
+        .card.tall {
+            grid-row: span 2;
+        }
+
+        /* Card Content Styling */
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            color: var(--primary);
+            transition: 0.4s var(--ease-elastic);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .card:hover .card-icon {
+            transform: scale(1.1) translateZ(20px);
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+        }
+
+        .card h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            transform: translateZ(10px);
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            transform: translateZ(10px);
+        }
+
+        .card-arrow {
+            align-self: flex-end;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            margin-top: auto;
+            transition: 0.3s;
+            transform: translateZ(10px);
+        }
+
+        .card:hover .card-arrow {
+            background: var(--secondary);
+            color: #fff;
+            transform: translateZ(20px) rotate(-45deg);
+        }
+
+        /* Glow Effect on Hover */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 24px;
+            padding: 1px;
+            background: linear-gradient(45deg, transparent, var(--primary), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* Specific Colors for Categories */
+        .c-student .card-icon { color: #4facfe; }
+        .c-college .card-icon { color: #00f2ff; }
+        .c-working .card-icon { color: #43e97b; }
+        .c-kids .card-icon { color: #fa709a; }
+        .c-housewife .card-icon { color: #fee140; }
+        .c-athlete .card-icon { color: #ff0844; }
+        .c-freelancer .card-icon { color: #8E2DE2; }
+        .c-senior .card-icon { color: #4A00E0; }
+        .c-teacher .card-icon { color: #f12711; }
+        .c-doctor .card-icon { color: #00cdac; }
+        .c-it .card-icon { color: #833ab4; }
+        .c-farmer .card-icon { color: #56ab2f; }
+        .c-artist .card-icon { color: #DA22FF; }
+        .c-business .card-icon { color: #FDC830; }
+        .c-unemployed .card-icon { color: #bdc3c7; }
+        .c-researcher .card-icon { color: #00c6ff; }
+        .c-engineer .card-icon { color: #f7971e; }
+        .c-designer .card-icon { color: #FF512F; }
+        .c-musician .card-icon { color: #DD2476; }
+        .c-others .card-icon { color: #fff; }
+
+        /* =========================================
+           7. INFO SECTION (Parallax)
+           ========================================= */
+        .info-section {
+            padding: 8rem 0;
+            text-align: center;
+            background: linear-gradient(to bottom, transparent, rgba(0, 242, 255, 0.02), transparent);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .stat-item h4 {
+            font-size: 3rem;
+            font-family: var(--font-display);
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+        }
+
+        /* =========================================
+           8. FOOTER
+           ========================================= */
+        footer {
+            border-top: 1px solid #111;
+            padding: 3rem 0;
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 2;
+            background: #020203;
+        }
+
+        /* =========================================
+           9. RESPONSIVE DESIGN
+           ========================================= */
+        @media (max-width: 1024px) {
+            .card.large, .card.wide, .card.tall {
+                grid-column: auto;
+                grid-row: auto;
+            }
+            .stat-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .hero h1 { font-size: 3rem; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* Simplified for mobile */
+            .cursor-dot, .cursor-outline { display: none; } /* Disable custom cursor on touch */
+            * { cursor: auto; }
+        }
+
+        /* Utility for animation delays */
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+
+        /* Loading Animation Overlay */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+        .loader-ring {
+            width: 80px; height: 80px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Preloader -->
+    <div id="loader">
+        <div class="loader-ring"></div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <!-- Backgrounds -->
+    <canvas id="bg-canvas-1"></canvas> <!-- Neural Network -->
+    <canvas id="bg-canvas-2"></canvas> <!-- Data Matrix -->
+    <div class="vignette"></div>
+
+    <!-- Header -->
+    <header id="navbar">
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo" data-hover>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary)">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    NeuroCalm
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/index" data-hover>Home</a></li>
+                    <li><a href="#" class="back-btn" data-hover>Back to Demo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1><span class="gradient-text">Identify Your</span> <br>Persona</h1>
+            <p>Stress manifests differently in every walk of life. Select your category below to calibrate the AI detection algorithm to your specific lifestyle and physiological baselines.</p>
+            
+            <div class="scroll-indicator">
+                <div class="mouse">
+                    <div class="wheel"></div>
+                </div>
+                <span style="font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;">Explore</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Category Grid Section -->
+    <section class="category-section">
+        <div class="container">
+            <div class="grid-wrapper" id="category-grid">
+                <!-- Cards will be injected here via JavaScript for cleaner code management and easier icon mapping -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Info / Context Section -->
+    <section class="info-section">
+        <div class="container">
+            <h2 class="gradient-text">Why Categorization Matters</h2>
+            <p style="margin-top: 1rem; max-width: 800px; margin-left: auto; margin-right: auto; color: var(--text-muted);">
+                Our AI models are trained on diverse datasets. A student's stress during exams presents differently biometrically than an athlete's stress during competition. Selecting your accurate category improves analysis precision by <strong>42%</strong>.
+            </p>
+
+            <div class="stat-grid">
+                <div class="stat-item reveal">
+                    <h4 data-target="20">20+</h4>
+                    <p>Demographics</p>
+                </div>
+                <div class="stat-item reveal">
+                    <h4 data-target="5000">5k+</h4>
+                    <p>Bio-Markers</p>
+                </div>
+                <div class="stat-item reveal">
+                    <h4 data-target="98">98%</h4>
+                    <p>Accuracy</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 NeuroCalm AI. Personalized Stress Detection Systems.</p>
+        </div>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA CONFIGURATION
+        // =========================================
+        const categories = [
+            { id: 'student', name: 'School Student', icon: '<path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/>', size: 'normal', desc: 'Academic pressure, exam stress, and social dynamics.' },
+            { id: 'college', name: 'College Student', icon: '<path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>', size: 'normal', desc: 'Higher education workload, career anxiety, and lifestyle balance.' },
+            { id: 'kids', name: 'Kids', icon: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>', size: 'normal', desc: 'Playfulness, early schooling, and parental separation anxiety.' },
+            { id: 'housewife', name: 'Housewife', icon: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>', size: 'normal', desc: 'Household management, routine, and multi-tasking fatigue.' },
+            { id: 'athlete', name: 'Athlete', icon: '<path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86l-1.43-1.43L22 16.29z"/>', size: 'normal', desc: 'Performance pressure, physical recovery, and competition anxiety.' },
+            { id: 'senior', name: 'Senior Citizen', icon: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>', size: 'normal', desc: 'Health concerns, lifestyle changes, and relaxation stages.' },
+            { id: 'teacher', name: 'Teacher', icon: '<path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>', size: 'normal', desc: 'Classroom management, student engagement, and administrative load.' },
+            { id: 'doctor', name: 'Doctor', icon: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8.5 12h-3v-3h3v3zm0-4.5h-3v-3h3v3zm4.5 4.5h-3v-3h3v3zm0-4.5h-3v-3h3v3z"/>', size: 'normal', desc: 'Emergency response, long shifts, and patient responsibility.' },
+            { id: 'it', name: 'IT Employee', icon: '<path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>', size: 'large', desc: 'Sedentary lifestyle, screen fatigue, and rapid technological change.' },
+            { id: 'farmer', name: 'Farmer', icon: '<path d="M17 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zM5 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>', size: 'normal', desc: 'Weather dependency, physical labor, and economic fluctuation.' },
+            { id: 'artist', name: 'Artist', icon: '<path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>', size: 'normal', desc: 'Creative blocks, financial instability, and critique reception.' },
+            { id: 'business', name: 'Business Owner', icon: '<path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>', size: 'normal', desc: 'Market risks, employee management, and fiscal responsibility.' },
+            { id: 'unemployed', name: 'Unemployed', icon: '<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>', size: 'normal', desc: 'Job search anxiety, financial pressure, and self-worth.' },
+            { id: 'engineer', name: 'Engineer', icon: '<path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>', size: 'normal', desc: 'Technical problem solving, precision, and project deadlines.' },
+            { id: 'musician', name: 'Musician', icon: '<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>', size: 'normal', desc: 'Performance anxiety, practice schedules, and industry pressure.' },
+            { id: 'familyissues', name: 'Family Issues', icon: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>', size: 'normal', desc: 'Unique lifestyle factors and unclassified stressors.' }
+        ];
+        
+        // =========================================
+        // 2. RENDER GRID & 3D TILT LOGIC
+        // =========================================
+        const gridContainer = document.getElementById('category-grid');
+
+        // Generate HTML
+        categories.forEach((cat, index) => {
+            const card = document.createElement('a');
+            card.href = `/${cat.id}`;
+            card.className = `card c-${cat.id} ${cat.size}`;
+            card.style.animation = `fadeInUp 0.6s ease-out ${index * 0.05}s backwards`;
+            
+            card.innerHTML = `
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">${cat.icon}</svg>
+                </div>
+                <div>
+                    <h3>${cat.name}</h3>
+                    <p>${cat.desc}</p>
+                </div>
+                <div class="card-arrow">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M5.88 4.12L13.76 12l-7.88 7.88L8 22l10-10L8 2z"/></svg>
+                </div>
+            `;
+            
+            gridContainer.appendChild(card);
+        });
+
+        // 3D Tilt Effect
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Calculate center
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // Calculate rotation values (max 10 deg)
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+            });
+        });
+
+        // =========================================
+        // 3. CANVAS 1: NEURAL NETWORK (Particles)
+        // =========================================
+        const canvas1 = document.getElementById('bg-canvas-1');
+        const ctx1 = canvas1.getContext('2d');
+        let particlesArray;
+
+        canvas1.width = window.innerWidth;
+        canvas1.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas1.width = window.innerWidth;
+            canvas1.height = window.innerHeight;
+            initParticles();
+        });
+
+        const mouse = { x: null, y: null, radius: 200 };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas1.width;
+                this.y = Math.random() * canvas1.height;
+                this.size = Math.random() * 2 + 1;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff';
+            }
+            draw() {
+                ctx1.fillStyle = this.color;
+                ctx1.beginPath();
+                ctx1.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx1.closePath();
+                ctx1.fill();
+            }
+            update() {
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                let forceDirectionX = dx / distance;
+                let forceDirectionY = dy / distance;
+                let maxDistance = mouse.radius;
+                let force = (maxDistance - distance) / maxDistance;
+                let directionX = forceDirectionX * force * this.density;
+                let directionY = forceDirectionY * force * this.density;
+
+                if (distance < mouse.radius) {
+                    this.x -= directionX;
+                    this.y -= directionY;
+                } else {
+                    if (this.x !== this.baseX) {
+                        let dx = this.x - this.baseX;
+                        this.x -= dx/10;
+                    }
+                    if (this.y !== this.baseY) {
+                        let dy = this.y - this.baseY;
+                        this.y -= dy/10;
+                    }
+                }
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas1.height * canvas1.width) / 15000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+            requestAnimationFrame(animateParticles);
+        }
+
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = dx*dx + dy*dy;
+                    if (distance < (canvas1.width/7) * (canvas1.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx1.strokeStyle = 'rgba(0, 242, 255,' + opacityValue * 0.1 + ')';
+                        ctx1.lineWidth = 1;
+                        ctx1.beginPath();
+                        ctx1.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx1.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx1.stroke();
+                    }
+                }
+            }
+        }
+
+        initParticles();
+        animateParticles();
+
+        // =========================================
+        // 4. CANVAS 2: DIGITAL RAIN / DATA STREAM
+        // =========================================
+        const canvas2 = document.getElementById('bg-canvas-2');
+        const ctx2 = canvas2.getContext('2d');
+        
+        canvas2.width = window.innerWidth;
+        canvas2.height = window.innerHeight;
+        
+        const binary = "010101";
+        const fontSize = 14;
+        const columns = canvas2.width / fontSize;
+        const drops = [];
+
+        for(let x = 0; x < columns; x++) drops[x] = 1;
+
+        function drawMatrix() {
+            ctx2.fillStyle = 'rgba(5, 5, 7, 0.05)'; // Fade effect
+            ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
+            
+            ctx2.fillStyle = '#0F0'; // Green text
+            ctx2.font = fontSize + 'px monospace';
+            
+            for(let i = 0; i < drops.length; i++) {
+                const text = binary.charAt(Math.floor(Math.random() * binary.length));
+                ctx2.fillStyle = Math.random() > 0.95 ? '#fff' : '#00f2ff'; // Random white flashes
+                ctx2.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if(drops[i] * fontSize > canvas2.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawMatrix, 50);
+
+        // =========================================
+        // 5. UI INTERACTIONS (Cursor, Scroll, Loader)
+        // =========================================
+        const cursorDot = document.querySelector('[data-cursor-dot]');
+        const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 500);
+        });
+
+        // Navbar Scroll
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
+        // CSS Animation injection helper
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(30px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+    </script>
+    <script>
+    const grid = document.getElementById("category-grid");
+
+    categories.forEach(category => {
+        const card = document.createElement("div");
+        card.className = `category-card ${category.size}`;
+        card.setAttribute("data-hover", "");
+
+        card.innerHTML = `
+            <div class="icon">
+                <svg viewBox="0 0 24 24">${category.icon}</svg>
+            </div>
+            <h3>${category.name}</h3>
+            <p>${category.desc}</p>
+        `;
+
+        // 🔥 CLICK → GO TO SEPARATE PAGE
+        card.addEventListener("click", () => {
+            window.location.href = `${category.id}.html`;
+        });
+
+        grid.appendChild(card);
+    });
+</script>
+
+</body>
+</html>

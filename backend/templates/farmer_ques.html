@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriMind AI | Farmer Stress Analysis</title>
+    <meta name="description" content="Advanced AI-powered stress detection specifically calibrated for agricultural professionals and farmers.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            /* Agri-Tech Palette */
+            --bg-deep: #021104; /* Very dark green/black */
+            --bg-panel: rgba(10, 30, 15, 0.7);
+            --primary: #00ff88; /* Neon Green */
+            --secondary: #ffd700; /* Golden Wheat */
+            --accent: #ff6b35; /* Earth/Rust Orange */
+            --text-main: #e0f2e6;
+            --text-muted: #8ba890;
+            --border-glow: rgba(0, 255, 136, 0.3);
+            
+            /* Fonts */
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+
+            /* Animations */
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom Cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: exclusion;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--secondary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 215, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND (Agri Field)
+           ========================================= */
+        #wind-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 40%, transparent 0%, var(--bg-deep) 85%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION & HEADER
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.4s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        }
+
+        .logo svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--primary);
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+            text-shadow: 0 0 10px var(--secondary);
+        }
+
+        /* =========================================
+           5. START SECTION
+           ========================================= */
+        .start-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 0 2rem;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            animation: fadeInUp 1s var(--ease-bounce);
+        }
+
+        .tagline {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-family: var(--font-tech);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-glow);
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .start-btn {
+            padding: 1.2rem 3.5rem;
+            background: linear-gradient(135deg, var(--primary), #00cc6a);
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.2rem;
+            border: none;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: 0.5s;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .start-btn:hover::before {
+            left: 100%;
+        }
+
+        /* =========================================
+           6. QUESTIONNAIRE ENGINE
+           ========================================= */
+        .quiz-container {
+            display: none; /* Hidden initially */
+            min-height: 100vh;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            padding: 3rem;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            margin-bottom: 2rem;
+        }
+        
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-tech);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s var(--ease-smooth);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Question Styling */
+        .question-number {
+            font-family: var(--font-display);
+            color: var(--secondary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .question-text {
+            font-family: var(--font-tech);
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--primary);
+            color: #fff;
+            transform: translateX(10px);
+        }
+
+        .option-btn.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1.5rem;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-family: var(--font-display);
+            cursor: none;
+            transition: 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .btn-next {
+            background: var(--secondary);
+            border: none;
+            color: #000;
+            padding: 1rem 2.5rem;
+            border-radius: 8px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .btn-next:hover {
+            background: #ffea00;
+            box-shadow: 0 0 15px var(--secondary);
+        }
+
+        /* =========================================
+           7. LOADING / ANALYSIS
+           ========================================= */
+        .analysis-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        .loader-ring {
+            width: 100px;
+            height: 100px;
+            border: 4px solid rgba(0, 255, 136, 0.2);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 2rem;
+        }
+
+        .analysis-text {
+            font-family: var(--font-tech);
+            font-size: 1.5rem;
+            color: var(--primary);
+            animation: blink 1s infinite;
+        }
+
+        .sub-analysis {
+            font-family: var(--font-body);
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* =========================================
+           8. RESULTS DASHBOARD
+           ========================================= */
+        .results-section {
+            display: none;
+            padding: 6rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .result-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .gauge-wrapper {
+            position: relative;
+            width: 300px;
+            height: 150px;
+            overflow: hidden;
+        }
+
+        .gauge-bg {
+            width: 300px;
+            height: 150px;
+            background: rgba(255,255,255,0.05);
+            border-top-left-radius: 150px;
+            border-top-right-radius: 150px;
+        }
+
+        .gauge-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 150px;
+            background: conic-gradient(from 180deg at 50% 100%, var(--primary) 0%, var(--accent) 100%);
+            border-top-left-radius: 150px;
+            border-top-right-radius: 150px;
+            transform: rotate(180deg); /* Start hidden */
+            transition: transform 1.5s var(--ease-bounce);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); /* Needs JS to manipulate clip-path or rotate */
+            /* Simpler approach for CSS gauge: using a masking div */
+            height: 150px;
+            width: 300px;
+            border-radius: 150px 150px 0 0;
+            background: var(--primary);
+            position: absolute;
+            top: 0;
+            transform: rotate(-180deg); /* Hide half */
+            transform-origin: bottom center;
+            transition: transform 2s var(--ease-smooth);
+        }
+        
+        .score-text {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .score-value {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: #fff;
+            display: block;
+        }
+        
+        .score-label {
+            font-family: var(--font-tech);
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .breakdown {
+            margin-top: 3rem;
+        }
+
+        .breakdown-item {
+            margin-bottom: 2rem;
+        }
+
+        .breakdown-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+        }
+
+        .bar-bg {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            width: 0;
+            transition: width 1.5s var(--ease-smooth) 0.5s;
+        }
+
+        .advice-card {
+            background: linear-gradient(180deg, rgba(255, 215, 0, 0.05), transparent);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 24px;
+            padding: 3rem;
+        }
+
+        .advice-card h3 {
+            font-family: var(--font-display);
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .advice-list {
+            list-style: none;
+        }
+
+        .advice-list li {
+            margin-bottom: 1.5rem;
+            padding-left: 20px;
+            border-left: 3px solid var(--primary);
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           9. FOOTER & ANIMATIONS
+           ========================================= */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #444;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 10;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s var(--ease-smooth);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 968px) {
+            h1 { font-size: 2.5rem; }
+            .options-grid { grid-template-columns: 1fr; }
+            .result-container { grid-template-columns: 1fr; }
+            .cursor-dot, .cursor-outline { display: none; } /* Disable cursor on touch */
+            * { cursor: auto; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background -->
+    <canvas id="wind-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="#" class="logo">
+            <svg viewBox="0 0 24 24">
+                <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/>
+            </svg>
+            AGRI<span style="color:var(--primary)">MIND</span>
+        </a>
+        <div class="nav-links">
+            <a href="/index">Home</a>
+            <a href="/category">Category</a>
+            <a href="/farmer_ques" style="color:var(--primary)">Farmer Analysis</a>
+        </div>
+    </nav>
+
+    <!-- 1. START SCREEN -->
+    <section class="start-section" id="start-screen">
+        <div class="hero-content">
+            <span class="tagline">Agri-Tech Intelligence</span>
+            <h1>Field-Ready Stress <br> <span style="color:var(--primary)">Detection</span></h1>
+            <p class="hero-desc">
+                Our AI analyzes 20 critical variables ranging from weather patterns to crop yield and financial stability to provide a comprehensive mental wellness report for the farming community.
+            </p>
+            <button class="start-btn" onclick="startQuiz()">
+                Begin Assessment
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. QUESTIONNAIRE -->
+    <section class="quiz-container" id="quiz-screen">
+        <div class="quiz-card">
+            <div class="progress-wrapper">
+                <div class="progress-labels">
+                    <span id="progress-text">Question 1 of 20</span>
+                    <span id="progress-percent">5%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progress-bar"></div>
+                </div>
+            </div>
+
+            <div id="question-container">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. ANALYSIS SCREEN -->
+    <section class="analysis-screen" id="analysis-screen">
+        <div class="loader-ring"></div>
+        <div class="analysis-text">PROCESSING BIOMETRIC DATA...</div>
+        <div class="sub-analysis" id="process-log">Analyzing Weather Impact...</div>
+    </section>
+
+    <!-- 4. RESULTS -->
+    <section class="results-section" id="result-screen">
+        <div class="result-container">
+            
+            <!-- Main Metrics -->
+            <div class="main-card">
+                <div class="score-header">
+                    <div>
+                        <span class="question-number">TOTAL STRESS INDEX</span>
+                        <h2 style="font-family: var(--font-display); font-size: 2rem;">Field Report</h2>
+                    </div>
+                    <div class="gauge-wrapper">
+                        <div class="gauge-bg"></div>
+                        <div class="gauge-fill" id="gauge-fill"></div>
+                        <div class="score-text">
+                            <span class="score-value" id="final-score">0%</span>
+                            <span class="score-label" id="final-label">Low</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="breakdown">
+                    <!-- Environmental Stress -->
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">
+                            <span>Environmental & Weather Factors</span>
+                            <span id="env-score">0/100</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" id="env-bar" style="background: var(--accent);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Stress -->
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">
+                            <span>Financial & Market Factors</span>
+                            <span id="fin-score">0/100</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" id="fin-bar" style="background: var(--secondary);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Physical/Labor Stress -->
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">
+                            <span>Physical Labor & Health</span>
+                            <span id="phy-score">0/100</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" id="phy-bar" style="background: var(--primary);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Advice -->
+            <div class="advice-card">
+                <h3>
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    AI Recommendations
+                </h3>
+                <ul class="advice-list" id="advice-list">
+                    <!-- JS Injected -->
+                </ul>
+                <button class="btn-next" style="margin-top: 2rem; width: 100%; background: transparent; border: 1px solid var(--primary); color: var(--primary);" onclick="location.reload()">Re-Assess</button>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        &copy; 2023 AgriMind AI. Supporting the backbone of our nation with technology.
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA: 20 QUESTIONS
+        // =========================================
+        const questions = [
+            { id: 1, cat: 'env', text: "How concerned are you about the upcoming weather patterns affecting your harvest?", options: [{t:"Not concerned", s:0}, {t:"Slightly worried", s:2}, {t:"Very worried", s:5}] },
+            { id: 2, cat: 'fin', text: "Is your current agricultural debt load manageable?", options: [{t:"Yes, easily", s:0}, {t:"Barely manageable", s:3}, {t:"Overwhelming", s:5}] },
+            { id: 3, cat: 'phy', text: "How many hours do you typically work in the fields per day?", options: [{t:"Less than 6 hours", s:0}, {t:"6-10 hours", s:2}, {t:"More than 10 hours", s:5}] },
+            { id: 4, cat: 'fin', text: "Are current crop prices meeting your expectations?", options: [{t:"Exceeding expectations", s:0}, {t:"As expected", s:1}, {t:"Below expectations", s:4}] },
+            { id: 5, cat: 'phy', text: "Do you have frequent body aches (back pain, joint pain) from labor?", options: [{t:"Rarely", s:0}, {t:"Sometimes", s:2}, {t:"Constantly", s:5}] },
+            { id: 6, cat: 'env', text: "How severe was the pest infestation in your last cycle?", options: [{t:"None", s:0}, {t:"Minor", s:2}, {t:"Severe/Catastrophic", s:5}] },
+            { id: 7, cat: 'fin', text: "Do you have access to easy credit/loans for equipment?", options: [{t:"Yes, easy access", s:0}, {t:"Difficult but possible", s:3}, {t:"No access", s:5}] },
+            { id: 8, cat: 'env', text: "How has water availability (irrigation/rain) been lately?", options: [{t:"Sufficient", s:0}, {t:"Inconsistent", s:3}, {t:"Severe shortage", s:5}] },
+            { id: 9, cat: 'phy', text: "How would you rate your sleep quality?", options: [{t:"Restful", s:0}, {t:"Disturbed", s:2}, {t:"Insomnia/Very poor", s:5}] },
+            { id: 10, cat: 'fin', text: "Are you worried about affording fertilizers/seeds for the next season?", options: [{t:"Not worried", s:0}, {t:"Somewhat worried", s:2}, {t:"Very worried", s:5}] },
+            { id: 11, cat: 'env', text: "Has soil health on your land been degrading?", options: [{t:"Improving/Stable", s:0}, {t:"Slightly degrading", s:2}, {t:"Rapidly degrading", s:5}] },
+            { id: 12, cat: 'phy', text: "Do you have time for leisure or family activities?", options: [{t:"Yes, plenty", s:0}, {t:"Very little", s:3}, {t:"None", s:5}] },
+            { id: 13, cat: 'fin', text: "Do you have crop insurance?", options: [{t:"Full coverage", s:0}, {t:"Partial coverage", s:2}, {t:"None", s:5}] },
+            { id: 14, cat: 'env', text: "How often do extreme weather events (storms, heatwaves) disrupt work?", options: [{t:"Rarely", s:0}, {t:"Occasionally", s:2}, {t:"Frequently", s:5}] },
+            { id: 15, cat: 'phy', text: "Do you consume alcohol or tobacco to cope with fatigue?", options: [{t:"Never", s:0}, {t:"Socially", s:1}, {t:"Daily/Heavily", s:5}] },
+            { id: 16, cat: 'fin', text: "Market fluctuation volatility makes me feel...", options: [{t:"Secure/Indifferent", s:0}, {t:"Nervous", s:2}, {t:"Anxious/Panic", s:5}] },
+            { id: 17, cat: 'env', text: "Is machinery repair/replacement a financial burden?", options: [{t:"No", s:0}, {t:"Sometimes", s:2}, {t:"Always a struggle", s:5}] },
+            { id: 18, cat: 'phy', text: "Do you feel isolated or lonely while working?", options: [{t:"No, I have company", s:0}, {t:"Sometimes", s:2}, {t:"Often", s:5}] },
+            { id: 19, cat: 'fin', text: "Do you have savings for emergencies?", options: [{t:"Yes, 6+ months", s:0}, {t:"Small savings", s:2}, {t:"No savings", s:5}] },
+            { id: 20, cat: 'phy', text: "Overall, how would you rate your mental state today?", options: [{t:"Calm/Positive", s:0}, {t:"Stressed but coping", s:3}, {t:"Overwhelmed/Hopeless", s:5}] }
+        ];
+
+        // =========================================
+        // 2. STATE MANAGEMENT
+        // =========================================
+        let currentQIndex = 0;
+        let scores = { env: 0, fin: 0, phy: 0 };
+        const maxScores = { env: 45, fin: 40, phy: 40 }; // Approx max based on questions
+        let totalScore = 0;
+
+        // =========================================
+        // 3. DOM ELEMENTS
+        // =========================================
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const analysisScreen = document.getElementById('analysis-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionContainer = document.getElementById('question-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const progressPercent = document.getElementById('progress-percent');
+
+        // =========================================
+        // 4. QUIZ FUNCTIONS
+        // =========================================
+        function startQuiz() {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'flex';
+            quizScreen.classList.add('reveal');
+            setTimeout(() => quizScreen.classList.add('active'), 100);
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQIndex];
+            
+            // Update Progress
+            const pct = ((currentQIndex) / 20) * 100;
+            progressBar.style.width = `${pct}%`;
+            progressText.innerText = `Question ${currentQIndex + 1} of 20`;
+            progressPercent.innerText = `${Math.round(pct)}%`;
+
+            // Build HTML
+            let optionsHTML = '';
+            q.options.forEach((opt, idx) => {
+                optionsHTML += `
+                    <button class="option-btn" onclick="selectOption('${q.cat}', ${opt.s}, this)">
+                        ${opt.t}
+                    </button>
+                `;
+            });
+
+            questionContainer.innerHTML = `
+                <span class="question-number">CATEGORY: ${getCatName(q.cat)}</span>
+                <h2 class="question-text">${q.text}</h2>
+                <div class="options-grid">
+                    ${optionsHTML}
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn-secondary" onclick="prevQuestion()">Back</button>
+                </div>
+            `;
+        }
+
+        function getCatName(cat) {
+            if(cat === 'env') return 'ENVIRONMENTAL';
+            if(cat === 'fin') return 'FINANCIAL';
+            return 'PHYSICAL / MENTAL';
+        }
+
+        function selectOption(category, score, btnElement) {
+            // Highlight selection
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btnElement.classList.add('selected');
+
+            // Add score
+            scores[category] += score;
+            
+            // Slight delay before moving next for UX
+            setTimeout(() => {
+                nextQuestion();
+            }, 400);
+        }
+
+        function nextQuestion() {
+            if (currentQIndex < questions.length - 1) {
+                currentQIndex++;
+                renderQuestion();
+            } else {
+                showAnalysis();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQIndex > 0) {
+                // In a real app we'd need to pop the last score added. 
+                // For this demo, we'll just decrement index (simplified logic)
+                currentQIndex--;
+                renderQuestion();
+            }
+        }
+
+        // =========================================
+        // 5. ANALYSIS & CALCULATION
+        // =========================================
+        function showAnalysis() {
+            quizScreen.style.display = 'none';
+            analysisScreen.style.display = 'flex';
+
+            const logs = [
+                "Cross-referencing weather databases...",
+                "Calculating debt-to-income ratios...",
+                "Analyzing labor intensity metrics...",
+                "Generating AI Wellness Protocol..."
+            ];
+            
+            let i = 0;
+            const logEl = document.getElementById('process-log');
+            const interval = setInterval(() => {
+                if (i < logs.length) {
+                    logEl.innerText = logs[i];
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(showResults, 500);
+                }
+            }, 800);
+        }
+
+        function showResults() {
+            analysisScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+            resultScreen.classList.add('reveal');
+            setTimeout(() => resultScreen.classList.add('active'), 100);
+
+            // Calculate Percentages
+            const envPct = Math.min(100, Math.round((scores.env / maxScores.env) * 100));
+            const finPct = Math.min(100, Math.round((scores.fin / maxScores.fin) * 100));
+            const phyPct = Math.min(100, Math.round((scores.phy / maxScores.phy) * 100));
+            
+            const totalRaw = scores.env + scores.fin + scores.phy;
+            const totalMax = maxScores.env + maxScores.fin + maxScores.phy;
+            const totalPct = Math.round((totalRaw / totalMax) * 100);
+
+            // Update UI
+            document.getElementById('final-score').innerText = `${totalPct}%`;
+            
+            // Gauge Rotation (starts at -180deg (hidden), goes to 0 (full))
+            // We want 0% to be -180deg, 100% to be 0deg.
+            const rotation = -180 + (totalPct * 1.8);
+            document.getElementById('gauge-fill').style.transform = `rotate(${rotation}deg)`;
+            
+            // Color Gauge
+            const gaugeFill = document.getElementById('gauge-fill');
+            let label = "Low Stress";
+            if(totalPct > 30) { label = "Moderate Stress"; gaugeFill.style.background = "var(--secondary)"; }
+            if(totalPct > 60) { label = "High Stress"; gaugeFill.style.background = "var(--accent)"; }
+            if(totalPct > 80) { label = "Critical Stress"; gaugeFill.style.background = "#ff0055"; }
+            document.getElementById('final-label').innerText = label;
+            document.getElementById('final-label').style.color = gaugeFill.style.background;
+
+            // Update Bars
+            document.getElementById('env-score').innerText = `${scores.env}/${maxScores.env}`;
+            document.getElementById('env-bar').style.width = `${envPct}%`;
+
+            document.getElementById('fin-score').innerText = `${scores.fin}/${maxScores.fin}`;
+            document.getElementById('fin-bar').style.width = `${finPct}%`;
+
+            document.getElementById('phy-score').innerText = `${scores.phy}/${maxScores.phy}`;
+            document.getElementById('phy-bar').style.width = `${phyPct}%`;
+
+            generateAdvice(envPct, finPct, phyPct);
+        }
+
+        function generateAdvice(env, fin, phy) {
+            const adviceList = document.getElementById('advice-list');
+            let advice = [];
+
+            if(fin > 50) {
+                advice.push("Financial stress is high. Contact local agricultural cooperative banks for low-interest restructuring loans immediately.");
+                advice.push("Consider diversifying crops to hedge against market price volatility.");
+            } else {
+                advice.push("Financial stability is strong. Consider investing in better irrigation or storage facilities.");
+            }
+
+            if(env > 50) {
+                advice.push("Environmental impact detected. Explore drought-resistant seed varieties for the next cycle.");
+                advice.push("Monitor local weather alerts closely and prepare rainwater harvesting systems.");
+            }
+
+            if(phy > 50) {
+                advice.push("Physical burnout risk detected. Please schedule at least one rest day per week.");
+                advice.push("Consider mechanical assistance for heavy lifting tasks to prevent long-term injury.");
+            } else {
+                advice.push("Physical health looks good. Maintain a balanced diet rich in proteins to sustain energy.");
+            }
+
+            // Render
+            adviceList.innerHTML = advice.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // =========================================
+        // 6. VISUAL EFFECTS (Agri Wind)
+        // =========================================
+        const canvas = document.getElementById('wind-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        class WindParticle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = Math.random() * 2 + 0.5; // Wind speed
+                this.vy = (Math.random() - 0.5) * 0.2; // Slight vertical drift
+                this.len = Math.random() * 20 + 10;
+                this.opacity = Math.random() * 0.3 + 0.1;
+                this.color = Math.random() > 0.8 ? '#ffd700' : '#00ff88'; // Gold or Green dust
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x > width) {
+                    this.x = -this.len;
+                    this.y = Math.random() * height;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + this.len, this.y);
+                ctx.strokeStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Create particles
+        for(let i=0; i<150; i++) {
+            particles.push(new WindParticle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // =========================================
+        // 7. CUSTOM CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('button, a, .option-btn').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+    </script>
+</body>
+</html>

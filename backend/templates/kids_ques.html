@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galactic Mood Scan | NeuroCalm Kids</title>
+    <meta name="description" content="A fun AI quiz to check your stress levels! Join Robo-Friend on a mission.">
+    
+    <!-- Google Fonts: Fun & Sci-Fi -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@300;400;600;700&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #0B0E21;
+            --bg-card: rgba(255, 255, 255, 0.1);
+            --primary: #00F2FF; /* Neon Blue */
+            --secondary: #FF00CC; /* Hot Pink */
+            --accent: #FFD300; /* Happy Yellow */
+            --purple: #BD00FF; /* Grape */
+            --green: #00FF88; /* Slime Green */
+            --red: #FF2A2A; /* Alarm Red */
+            --text-main: #FFFFFF;
+            --font-fun: 'Fredoka', sans-serif;
+            --font-title: 'Chewy', cursive;
+            --font-tech: 'Orbitron', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom Wand Cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-fun);
+            overflow-x: hidden;
+            /* Starry Background Pattern */
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40 60, 130 270;
+        }
+
+        /* =========================================
+           2. MAGIC WAND CURSOR & TRAILS
+           ========================================= */
+        .magic-wand {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD300"><path d="M7.5 5.6L10 7 7.5 8.4 9 11l-2.5-1.4L4 11l1.5-2.6L3 7l2.5-1.4L4 3l2.5 1.4L8.5 2 7 4.4 9.5 3 8 5.6zM19 13l-2.5 1.4L19 16l2.5-1.4L24 16l-2.5 1.4L19 19l-2.5-1.4L14 16l2.5-1.4L14 13l2.5 1.4zM16 6l-1.2.7L16 8l1.2-.7L19 8l-1.8.7L16 10l-1.2-.7L13 8l1.8-.7L16 4zm-5.5 11l-4 9.5L4 16l-4 9.5 4-2.5 0 2.5 4-9.5 4 9.5 0-2.5 4 9.5z"/></svg>') no-repeat center;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%) rotate(45deg);
+            filter: drop-shadow(0 0 15px var(--accent));
+            transition: transform 0.05s linear;
+        }
+
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            border-radius: 50%;
+            animation: fadeOut 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* =========================================
+           3. NAVIGATION & HEADER
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(11,14,33,0.95), transparent);
+        }
+
+        .logo-kids {
+            font-family: var(--font-title);
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 3px 3px 0px var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-home {
+            padding: 0.5rem 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            color: #fff;
+            text-decoration: none;
+            border: 2px solid #fff;
+            transition: 0.3s;
+        }
+        .nav-home:hover { background: var(--primary); color: #000; }
+
+        /* =========================================
+           4. LAYOUT STRUCTURE
+           ========================================= */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section {
+            display: none; /* JS toggles this */
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           5. INTRO SECTION
+           ========================================= */
+        .intro-hero {
+            text-align: center;
+            padding-top: 2rem;
+        }
+
+        .intro-title {
+            font-family: var(--font-title);
+            font-size: 5rem;
+            color: var(--accent);
+            text-shadow: 4px 4px 0px var(--purple);
+            transform: rotate(-3deg);
+            margin-bottom: 2rem;
+        }
+
+        .intro-robot {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 2rem;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect x="50" y="40" width="100" height="70" rx="15" fill="%23fff"/><rect x="60" y="50" width="80" height="50" rx="5" fill="%23111"/><circle cx="80" cy="75" r="12" fill="%2300FF88"/><circle cx="120" cy="75" r="12" fill="%2300FF88"/><line x1="50" y1="110" x2="40" y2="140" stroke="%23fff" stroke-width="8" stroke-linecap="round"/><line x1="150" y1="110" x2="160" y2="140" stroke="%23fff" stroke-width="8" stroke-linecap="round"/><rect x="60" y="110" width="80" height="60" rx="10" fill="%2300F2FF"/><circle cx="90" cy="140" r="8" fill="%23fff" opacity="0.5"/><circle cx="130" cy="130" r="5" fill="%23fff" opacity="0.5"/></svg>') no-repeat center;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        .start-btn {
+            display: inline-block;
+            padding: 1.5rem 4rem;
+            background: var(--secondary);
+            color: #fff;
+            font-family: var(--font-title);
+            font-size: 2rem;
+            border-radius: 50px;
+            border: 4px solid #fff;
+            box-shadow: 8px 8px 0px var(--primary);
+            transition: 0.2s;
+            text-decoration: none;
+            cursor: none;
+        }
+
+        .start-btn:hover { transform: scale(1.1) rotate(2deg); }
+
+        /* =========================================
+           6. QUIZ SECTION (The Core)
+           ========================================= */
+        .quiz-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(15px);
+            border: 4px solid var(--primary);
+            border-radius: 30px;
+            padding: 3rem;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
+        }
+
+        /* Progress Bar (Fuel Gauge) */
+        .progress-wrapper {
+            margin-bottom: 2rem;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-tech);
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        .progress-track {
+            width: 100%;
+            height: 20px;
+            background: #222;
+            border-radius: 10px;
+            border: 2px solid #444;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Question Card */
+        .question-box {
+            text-align: center;
+            margin: 2rem 0;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .question-text {
+            font-size: 2rem;
+            line-height: 1.4;
+            color: #fff;
+        }
+
+        /* Answers */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .answer-btn {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 1.5rem 1rem;
+            font-family: var(--font-fun);
+            font-size: 1.1rem;
+            color: #fff;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: none;
+        }
+
+        .answer-btn:hover {
+            background: var(--primary);
+            color: #000;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.4);
+            border-color: #fff;
+        }
+
+        .emoji-icon { font-size: 2.5rem; }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: var(--font-tech);
+            font-size: 1.2rem;
+            cursor: none;
+            opacity: 0.5;
+        }
+        .control-btn:disabled { opacity: 0.2; pointer-events: none; }
+        .control-btn:hover { opacity: 1; text-decoration: underline; color: var(--accent); }
+
+        /* =========================================
+           7. LOADING / ANALYSIS
+           ========================================= */
+        .loading-section {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .scanner-circle {
+            width: 300px;
+            height: 300px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        .scanner-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+            animation: scan 2s infinite linear;
+        }
+        
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+        .scan-text {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 1.5rem;
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* =========================================
+           8. RESULTS SECTION
+           ========================================= */
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 40px;
+            padding: 4rem;
+            text-align: center;
+            border: 4px solid #fff;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+            animation: popIn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(var(--green) 0deg, var(--bg-card) 0deg);
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-inner {
+            width: 180px;
+            height: 180px;
+            background: var(--bg-deep);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-number {
+            font-size: 4rem;
+            font-family: var(--font-title);
+            line-height: 1;
+        }
+
+        .result-title {
+            font-family: var(--font-title);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .result-desc {
+            font-size: 1.3rem;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .action-btn {
+            padding: 1rem 3rem;
+            background: var(--secondary);
+            color: #fff;
+            border-radius: 50px;
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            border: 4px solid #fff;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .action-btn:hover { transform: scale(1.1); background: var(--green); }
+
+        /* =========================================
+           9. LONG CONTENT SECTION (Tips)
+           ========================================= */
+        .tips-section {
+            padding: 4rem 2rem;
+            margin-top: 4rem;
+            border-top: 2px dashed rgba(255,255,255,0.2);
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .tip-card {
+            background: rgba(255,255,255,0.05);
+            padding: 2rem;
+            border-radius: 20px;
+            border-left: 10px solid var(--accent);
+            transition: 0.3s;
+        }
+
+        .tip-card:hover { transform: translateX(10px); background: rgba(255,255,255,0.1); }
+
+        .tip-title {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .intro-title { font-size: 3rem; }
+            .answers-grid { grid-template-columns: 1fr; }
+            .action-btn { display: block; margin: 1rem auto; }
+            * { cursor: auto; } /* Fallback */
+            .magic-wand { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Magic Wand Cursor -->
+    <div class="magic-wand" id="magic-wand"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo-kids">
+            <span style="font-size:2.5rem;">🤖</span> NeuroCalm Jr.
+        </a>
+        <a href="index.html" class="nav-home">Back to Base</a>
+    </nav>
+
+    <div class="container">
+        
+        <!-- SECTION 1: INTRO -->
+        <section id="intro" class="section active">
+            <div class="intro-hero">
+                <h1 class="intro-title">The Galactic<br>Mood Scan!</h1>
+                <div class="intro-robot"></div>
+                <p style="font-size: 1.5rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Beam me up, Cadet! 🚀<br>
+                    I have <strong>20 Secret Questions</strong> to find out how your engine is running today. Are you ready to find out your <span style="color:var(--accent)">Stress Level</span>?
+                </p>
+                <button class="start-btn" onclick="startQuiz()">START SCAN 🛸</button>
+            </div>
+        </section>
+
+        <!-- SECTION 2: QUIZ -->
+        <section id="quiz" class="section">
+            <div class="quiz-container">
+                <div class="progress-wrapper">
+                    <div class="progress-label">
+                        <span>FUEL LEVEL</span>
+                        <span id="progress-text">0/20</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progress-bar"></div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <h2 class="question-text" id="question-text">Loading Question...</h2>
+                </div>
+
+                <div class="answers-grid" id="answers-container">
+                    <!-- Answers injected via JS -->
+                </div>
+
+                <div class="nav-controls">
+                    <button class="control-btn" id="prev-btn" onclick="prevQuestion()" disabled>⬅ PREV</button>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">AI CALCULATION: ACTIVE</div>
+                    <button class="control-btn" id="next-btn" onclick="nextQuestion()" disabled>NEXT ➡</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LOADING -->
+        <section id="loading" class="section">
+            <div class="loading-section">
+                <h1 style="font-family: var(--font-title); font-size: 3rem; margin-bottom: 2rem;">Analyzing Brainwaves...</h1>
+                <div class="scanner-circle">
+                    <div class="scanner-line"></div>
+                    <div style="z-index: 2; text-align: center;">
+                        <div style="font-size: 3rem;">🧠</div>
+                        <div class="scan-text" id="scan-status">Scanning...</div>
+                    </div>
+                </div>
+                <p style="color: #aaa; font-family: var(--font-mono); margin-top: 2rem;">DO NOT PANIC. THIS IS ONLY A TEST.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 4: RESULTS -->
+        <section id="results" class="section">
+            <div class="result-card">
+                <div class="score-circle" id="score-circle">
+                    <div class="score-inner">
+                        <span class="score-number" id="final-score">0</span>
+                        <span style="font-size: 1rem; color: #888;">POINTS</span>
+                    </div>
+                </div>
+                <h2 class="result-title" id="result-title">RESULT TITLE</h2>
+                <p class="result-desc" id="result-desc">Result description goes here.</p>
+                
+                <div>
+                    <a href="index.html" class="action-btn">Play Again 🎮</a>
+                    <a href="#tips" class="action-btn" style="background: var(--primary); color: #000;">See Tips 💡</a>
+                </div>
+            </div>
+
+            <!-- TIPS SECTION (Long Content) -->
+            <div class="tips-section" id="tips">
+                <h2 style="font-family: var(--font-title); font-size: 2.5rem; text-align: center; margin-bottom: 3rem;">Mission Debrief: How to Chill</h2>
+                <div class="tips-grid" id="tips-grid">
+                    <!-- Injected via JS based on result -->
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA: 20 QUESTIONS
+        // =========================================
+        const questions = [
+            {
+                q: "How do you feel when you wake up in the morning?",
+                a: [
+                    { text: "Ready to fly! 🚀", score: 0 },
+                    { text: "A bit sleepy 😴", score: 1 },
+                    { text: "I don't want to get up 😫", score: 2 }
+                ]
+            },
+            {
+                q: "When you think about school tomorrow, what happens in your tummy?",
+                a: [
+                    { text: "Nothing, it's cool 😎", score: 0 },
+                    { text: "A tiny butterfly 🦋", score: 1 },
+                    { text: "A tornado! 🌪️", score: 2 }
+                ]
+            },
+            {
+                q: "How well do you sleep at night?",
+                a: [
+                    { text: "Like a log (zzz)", score: 0 },
+                    { text: "Okay, but I wake up sometimes", score: 1 },
+                    { text: "I toss and turn all night", score: 2 }
+                ]
+            },
+            {
+                q: "A friend cancels a playdate. How do you react?",
+                a: [
+                    { text: "Bummer! I'll play video games.", score: 0 },
+                    { text: "A little sad, but I'm okay.", score: 1 },
+                    { text: "I cry or get very angry 😠", score: 2 }
+                ]
+            },
+            {
+                q: "Do you get headaches often?",
+                a: [
+                    { text: "Almost never", score: 0 },
+                    { text: "Once in a while", score: 1 },
+                    { text: "Yes, my head hurts a lot", score: 2 }
+                ]
+            },
+            {
+                q: "How is your appetite lately?",
+                a: [
+                    { text: "Yummy! I eat everything.", score: 0 },
+                    { text: "Same as always", score: 1 },
+                    { text: "I'm not hungry / I eat too much", score: 2 }
+                ]
+            },
+            {
+                q: "Do you feel tired even after sleeping?",
+                a: [
+                    { text: "Nope, full of energy!", score: 0 },
+                    { text: "A little bit", score: 1 },
+                    { text: "Yes, my batteries are dead 🔋", score: 2 }
+                ]
+            },
+            {
+                q: "When you make a mistake, what do you do?",
+                a: [
+                    { text: "Oops! I fix it and learn.", score: 0 },
+                    { text: "I feel bad for a minute.", score: 1 },
+                    { text: "I feel like I'm the worst ever 😭", score: 2 }
+                ]
+            },
+            {
+                q: "How is your patience today?",
+                a: [
+                    { text: "Zen Master 🧘", score: 0 },
+                    { text: "Normal", score: 1 },
+                    { text: "I want to scream right now!", score: 2 }
+                ]
+            },
+            {
+                q: "Do you worry about what others think of you?",
+                a: [
+                    { text: "Not really, I'm me.", score: 0 },
+                    { text: "Sometimes.", score: 1 },
+                    { text: "All the time, it scares me.", score: 2 }
+                ]
+            },
+            {
+                q: "Do you bite your nails or shake your leg when nervous?",
+                a: [
+                    { text: "No", score: 0 },
+                    { text: "A little bit", score: 1 },
+                    { text: "Yes, I can't stop it", score: 2 }
+                ]
+            },
+            {
+                q: "How often do you laugh?",
+                a: [
+                    { text: "All day! Hahaha!", score: 0 },
+                    { text: "A few times a day", score: 1 },
+                    { text: "I haven't laughed in a while", score: 2 }
+                ]
+            },
+            {
+                q: "Is your room messy or clean?",
+                a: [
+                    { text: "Clean and tidy!", score: 0 },
+                    { text: "A little messy", score: 1 },
+                    { text: "Disaster zone! 🌋", score: 2 }
+                ]
+            },
+            {
+                q: "Do you have trouble focusing on homework or games?",
+                a: [
+                    { text: "I focus easily.", score: 0 },
+                    { text: "I get distracted sometimes", score: 1 },
+                    { text: "I can't concentrate at all", score: 2 }
+                ]
+            },
+            {
+                q: "When you are stressed, where do you feel it?",
+                a: [
+                    { text: "I don't really feel stressed.", score: 0 },
+                    { text: "Just a little tightness", score: 1 },
+                    { text: "Everywhere! Head, tummy, chest!", score: 2 }
+                ]
+            },
+            {
+                q: "Do you feel lonely often?",
+                a: [
+                    { text: "No, I have friends.", score: 0 },
+                    { text: "Sometimes", score: 1 },
+                    { text: "Yes, I feel alone in space 👽", score: 2 }
+                ]
+            },
+            {
+                q: "What is your heart doing right now?",
+                a: [
+                    { text: "Beep-boop, normal.", score: 0 },
+                    { text: "A tiny bit faster", score: 1 },
+                    { text: "Pounding like a drum!", score: 2 }
+                ]
+            },
+            {
+                q: "How do you handle scary movies?",
+                a: [
+                    { text: "They are funny!", score: 0 },
+                    { text: "A little spooky", score: 1 },
+                    { text: "I have nightmares 😱", score: 2 }
+                ]
+            },
+            {
+                q: "If you could be anywhere right now, where?",
+                a: [
+                    { text: "Right here! I'm happy.", score: 0 },
+                    { text: "Somewhere fun", score: 1 },
+                    { text: "Far away from everyone", score: 2 }
+                ]
+            },
+            {
+                q: "Final Question: Are you ready to feel better?",
+                a: [
+                    { text: "Yes! Let's go!", score: 0 },
+                    { text: "I think so...", score: 1 },
+                    { text: "I really need help.", score: 2 }
+                ]
+            }
+        ];
+
+        // =========================================
+        // 2. STATE MANAGEMENT
+        // =========================================
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+        let totalScore = 0;
+
+        // DOM Elements
+        const sections = document.querySelectorAll('.section');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const questionText = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // =========================================
+        // 3. MAGIC WAND LOGIC
+        // =========================================
+        const wand = document.getElementById('magic-wand');
+        
+        document.addEventListener('mousemove', (e) => {
+            wand.style.left = e.clientX + 'px';
+            wand.style.top = e.clientY + 'px';
+            const dx = e.movementX;
+            wand.style.transform = `translate(-50%, -50%) rotate(${dx}deg)`;
+        });
+
+        document.addEventListener('click', (e) => {
+            // Create sparkle
+            const sparkle = document.createElement('div');
+            sparkle.classList.add('sparkle');
+            
+            const colors = ['#00F2FF', '#FF00CC', '#FFD300', '#00FF88'];
+            sparkle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            sparkle.style.left = e.clientX + 'px';
+            sparkle.style.top = e.clientY + 'px';
+            const size = Math.random() * 20 + 10;
+            sparkle.style.width = size + 'px';
+            sparkle.style.height = size + 'px';
+
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 1000);
+        });
+
+        // =========================================
+        // 4. QUIZ LOGIC
+        // =========================================
+        function switchSection(id) {
+            sections.forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function startQuiz() {
+            switchSection('quiz');
+            loadQuestion(0);
+        }
+
+        function loadQuestion(index) {
+            currentQuestion = index;
+            const q = questions[index];
+            
+            // Animate Text
+            questionText.style.opacity = 0;
+            setTimeout(() => {
+                questionText.innerText = q.q;
+                questionText.style.opacity = 1;
+            }, 200);
+
+            // Generate Answers
+            answersContainer.innerHTML = '';
+            q.a.forEach((ans, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'answer-btn';
+                btn.innerHTML = `<span class="emoji-icon">${['🟢', '🟡', '🔴'][i]}</span><span>${ans.text}</span>`;
+                btn.onclick = () => selectAnswer(i, ans.score);
+                
+                // Highlight if already selected
+                if (userAnswers[index] === ans.score) {
+                    btn.style.background = 'var(--primary)';
+                    btn.style.color = '#000';
+                }
+                
+                answersContainer.appendChild(btn);
+            });
+
+            // Update Progress
+            const progress = ((index + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.innerText = `${index + 1}/${questions.length}`;
+
+            // Buttons
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = userAnswers[index] === null;
+            nextBtn.style.opacity = userAnswers[index] === null ? 0.5 : 1;
+        }
+
+        function selectAnswer(ansIndex, score) {
+            userAnswers[currentQuestion] = score;
+            
+            // Visual feedback
+            const btns = answersContainer.children;
+            for (let btn of btns) {
+                btn.style.background = 'rgba(255,255,255,0.05)';
+                btn.style.color = '#fff';
+            }
+            btns[ansIndex].style.background = 'var(--primary)';
+            btns[ansIndex].style.color = '#000';
+
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = 1;
+
+            // Auto advance after short delay (optional, can remove)
+            setTimeout(() => {
+                if(currentQuestion < questions.length - 1) nextQuestion();
+            }, 500);
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                loadQuestion(currentQuestion + 1);
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                loadQuestion(currentQuestion - 1);
+            }
+        }
+
+        // =========================================
+        // 5. CALCULATION & RESULTS
+        // =========================================
+        function finishQuiz() {
+            // Calculate Score
+            totalScore = userAnswers.reduce((a, b) => a + b, 0);
+            
+            switchSection('loading');
+            
+            // Simulation
+            const statuses = ["Scanning Brainwaves...", "Calculating Energy Levels...", "Checking Alien Signals..."];
+            let step = 0;
+            const statusEl = document.getElementById('scan-status');
+            
+            const interval = setInterval(() => {
+                statusEl.innerText = statuses[step];
+                step++;
+                if (step >= statuses.length) {
+                    clearInterval(interval);
+                    setTimeout(showResults, 1000);
+                }
+            }, 1000);
+        }
+
+        function showResults() {
+            switchSection('results');
+            
+            const scoreNum = document.getElementById('final-score');
+            const resultTitle = document.getElementById('result-title');
+            const resultDesc = document.getElementById('result-desc');
+            const scoreCircle = document.getElementById('score-circle');
+
+            // Animate Score Count
+            let start = 0;
+            const duration = 2000;
+            const end = totalScore;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Ease out
+                const ease = 1 - Math.pow(1 - progress, 3);
+                
+                scoreNum.innerText = Math.floor(ease * end);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    determineResult();
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        function determineResult() {
+            const score = parseInt(document.getElementById('final-score').innerText);
+            const title = document.getElementById('result-title');
+            const desc = document.getElementById('result-desc');
+            const circle = document.getElementById('score-circle');
+            const tipsGrid = document.getElementById('tips-grid');
+
+            let color, resultObj;
+
+            if (score <= 10) {
+                color = 'var(--green)';
+                resultObj = {
+                    title: "CHILL CADET",
+                    desc: "Wow! Your engines are running smooth! You are doing an amazing job handling your emotions. Keep being awesome!",
+                    tips: [
+                        { icon: "🏃", title: "Keep Moving", text: "You have great energy! Use it to play sports or dance." },
+                        { icon: "🎨", title: "Create", text: "Since you are chill, try a new art project." },
+                        { icon: "📚", title: "Teach", text: "Help a friend who might be feeling wobbly." }
+                    ]
+                };
+            } else if (score <= 25) {
+                color = 'var(--accent)';
+                resultObj = {
+                    title: "WOBBLY ROCKET",
+                    desc: "You're okay, but maybe a little shaky? That happens! A few space hiccups are normal. You've got this!",
+                    tips: [
+                        { icon: "🎵", title: "Listen to Tunes", text: "Music can fix a wobbly mood fast." },
+                        { icon: "🐶", title: "Pet an Animal", text: "If you have a pet, give them a big hug." },
+                        { icon: "🥤", title: "Drink Water", text: "Sometimes being thirsty makes us feel grumpy." }
+                    ]
+                };
+            } else {
+                color = 'var(--red)';
+                resultObj = {
+                    title: "ALERT: OVERLOAD!",
+                    desc: "Oh no! It looks like your system is full of Worry Dust. Don't panic! This means it's time to take a break and recharge.",
+                    tips: [
+                        { icon: "🧘", title: "Deep Breaths", text: "In for 4 seconds, hold for 4, out for 4." },
+                        { icon: "💤", title: "Nap Time", text: "Your batteries might be low. Rest is okay!" },
+                        { icon: "🗣️", title: "Talk to Someone", text: "Tell a grownup how you are feeling." }
+                    ]
+                };
+            }
+
+            title.innerText = resultObj.title;
+            title.style.color = color;
+            desc.innerText = resultObj.desc;
+            circle.style.background = `conic-gradient(${color} ${score * 3}deg, var(--bg-card) 0deg)`;
+
+            // Generate Tips
+            tipsGrid.innerHTML = '';
+            resultObj.tips.forEach(tip => {
+                const div = document.createElement('div');
+                div.className = 'tip-card';
+                div.innerHTML = `<div class="tip-title">${tip.icon} ${tip.title}</div><p>${tip.text}</p>`;
+                div.style.borderLeftColor = color;
+                tipsGrid.appendChild(div);
+            });
+        }
+
+    </script>
+</body>
+</html>

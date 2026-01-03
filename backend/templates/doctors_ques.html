@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Diagnosis | NeuroDoc AI</title>
+    <meta name="description" content="Advanced AI-powered stress detection and medical analysis system.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & THEME
+           ========================================= */
+        :root {
+            --bg-dark: #030407;
+            --bg-medical: #0a0e14;
+            --primary-med: #00f0ff; /* Medical Cyan */
+            --secondary-med: #0066cc; /* Deep Blue */
+            --alert: #ff3333; /* Medical Red */
+            --warning: #ffaa00;
+            --success: #00ff88;
+            --text-main: #e6f1ff;
+            --text-muted: #8892b0;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-bg: rgba(10, 14, 20, 0.85);
+            --glass-border: 1px solid rgba(0, 240, 255, 0.15);
+            --shadow-glow: 0 0 20px rgba(0, 240, 255, 0.2);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary-med);
+            box-shadow: 0 0 10px var(--primary-med);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary-med);
+            transition: width 0.2s, height 0.2s;
+            mix-blend-mode: difference;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 240, 255, 0.1);
+            border-color: var(--success);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #ecg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 40%, var(--bg-dark) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT & NAVIGATION
+           ========================================= */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo span { color: var(--primary-med); }
+
+        .doctor-badge {
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--primary-med);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--primary-med);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        main {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 20px;
+        }
+
+        /* =========================================
+           5. SECTIONS TRANSITIONS
+           ========================================= */
+        section {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        section.active {
+            display: flex; /* Or block depending on specific needs */
+            opacity: 1;
+            transform: translateY(0);
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* =========================================
+           6. LANDING SECTION
+           ========================================= */
+        #landing { text-align: center; max-width: 800px; margin: 0 auto; }
+        
+        .medical-icon-large {
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--primary-med);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            position: relative;
+            box-shadow: var(--shadow-glow);
+            animation: rotatePulse 10s linear infinite;
+        }
+        
+        @keyframes rotatePulse { 0% { box-shadow: 0 0 0 0 rgba(0,240,255,0.4); } 70% { box-shadow: 0 0 0 20px rgba(0,240,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,240,255,0); } }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+        
+        h1 span { color: var(--primary-med); text-shadow: 0 0 10px rgba(0,240,255,0.5); }
+
+        .intro-text {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .btn-start {
+            padding: 1.2rem 4rem;
+            background: linear-gradient(90deg, var(--secondary-med), var(--primary-med));
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.5);
+        }
+
+        /* =========================================
+           7. QUIZ SECTION (The Core)
+           ========================================= */
+        #quiz { width: 100%; max-width: 900px; }
+
+        .progress-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-family: var(--font-mono);
+            color: var(--primary-med);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 4px;
+            background: #1a1a1a;
+            margin: 0 20px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-med);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--primary-med);
+        }
+
+        .question-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            padding: 3rem;
+            border-radius: 20px;
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .question-text {
+            font-family: var(--font-tech);
+            font-size: 2rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.3;
+            color: #fff;
+        }
+
+        /* Input Types */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-tech);
+            font-size: 1.2rem;
+            text-align: left;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--primary-med);
+            color: #fff;
+        }
+
+        .option-btn.selected {
+            background: var(--primary-med);
+            color: #000;
+            border-color: var(--primary-med);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            font-weight: 700;
+        }
+
+        .nav-buttons {
+            margin-top: 2.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-next {
+            padding: 1rem 3rem;
+            background: var(--text-main);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: 0.3s;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .btn-next.active {
+            opacity: 1;
+            pointer-events: all;
+            background: var(--primary-med);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+
+        /* =========================================
+           8. PROCESSING SECTION
+           ========================================= */
+        #processing { text-align: center; }
+        
+        .scanner-circle {
+            width: 200px;
+            height: 200px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid var(--primary-med);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+
+        .scanner-circle::after {
+            content: 'ANALYZING';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-mono);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .loading-text {
+            font-family: var(--font-mono);
+            color: var(--primary-med);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-sub {
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           9. RESULT SECTION
+           ========================================= */
+        #result { max-width: 1000px; }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .result-header h2 { font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .result-header p { color: var(--text-muted); }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            width: 100%;
+        }
+
+        /* Gauge Card */
+        .score-card {
+            background: var(--glass-bg);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .gauge-container {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--alert) 0%, var(--warning) 50%, var(--success) 100%);
+            mask: radial-gradient(transparent 65%, black 66%);
+            -webkit-mask: radial-gradient(transparent 65%, black 66%);
+            transform: rotate(180deg);
+        }
+
+        .gauge-value {
+            position: absolute;
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .score-label {
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* Details Card */
+        .details-card {
+            background: var(--glass-bg);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .detail-row {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-row h4 {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+        }
+
+        .bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--primary-med);
+            width: 0%; /* JS animates this */
+            transition: width 1.5s ease-out;
+            border-radius: 4px;
+        }
+
+        .doctor-note {
+            background: rgba(0, 240, 255, 0.05);
+            border-left: 4px solid var(--primary-med);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .doctor-note h4 {
+            color: var(--primary-med);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-reset {
+            margin-top: 3rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            border-radius: 8px;
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        
+        .btn-reset:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .options-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 2rem; }
+            .question-text { font-size: 1.5rem; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="neural-canvas"></canvas>
+    <canvas id="ecg-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Header -->
+    <header>
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary-med)">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8.5 12h-3v-4.5H5v-3h4.5V5h3v4.5H19v3h-4.5V15z"/> <!-- Medical Cross Variant -->
+            </svg>
+            NEURO<span>DOC</span> AI
+        </a>
+        <div class="doctor-badge">
+            <div class="dot"></div>
+            SYSTEM ONLINE
+        </div>
+    </header>
+
+    <main>
+        <!-- SECTION 1: LANDING -->
+        <section id="landing" class="active">
+            <div class="medical-icon-large">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="var(--primary-med)">
+                    <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/>
+                </svg>
+            </div>
+            <h1>Clinical Stress<br><span>Analysis System</span></h1>
+            <p class="intro-text">
+                Welcome to the NeuroDoc AI Interface. This system utilizes advanced neural algorithms to assess your physiological and psychological stress markers based on clinical protocols. Please answer the following 20 diagnostic questions accurately.
+            </p>
+            <button class="btn-start" onclick="startDiagnosis()" data-hover>
+                Initiate Diagnosis
+            </button>
+        </section>
+
+        <!-- SECTION 2: QUIZ -->
+        <section id="quiz">
+            <div class="progress-container">
+                <span>SYMPTOM CHECK: <span id="q-number">01</span>/20</span>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+                <span>PATIENT ID: #8492</span>
+            </div>
+
+            <div class="question-card">
+                <span class="question-number">DIAGNOSTIC QUERY</span>
+                <h2 class="question-text" id="question-text">Loading...</h2>
+                
+                <div class="options-grid" id="options-container">
+                    <!-- Options injected via JS -->
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn-next" id="next-btn" onclick="nextQuestion()" data-hover>NEXT SYMPTOM &rarr;</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PROCESSING -->
+        <section id="processing">
+            <div class="scanner-circle"></div>
+            <h2 class="loading-text" id="process-status">CALCULATING BIOMETRICS...</h2>
+            <p class="loading-sub">Comparing against medical database v4.2</p>
+        </section>
+
+        <!-- SECTION 4: RESULT -->
+        <section id="result">
+            <div class="result-header">
+                <h2>DIAGNOSIS COMPLETE</h2>
+                <p>Report generated on <span id="date-display"></span></p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Score Card -->
+                <div class="score-card">
+                    <div class="gauge-container">
+                        <div class="gauge-circle"></div>
+                        <div class="gauge-value" id="final-score">0</div>
+                    </div>
+                    <div class="score-label">STRESS SEVERITY INDEX</div>
+                    <h3 id="stress-category" style="margin-top:1rem; font-family:var(--font-tech);">ANALYZING...</h3>
+                </div>
+
+                <!-- Details Card -->
+                <div class="details-card">
+                    <div class="detail-row">
+                        <h4>Physical Fatigue <span id="val-physical">0%</span></h4>
+                        <div class="bar-bg"><div class="bar-fill" id="bar-physical"></div></div>
+                    </div>
+                    <div class="detail-row">
+                        <h4>Emotional Instability <span id="val-emotional">0%</span></h4>
+                        <div class="bar-bg"><div class="bar-fill" id="bar-emotional"></div></div>
+                    </div>
+                    <div class="detail-row">
+                        <h4>Workplace Anxiety <span id="val-work">0%</span></h4>
+                        <div class="bar-bg"><div class="bar-fill" id="bar-work"></div></div>
+                    </div>
+                    <div class="detail-row">
+                        <h4>Social Disconnection <span id="val-social">0%</span></h4>
+                        <div class="bar-bg"><div class="bar-fill" id="bar-social"></div></div>
+                    </div>
+
+                    <div class="doctor-note">
+                        <h4>
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H6v-2h4V7h2v4h4v2h-4v4z"/></svg>
+                            DOCTOR'S RECOMMENDATION
+                        </h4>
+                        <p id="doctor-recommendation" style="color: #ccc; line-height: 1.5;">Analyzing patient history...</p>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button class="btn-reset" onclick="location.reload()" data-hover>New Diagnosis</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA: 20 CLINICAL QUESTIONS
+        // =========================================
+        const questions = [
+            { t: "How would you rate your overall sleep quality over the past week?", cat: "physical" },
+            { t: "Do you frequently experience headaches or migraines without medical cause?", cat: "physical" },
+            { t: "How often do you feel physically exhausted after waking up?", cat: "physical" },
+            { t: "Have you noticed changes in your appetite (eating too much or too little)?", cat: "physical" },
+            { t: "Do you experience muscle tension or unexplained aches?", cat: "physical" },
+            
+            { t: "How often do you feel nervous or anxious for no apparent reason?", cat: "emotional" },
+            { t: "Do you feel like you've lost control over your emotions?", cat: "emotional" },
+            { t: "How easily do you become irritated or angry lately?", cat: "emotional" },
+            { t: "Do you experience feelings of sadness or hopelessness?", cat: "emotional" },
+            { t: "Do you feel unable to relax even when you have free time?", cat: "emotional" },
+
+            { t: "How overwhelmed do you feel by your current workload?", cat: "work" },
+            { t: "Do you have difficulty concentrating on tasks at work?", cat: "work" },
+            { t: "Are you worried about losing your job or meeting deadlines?", cat: "work" },
+            { t: "Do you feel undervalued or unrecognized in your professional environment?", cat: "work" },
+            { t: "Does your work interfere with your personal life?", cat: "work" },
+
+            { t: "Have you withdrawn from friends or family recently?", cat: "social" },
+            { t: "Do you avoid social situations because you feel drained?", cat: "social" },
+            { t: "Do you feel lonely even when you are with people?", cat: "social" },
+            { t: "Do you feel that no one understands what you are going through?", cat: "social" },
+            { t: "Have you lost interest in hobbies or activities you used to enjoy?", cat: "social" }
+        ];
+
+        // Options mapping
+        const options = [
+            { text: "Never / Not at all", val: 0 },
+            { text: "Rarely", val: 1 },
+            { text: "Sometimes", val: 2 },
+            { text: "Often", val: 3 },
+            { text: "Always / Very Much", val: 4 }
+        ];
+
+        // State
+        let currentQIndex = 0;
+        let answers = [];
+        let scores = { physical: 0, emotional: 0, work: 0, social: 0 };
+        
+        // =========================================
+        // 2. CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('button, .option-btn, .logo').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 3. QUIZ ENGINE
+        // =========================================
+        function startDiagnosis() {
+            document.getElementById('landing').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('landing').style.display = 'none';
+                document.getElementById('quiz').style.display = 'flex';
+                setTimeout(() => document.getElementById('quiz').classList.add('active'), 50);
+                renderQuestion();
+            }, 600);
+        }
+
+        function renderQuestion() {
+            const qData = questions[currentQIndex];
+            document.getElementById('q-number').innerText = (currentQIndex + 1).toString().padStart(2, '0');
+            document.getElementById('progress-fill').style.width = `${((currentQIndex) / 20) * 100}%`;
+            document.getElementById('question-text').innerText = qData.t;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = () => selectOption(idx, opt.val, btn);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('next-btn').classList.remove('active');
+        }
+
+        let currentSelectionVal = 0;
+
+        function selectOption(idx, val, btnElem) {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btnElem.classList.add('selected');
+            currentSelectionVal = val;
+            document.getElementById('next-btn').classList.add('active');
+        }
+
+        function nextQuestion() {
+            // Save answer
+            const cat = questions[currentQIndex].cat;
+            scores[cat] += currentSelectionVal;
+            
+            currentQIndex++;
+            
+            if (currentQIndex < 20) {
+                // Animate out
+                const card = document.querySelector('.question-card');
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    renderQuestion();
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 300);
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('quiz').style.display = 'none';
+                document.getElementById('processing').style.display = 'flex';
+                setTimeout(() => document.getElementById('processing').classList.add('active'), 50);
+                runProcessingAnimation();
+            }, 600);
+        }
+
+        // =========================================
+        // 4. PROCESSING & CALCULATION
+        // =========================================
+        function runProcessingAnimation() {
+            const status = document.getElementById('process-status');
+            const texts = ["CALCULATING BIOMETRICS...", "COMPARING WITH DATABASE...", "GENERATING DIAGNOSIS..."];
+            let step = 0;
+
+            const interval = setInterval(() => {
+                status.innerText = texts[step];
+                step++;
+                if (step >= texts.length) {
+                    clearInterval(interval);
+                    showResults();
+                }
+            }, 1500);
+        }
+
+        function showResults() {
+            // Calculate Percentages (Max per cat is 5 questions * 4 points = 20)
+            const maxPerCat = 20;
+            
+            const pPct = Math.round((scores.physical / maxPerCat) * 100);
+            const ePct = Math.round((scores.emotional / maxPerCat) * 100);
+            const wPct = Math.round((scores.work / maxPerCat) * 100);
+            const sPct = Math.round((scores.social / maxPerCat) * 100);
+
+            const totalScore = Math.round((pPct + ePct + wPct + sPct) / 4);
+
+            document.getElementById('processing').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('processing').style.display = 'none';
+                document.getElementById('result').style.display = 'flex';
+                setTimeout(() => document.getElementById('result').classList.add('active'), 50);
+                
+                animateResults(totalScore, pPct, ePct, wPct, sPct);
+            }, 600);
+        }
+
+        function animateResults(total, p, e, w, s) {
+            // Set Date
+            const d = new Date();
+            document.getElementById('date-display').innerText = d.toDateString();
+
+            // Animate Score Counter
+            let current = 0;
+            const scoreEl = document.getElementById('final-score');
+            const catEl = document.getElementById('stress-category');
+            const timer = setInterval(() => {
+                current++;
+                scoreEl.innerText = current + '%';
+                
+                // Color Logic
+                if(current < 30) { scoreEl.style.color = 'var(--success)'; catEl.innerText = "LOW STRESS"; catEl.style.color = 'var(--success)'; }
+                else if(current < 60) { scoreEl.style.color = 'var(--warning)'; catEl.innerText = "MODERATE STRESS"; catEl.style.color = 'var(--warning)'; }
+                else { scoreEl.style.color = 'var(--alert)'; catEl.innerText = "HIGH STRESS"; catEl.innerText = "CRITICAL LEVEL"; catEl.style.color = 'var(--alert)'; }
+
+                if(current >= total) clearInterval(timer);
+            }, 30);
+
+            // Animate Bars
+            setTimeout(() => {
+                document.getElementById('bar-physical').style.width = p + '%';
+                document.getElementById('val-physical').innerText = p + '%';
+                
+                document.getElementById('bar-emotional').style.width = e + '%';
+                document.getElementById('val-emotional').innerText = e + '%';
+
+                document.getElementById('bar-work').style.width = w + '%';
+                document.getElementById('val-work').innerText = w + '%';
+
+                document.getElementById('bar-social').style.width = s + '%';
+                document.getElementById('val-social').innerText = s + '%';
+            }, 500);
+
+            // Generate Doctor Note
+            generateRecommendation(total, p, e, w, s);
+        }
+
+        function generateRecommendation(total, p, e, w, s) {
+            let rec = "";
+            if (total < 30) {
+                rec = "Your stress levels are within a healthy range. Continue your current routine. Maintain good sleep hygiene and regular physical activity.";
+            } else if (total < 60) {
+                if (e > 60) rec = "You are showing signs of emotional exhaustion. Consider mindfulness exercises and speaking with a counselor. ";
+                if (w > 60) rec += "Your workplace stress is elevated. Try setting clear boundaries between work and personal time.";
+                else rec = "Moderate stress detected. Focus on relaxation techniques and ensure you are taking regular breaks throughout your day.";
+            } else {
+                rec = "WARNING: High stress levels detected. This can have serious health implications. We strongly recommend consulting with a healthcare professional immediately. Prioritize rest and seek social support.";
+            }
+            document.getElementById('doctor-recommendation').innerText = rec;
+        }
+
+        // =========================================
+        // 5. BACKGROUND ANIMATIONS (Neural + ECG)
+        // =========================================
+        
+        // 1. Neural Network (Similar to previous pages)
+        const canvasN = document.getElementById('neural-canvas');
+        const ctxN = canvasN.getContext('2d');
+        let particlesN = [];
+        
+        canvasN.width = window.innerWidth;
+        canvasN.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvasN.width = window.innerWidth;
+            canvasN.height = window.innerHeight;
+            canvasE.width = window.innerWidth;
+            canvasE.height = window.innerHeight;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvasN.width;
+                this.y = Math.random() * canvasN.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+                this.color = '#0066cc'; // Medical Blue
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if(this.x < 0 || this.x > canvasN.width) this.vx *= -1;
+                if(this.y < 0 || this.y > canvasN.height) this.vy *= -1;
+            }
+            draw() {
+                ctxN.fillStyle = this.color;
+                ctxN.beginPath();
+                ctxN.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctxN.fill();
+            }
+        }
+
+        for(let i=0; i<60; i++) particlesN.push(new Particle());
+
+        function animateN() {
+            ctxN.clearRect(0, 0, canvasN.width, canvasN.height);
+            particlesN.forEach(p => {
+                p.update();
+                p.draw();
+                // Connect
+                particlesN.forEach(p2 => {
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctxN.strokeStyle = `rgba(0, 102, 204, ${1 - dist/150})`;
+                        ctxN.beginPath();
+                        ctxN.moveTo(p.x, p.y);
+                        ctxN.lineTo(p2.x, p2.y);
+                        ctxN.stroke();
+                    }
+                });
+            });
+            requestAnimationFrame(animateN);
+        }
+        animateN();
+
+        // 2. ECG Line (Heartbeat)
+        const canvasE = document.getElementById('ecg-canvas');
+        const ctxE = canvasE.getContext('2d');
+        let ecgX = 0;
+        let ecgY = canvasE.height / 2;
+        let speed = 2; // Speed of the ECG trace
+
+        function drawECG() {
+            // Fade effect
+            ctxE.fillStyle = 'rgba(3, 4, 7, 0.05)';
+            ctxE.fillRect(0, 0, canvasE.width, canvasE.height);
+            
+            ctxE.beginPath();
+            ctxE.lineWidth = 2;
+            ctxE.strokeStyle = '#00f0ff';
+            ctxE.shadowBlur = 10;
+            ctxE.shadowColor = '#00f0ff';
+            
+            // Logic to simulate heartbeat wave pattern
+            // Flat line -> Dip -> Spike -> Dip -> Flat
+            if (ecgX > canvasE.width) {
+                ecgX = 0;
+                ctxE.clearRect(0,0,canvasE.width, canvasE.height); // Full clear
+            }
+
+            let nextY = ecgY;
+            const t = (Date.now() / 200) % 10; // Time cycle
+
+            if (t > 9 || t < 1) nextY = ecgY; // Flat
+            else if (t > 1 && t < 2) nextY = ecgY + 20; // P wave
+            else if (t >= 2 && t < 2.5) nextY = ecgY - 20; // Q dip
+            else if (t >= 2.5 && t < 3) nextY = ecgY - 80; // R spike (High)
+            else if (t >= 3 && t < 3.5) nextY = ecgY + 20; // S dip
+            else if (t >= 3.5 && t < 5) nextY = ecgY; // ST segment
+            else if (t >= 5 && t < 6) nextY = ecgY + 20; // T wave
+            
+            // Add jitter for "digital noise"
+            nextY += (Math.random() - 0.5) * 4;
+
+            ctxE.lineTo(ecgX, nextY);
+            ctxE.stroke();
+
+            ecgX += speed;
+            ecgY = nextY;
+
+            requestAnimationFrame(drawECG);
+        }
+        drawECG();
+
+    </script>
+</body>
+</html>

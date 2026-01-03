@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Profile | NeuroCalm AI</title>
+    <meta name="description" content="AI Stress analysis for modern agriculture professionals. Understanding the lifecycle of a farmer's daily stress.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES (AGRI-TECH THEME)
+           ========================================= */
+        :root {
+            /* Theme Specifics: Dark Soil + Bio Neon */
+            --bg-deep: #0a0500;
+            --bg-panel: rgba(20, 10, 0, 0.7);
+            --agri-primary: #39ff14; /* Neon Green */
+            --agri-gold: #ffd700;   /* Harvest Gold */
+            --agri-brown: #8b4513;  /* Soil */
+            --brand-cyan: #00f2ff;  /* AI Core */
+            --brand-purple: #bd00ff;
+            --text-main: #f0f0f0;
+            --text-muted: #a89f91;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-border: 1px solid rgba(57, 255, 20, 0.2);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom Cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR (Precision Reticle)
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background-color: var(--agri-primary);
+            box-shadow: 0 0 10px var(--agri-primary);
+        }
+
+        .cursor-outline {
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--agri-primary);
+            border-radius: 50%;
+            transition: width 0.2s, height 0.2s;
+            position: relative;
+        }
+
+        /* Crosshairs inside cursor */
+        .cursor-outline::before, .cursor-outline::after {
+            content: '';
+            position: absolute;
+            background: var(--agri-primary);
+            opacity: 0.5;
+        }
+        .cursor-outline::before { top: 50%; left: 0; width: 100%; height: 1px; transform: translateY(-50%); }
+        .cursor-outline::after { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+
+        body:hover .cursor-outline.hovered {
+            width: 70px;
+            height: 70px;
+            border-color: var(--agri-gold);
+            background-color: rgba(255, 215, 0, 0.05);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND (CANVAS)
+           ========================================= */
+        #agri-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(57, 255, 20, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 0%, transparent 0%, var(--bg-deep) 90%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. HERO & START BUTTON
+           ========================================= */
+        .hero-start {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(57,255,20,0.05) 0%, transparent 70%);
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--agri-gold);
+            margin-bottom: 4rem;
+            letter-spacing: 5px;
+            font-weight: 300;
+        }
+
+        .start-btn {
+            position: relative;
+            padding: 1.5rem 4rem;
+            background: transparent;
+            border: 2px solid var(--agri-primary);
+            color: var(--agri-primary);
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            cursor: none;
+            overflow: hidden;
+            transition: 0.4s var(--ease-elastic);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--agri-primary);
+            transition: 0.4s;
+            z-index: -1;
+        }
+
+        .start-btn:hover {
+            color: #000;
+            box-shadow: 0 0 50px var(--agri-primary);
+        }
+
+        .start-btn:hover::before {
+            left: 0;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        /* =========================================
+           5. LONG PAGE CONTENT (FARMER JOURNEY)
+           ========================================= */
+        .journey-container {
+            position: relative;
+            z-index: 10;
+            padding: 4rem 2rem 10rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 8rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            color: var(--agri-gold);
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Timeline Styling */
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--agri-primary), var(--agri-gold), transparent);
+            transform: translateX(-50%);
+        }
+
+        .step {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10rem;
+            position: relative;
+        }
+
+        .step:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .step-content {
+            width: 45%;
+            background: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 20px;
+            position: relative;
+            transition: 0.5s var(--ease-smooth);
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        .step-content.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step-content:hover {
+            border-color: var(--agri-gold);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.1);
+        }
+
+        .step-content h3 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .step-number {
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.1);
+            font-weight: 900;
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            line-height: 1;
+        }
+
+        .step-content p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Stress Metrics in Steps */
+        .stress-meter {
+            background: rgba(0,0,0,0.3);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .stress-fill {
+            height: 100%;
+            background: var(--agri-primary);
+            width: 0%;
+            transition: width 1.5s ease-out 0.5s;
+        }
+        .step.active .stress-fill {
+            width: var(--stress-level); /* Defined in HTML */
+        }
+        
+        /* Icon visual on the other side */
+        .step-visual {
+            width: 45%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .visual-icon {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(57,255,20,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed var(--agri-primary);
+            animation: pulse 4s infinite;
+        }
+
+        .visual-icon svg {
+            width: 60px;
+            height: 60px;
+            fill: var(--agri-primary);
+        }
+
+        /* =========================================
+           6. AI SOLUTION SECTION
+           ========================================= */
+        .solution-section {
+            background: rgba(57, 255, 20, 0.02);
+            border: 1px solid var(--agri-primary);
+            border-radius: 30px;
+            padding: 5rem;
+            text-align: center;
+            margin-top: 5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .solution-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(57, 255, 20, 0.05), transparent);
+            animation: rotate 10s linear infinite;
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .solution-card {
+            background: rgba(0,0,0,0.5);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            transition: 0.3s;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--agri-gold);
+        }
+
+        /* =========================================
+           7. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(57, 255, 20, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 3rem; }
+            .step, .step:nth-child(even) { flex-direction: column; }
+            .step-content, .step-visual { width: 100%; }
+            .timeline::before { left: 0; }
+            .solution-grid { grid-template-columns: 1fr; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="agri-canvas"></canvas>
+    <div class="grid-overlay"></div>
+    <div class="vignette"></div>
+
+    <!-- Start Section (Hero) -->
+    <section class="hero-start">
+        <h1 class="hero-title">The Modern<br><span style="color: var(--agri-primary);">Farmer</span></h1>
+        <p class="hero-subtitle">A BIO-DATA ANALYSIS JOURNEY</p>
+        
+        <button class="start-btn" onclick="scrollToJourney()">
+            Initiate Sequence
+        </button>
+
+        <div class="scroll-indicator">
+            <span>SCROLL TO ANALYZE</span>
+            <div style="margin-top: 10px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Long Page Journey -->
+    <div class="journey-container" id="journey-start">
+        
+        <div class="section-header reveal">
+            <h2>The Lifecycle of Stress</h2>
+            <p>Analyzing the physiological and psychological pressure points in modern agriculture through the NeuroCalm AI lens.</p>
+        </div>
+
+        <div class="timeline">
+            
+            <!-- Step 1 -->
+            <div class="step">
+                <div class="step-visual">
+                    <div class="visual-icon">
+                        <svg viewBox="0 0 24 24"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.79 1.41-1.41-1.79-1.79-1.41 1.41zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg>
+                    </div>
+                </div>
+                <div class="step-content" style="--stress-level: 30%;">
+                    <span class="step-number">01</span>
+                    <h3>The Pre-Dawn Anxiety</h3>
+                    <p>Waking up at 4:00 AM. The first wave of stress hits before the sun rises. Checking weather APIs, fearing unexpected frost or hail that could destroy the season's yield.</p>
+                    <div style="font-size: 0.8rem; color: var(--agri-primary);">STRESS LEVEL: LOW-MODERATE</div>
+                    <div class="stress-meter"><div class="stress-fill" style="background: var(--brand-cyan);"></div></div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step">
+                <div class="step-content" style="--stress-level: 65%;">
+                    <span class="step-number">02</span>
+                    <h3>Market Volatility</h3>
+                    <p>Commodity prices fluctuate like the wind. The fear of selling produce below cost creates a sustained cortisol spike. Financial uncertainty is the modern farmer's drought.</p>
+                    <div style="font-size: 0.8rem; color: var(--agri-gold);">STRESS LEVEL: HIGH</div>
+                    <div class="stress-meter"><div class="stress-fill" style="background: var(--agri-gold);"></div></div>
+                </div>
+                <div class="step-visual">
+                    <div class="visual-icon">
+                        <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step">
+                <div class="step-visual">
+                    <div class="visual-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    </div>
+                </div>
+                <div class="step-content" style="--stress-level: 85%;">
+                    <span class="step-number">03</span>
+                    <h3>Labor Shortage & Isolation</h3>
+                    <p>Standing alone in acres of land. The inability to find reliable workers leads to physical overexertion. Social isolation amplifies the mental load.</p>
+                    <div style="font-size: 0.8rem; color: var(--agri-brown);">STRESS LEVEL: CRITICAL</div>
+                    <div class="stress-meter"><div class="stress-fill" style="background: var(--agri-brown);"></div></div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step">
+                <div class="step-content" style="--stress-level: 50%;">
+                    <span class="step-number">04</span>
+                    <h3>Technological Shift</h3>
+                    <p>Adapting to drones and AI. The stress of learning new interfaces vs. traditional wisdom. The fear of being left behind by Agri-Tech.</p>
+                    <div style="font-size: 0.8rem; color: var(--brand-purple);">STRESS LEVEL: MODERATE</div>
+                    <div class="stress-meter"><div class="stress-fill" style="background: var(--brand-purple);"></div></div>
+                </div>
+                <div class="step-visual">
+                    <div class="visual-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- AI Solution Section -->
+        <div class="solution-section">
+            <h2 style="font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 2rem; color: #fff;">NeuroCalm AI Integration</h2>
+            <p style="max-width: 600px; margin: 0 auto; color: #ccc;">Our system detects these stress patterns before they become chronic, offering real-time bio-feedback to the farmer via smart wearables and vehicle interfaces.</p>
+
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <h4 style="color: var(--agri-primary); margin-bottom: 10px;">WEARABLE SYNC</h4>
+                    <p style="font-size: 0.9rem; color: #999;">Connects to smartwatches to monitor heart rate during heavy lifting or equipment operation.</p>
+                </div>
+                <div class="solution-card">
+                    <h4 style="color: var(--agri-gold); margin-bottom: 10px;">WEATHER ALERTS</h4>
+                    <p style="font-size: 0.9rem; color: #999;">Predictive anxiety reduction by automating weather checks 24/7.</p>
+                </div>
+                <div class="solution-card">
+                    <h4 style="color: var(--brand-cyan); margin-bottom: 10px;">BREATHING GUIDE</h4>
+                    <p style="font-size: 0.9rem; color: #999;">In-tractor audio cues for breathing exercises to lower cortisol levels.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer style="text-align: center; padding: 3rem; color: #555; font-size: 0.8rem; border-top: 1px solid #111;">
+        <p>&copy; 2023 NeuroCalm AI | Agri-Sector Division</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .step-content, .solution-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        function scrollToJourney() {
+            document.getElementById('journey-start').scrollIntoView({ behavior: 'smooth' });
+            window.location.href = "/farmer_dashboard"; 
+        }
+
+        // =========================================
+        // 2. DIGITAL WHEAT FIELD CANVAS
+        // =========================================
+        const canvas = document.getElementById('agri-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let width = canvas.width;
+        let height = canvas.height;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initWheat();
+        });
+
+        const stalks = [];
+        const numStalks = 300;
+
+        class Stalk {
+            constructor(x) {
+                this.x = x;
+                this.height = 100 + Math.random() * 150;
+                this.width = 2;
+                this.color = Math.random() > 0.8 ? '#ffd700' : '#39ff14'; // Gold or Green
+                this.segments = 10;
+                this.angle = 0;
+                this.targetAngle = 0;
+            }
+
+            update(mouseX) {
+                // Wind effect based on Mouse X
+                const dist = mouseX - this.x;
+                const maxDist = 500;
+                
+                // Base wind
+                let wind = Math.sin(Date.now() * 0.001 + this.x * 0.01) * 0.1;
+
+                // Interactive wind
+                if (Math.abs(dist) < maxDist) {
+                    wind += (dist / maxDist) * 0.5;
+                }
+
+                this.angle = this.angle * 0.9 + wind * 0.1;
+            }
+
+            draw(yOffset) {
+                ctx.beginPath();
+                ctx.moveTo(this.x, height);
+                
+                let currentX = this.x;
+                let currentY = height;
+                
+                for (let i = 0; i < this.segments; i++) {
+                    const segmentHeight = this.height / this.segments;
+                    currentX += Math.sin(this.angle + i) * 2;
+                    currentY -= segmentHeight;
+                    
+                    ctx.lineTo(currentX, currentY);
+                }
+
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = this.width;
+                ctx.stroke();
+
+                // Grain at top
+                ctx.beginPath();
+                ctx.arc(currentX, currentY, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            }
+        }
+
+        function initWheat() {
+            stalks.length = 0;
+            for(let i = 0; i < numStalks; i++) {
+                stalks.push(new Stalk(Math.random() * width));
+            }
+        }
+
+        initWheat();
+
+        let mouseX = width / 2;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+        });
+
+        function animateWheat() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw Soil gradient at bottom
+            const grad = ctx.createLinearGradient(0, height - 100, 0, height);
+            grad.addColorStop(0, 'transparent');
+            grad.addColorStop(1, 'rgba(20, 10, 0, 0.8)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            stalks.forEach(stalk => {
+                stalk.update(mouseX);
+                stalk.draw();
+            });
+
+            requestAnimationFrame(animateWheat);
+        }
+
+        animateWheat();
+
+        // =========================================
+        // 3. SCROLL REVEAL OBSERVER
+        // =========================================
+        const observerOptions = {
+            threshold: 0.2
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.step-content').forEach(el => observer.observe(el));
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Stress Protocol | NeuroCalm AI</title>
+    <meta name="description" content="AI-powered stress analysis tailored for creative minds and artists.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Outfit:wght@300;400;500;600;700&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #08080c;
+            --bg-card: rgba(20, 15, 30, 0.5);
+            --primary: #00f2ff; /* Cyan Tech */
+            --secondary: #bd00ff; /* Purple Tech */
+            --artist-accent: #ff007f; /* Hot Pink Artist */
+            --artist-gold: #ffd700;
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #f0f0f5;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --font-hand: 'Caveat', cursive;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --shadow-glow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--artist-accent);
+        }
+
+        .cursor-outline {
+            width: 35px;
+            height: 35px;
+            border: 1px solid var(--artist-accent);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 0, 127, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND
+           ========================================= */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .overlay-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, transparent 0%, var(--bg-deep) 95%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(8, 8, 12, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: var(--glass-border);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--artist-accent);
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, var(--artist-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero .handwritten {
+            font-family: var(--font-hand);
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            transform: rotate(-2deg);
+            display: inline-block;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            max-width: 600px;
+            font-size: 1.1rem;
+        }
+
+        /* =========================================
+           6. QUESTIONNAIRE INTERFACE (The Core)
+           ========================================= */
+        .questionnaire-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .progress-header {
+            position: sticky;
+            top: 80px;
+            background: rgba(8, 8, 12, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            border: var(--glass-border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4rem;
+            z-index: 100;
+        }
+
+        .progress-text {
+            font-family: var(--font-display);
+            color: var(--primary);
+        }
+
+        .progress-track {
+            width: 200px;
+            height: 4px;
+            background: #222;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--artist-accent);
+            transition: width 0.3s ease;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            position: relative;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .question-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .question-number {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.05);
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            font-weight: 900;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #fff;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+            padding-right: 2rem;
+        }
+
+        /* Custom Slider Styling */
+        .slider-container {
+            position: relative;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            position: relative;
+            z-index: 2;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        /* Slider Track */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--success), var(--warning), var(--accent));
+            border-radius: 3px;
+        }
+        
+        /* Slider Thumb */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #fff;
+            margin-top: -9px;
+            box-shadow: 0 0 15px var(--artist-accent);
+            cursor: none;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* =========================================
+           7. SUBMIT SECTION
+           ========================================= */
+        .submit-section {
+            text-align: center;
+            padding: 6rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn-analyze {
+            padding: 1.5rem 4rem;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #000;
+            background: var(--primary);
+            border: none;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            cursor: none;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-5px);
+            background: #fff;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-analyze::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine { 100% { left: 100%; } }
+
+        /* =========================================
+           8. ANALYSIS OVERLAY
+           ========================================= */
+        .analysis-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.5s;
+        }
+
+        .analysis-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loader-text {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            animation: glitchText 0.5s infinite;
+        }
+
+        .processing-bars {
+            display: flex;
+            gap: 5px;
+            height: 50px;
+        }
+
+        .bar {
+            width: 10px;
+            background: var(--secondary);
+            animation: equalizer 1s infinite ease-in-out;
+        }
+
+        /* =========================================
+           9. RESULTS DASHBOARD
+           ========================================= */
+        .results-section {
+            display: none; /* Hidden initially */
+            padding: 6rem 2rem;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(to bottom, var(--bg-deep), #0f0f1a);
+        }
+
+        .results-section.show {
+            display: block;
+            animation: fadeIn 1s ease;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .score-card {
+            background: var(--bg-card);
+            border: 1px solid var(--artist-accent);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 5px solid var(--bg-deep);
+            margin: 0 auto 2rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(var(--artist-accent) 0%, var(--secondary) 0%, #222 0%);
+            box-shadow: 0 0 30px rgba(255, 0, 127, 0.2);
+            transition: 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .score-inner {
+            width: 180px; height: 180px;
+            background: var(--bg-deep);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .score-val {
+            font-size: 3.5rem;
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .score-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+        }
+
+        .analysis-text {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 3rem;
+            border: var(--glass-border);
+        }
+
+        .analysis-text h2 {
+            font-family: var(--font-display);
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-bars {
+            margin-top: 2rem;
+        }
+
+        .metric {
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-head {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .metric-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #222;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: 1s ease 0.5s;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid #111;
+            color: #555;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Animations */
+        @keyframes equalizer {
+            0%, 100% { height: 10px; }
+            50% { height: 40px; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.5rem; }
+            .nav-links { display: none; }
+            * { cursor: auto; }
+            .cursor-dot, .cursor-outline { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Dynamic Background -->
+    <canvas id="canvas-bg"></canvas>
+    <div class="overlay-gradient"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--artist-accent)">
+                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+            </svg>
+            NeuroCalm
+        </a>
+        <div class="nav-links">
+            <a href="/index">Home</a>
+            <a href="/category">Categories</a>
+            <a href="#" style="color: var(--artist-accent);">Artist Analysis</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <span class="handwritten">"Unleash your mind"</span>
+            <h1>Artist Stress Protocol</h1>
+            <p>Creative minds process stress differently. Our AI is trained on the unique psychological patterns of creators, designers, and performers. Answer 20 questions to decode your creative burnout.</p>
+        </section>
+
+        <!-- Questionnaire -->
+        <section class="questionnaire-container">
+            
+            <div class="progress-header">
+                <span class="progress-text">Sync Progress: <span id="progress-num">0/20</span></span>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progress-bar"></div>
+                </div>
+            </div>
+
+            <form id="artist-form">
+                <!-- Questions will be injected via JS -->
+                <div id="questions-wrapper"></div>
+            </form>
+
+            <div class="submit-section">
+                <button class="btn-analyze" id="submit-btn" onclick="analyzeStress()" data-hover>
+                    Run Analysis
+                </button>
+            </div>
+        </section>
+
+        <!-- Results Section (Hidden initially) -->
+        <section class="results-section" id="results-area">
+            <div class="dashboard-grid">
+                
+                <!-- Main Score -->
+                <div class="score-card">
+                    <h2 style="font-family:var(--font-display); margin-bottom:2rem;">Stress Index</h2>
+                    <div class="score-circle" id="score-circle-visual">
+                        <div class="score-inner">
+                            <div class="score-val" id="final-score">0</div>
+                            <div class="score-label">Out of 100</div>
+                        </div>
+                    </div>
+                    <p id="result-verdict" style="font-size: 1.2rem; color: var(--primary);">Analyzing...</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 1rem;">Based on: Creative Flow, Imposter Syndrome, & Financial Anxiety</p>
+                </div>
+
+                <!-- Detailed Metrics -->
+                <div class="analysis-text">
+                    <h2>Creative Diagnostic</h2>
+                    <p id="ai-description" style="color: #ccc; margin-bottom: 2rem; line-height: 1.8;">
+                        Our AI has processed your responses. Your stress profile suggests...
+                    </p>
+
+                    <div class="metric-bars">
+                        <div class="metric">
+                            <div class="metric-head">
+                                <span>Creative Block Intensity</span>
+                                <span id="metric-block-val">0%</span>
+                            </div>
+                            <div class="metric-bar-bg">
+                                <div class="metric-bar-fill" id="fill-block" style="background: var(--artist-accent);"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric">
+                            <div class="metric-head">
+                                <span>Imposter Syndrome Level</span>
+                                <span id="metric-imposter-val">0%</span>
+                            </div>
+                            <div class="metric-bar-bg">
+                                <div class="metric-bar-fill" id="fill-imposter" style="background: var(--secondary);"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric">
+                            <div class="metric-head">
+                                <span>Financial Anxiety</span>
+                                <span id="metric-finance-val">0%</span>
+                            </div>
+                            <div class="metric-bar-bg">
+                                <div class="metric-bar-fill" id="fill-finance" style="background: var(--warning);"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric">
+                            <div class="metric-head">
+                                <span>Artistic Resilience</span>
+                                <span id="metric-resilience-val">0%</span>
+                            </div>
+                            <div class="metric-bar-bg">
+                                <div class="metric-bar-fill" id="fill-resilience" style="background: var(--success);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-analyze" style="margin-top: 3rem; padding: 1rem 2rem; font-size: 1rem;" onclick="location.reload()" data-hover>
+                        Reset Protocol
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Analysis Loader Overlay -->
+    <div class="analysis-overlay" id="loader">
+        <div class="loader-text">SYNCHRONIZING NEURAL PATHWAYS...</div>
+        <div class="processing-bars">
+            <div class="bar" style="animation-delay: 0.1s;"></div>
+            <div class="bar" style="animation-delay: 0.2s;"></div>
+            <div class="bar" style="animation-delay: 0.3s;"></div>
+            <div class="bar" style="animation-delay: 0.4s;"></div>
+            <div class="bar" style="animation-delay: 0.5s;"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 NeuroCalm AI. Creative Wellness Systems.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, input').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. DATA CONFIGURATION (20 QUESTIONS)
+        // =========================================
+        const questions = [
+            { id: 'q1', text: "How frequently do you experience 'Creative Block'?", category: 'block' },
+            { id: 'q2', text: "How do you handle negative criticism of your work?", category: 'imposter' },
+            { id: 'q3', text: "Does financial instability affect your creativity?", category: 'finance' },
+            { id: 'q4', text: "Do you compare your progress to other artists daily?", category: 'imposter' },
+            { id: 'q5', text: "How stressed are you by client deadlines?", category: 'block' },
+            { id: 'q6', text: "Are you often obsessed with perfectionism?", category: 'block' },
+            { id: 'q7', text: "Do you feel like a 'fraud' in your field?", category: 'imposter' },
+            { id: 'q8', text: "How is your sleep quality during projects?", category: 'block' },
+            { id: 'q9', text: "Do you feel socially isolated as a creator?", category: 'block' },
+            { id: 'q10', text: "Do you feel pressured to constantly create content?", category: 'finance' },
+            { id: 'q11', text: "Is buying art supplies causing you money stress?", category: 'finance' },
+            { id: 'q12', text: "Do client demands contradict your artistic vision?", category: 'block' },
+            { id: 'q13', text: "How uncertain are you about your future career?", category: 'finance' },
+            { id: 'q14', text: "Do you struggle to balance life and art?", category: 'block' },
+            { id: 'q15', text: "Do you feel envious of successful peers?", category: 'imposter' },
+            { id: 'q16', text: "Do you depend heavily on external validation?", category: 'imposter' },
+            { id: 'q17', text: "Do you hate doing administrative tasks?", category: 'finance' },
+            { id: 'q18', text: "How hard is it to find inspiration recently?", category: 'block' },
+            { id: 'q19', text: "Do you feel your art has no value?", category: 'imposter' },
+            { id: 'q20', text: "Overall, how overwhelmed do you feel?", category: 'general' }
+        ];
+
+        // Render Questions
+        const wrapper = document.getElementById('questions-wrapper');
+        questions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = 'question-card';
+            div.dataset.index = index;
+            div.innerHTML = `
+                <span class="question-number">0${index + 1}</span>
+                <h3 class="question-text">${q.text}</h3>
+                <div class="slider-container">
+                    <input type="range" min="1" max="10" value="5" class="stress-slider" id="${q.id}" data-category="${q.category}" oninput="updateProgress()">
+                    <div class="labels">
+                        <span>Relaxed</span>
+                        <span>Neutral</span>
+                        <span>Extremely Stressed</span>
+                    </div>
+                </div>
+            `;
+            wrapper.appendChild(div);
+        });
+
+        // Scroll Observer for Animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.question-card').forEach(card => observer.observe(card));
+
+        // =========================================
+        // 3. ANALYSIS LOGIC
+        // =========================================
+        let answeredCount = 0;
+
+        function updateProgress() {
+            const sliders = document.querySelectorAll('.stress-slider');
+            let touched = 0;
+            sliders.forEach(s => {
+                if(s.value !== '5') touched++; // If user moved from default
+            });
+
+            // Calculate progress based on scroll position roughly for smoother visual
+            const scrollPos = window.scrollY;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const progress = Math.min(Math.round((scrollPos / maxScroll) * 100), 100);
+            
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-num').innerText = `Syncing...`;
+        }
+
+        function analyzeStress() {
+            // Show Loader
+            document.getElementById('loader').classList.add('active');
+
+            setTimeout(() => {
+                processResults();
+                document.getElementById('loader').classList.remove('active');
+                document.getElementById('results-area').classList.add('show');
+                
+                // Scroll to results
+                document.getElementById('results-area').scrollIntoView({ behavior: 'smooth' });
+            }, 3000);
+        }
+
+        function processResults() {
+            const sliders = document.querySelectorAll('.stress-slider');
+            let totalScore = 0;
+            let catScores = { block: 0, imposter: 0, finance: 0, resilience: 0 };
+
+            sliders.forEach(s => {
+                const val = parseInt(s.value);
+                const cat = s.dataset.category;
+                totalScore += val;
+                
+                if(catScores[cat] !== undefined) catScores[cat] += val;
+            });
+
+            // Normalize scores (assuming 5 questions per category roughly)
+            // Resilience is inverse of total stress
+            const finalScore = Math.round((totalScore / 200) * 100);
+            
+            const blockScore = Math.min(Math.round((catScores.block / 50) * 100), 100);
+            const imposterScore = Math.min(Math.round((catScores.imposter / 50) * 100), 100);
+            const financeScore = Math.min(Math.round((catScores.finance / 50) * 100), 100);
+            const resilienceScore = 100 - Math.round((blockScore + imposterScore + financeScore) / 3);
+
+            // Update UI
+            animateValue("final-score", 0, finalScore, 2000);
+            
+            // Update Circle
+            const circle = document.getElementById('score-circle-visual');
+            let color = finalScore < 40 ? 'var(--success)' : finalScore < 70 ? 'var(--warning)' : 'var(--artist-accent)';
+            circle.style.background = `conic-gradient(${color} ${finalScore}%, #222 ${finalScore}% 100%)`;
+
+            document.getElementById('result-verdict').innerText = finalScore < 40 ? "Optimal Flow State" : finalScore < 70 ? "Moderate Burnout Risk" : "Critical Creative Exhaustion";
+            document.getElementById('result-verdict').style.color = color;
+
+            // Update Text
+            const desc = document.getElementById('ai-description');
+            if(finalScore < 40) {
+                desc.innerText = "Your mind is in a state of high creative flow. While challenges exist, your resilience mechanisms are functioning optimally. You are balancing the emotional demands of artistry well.";
+            } else if (finalScore < 70) {
+                desc.innerText = "We detect rising pressure points in your psyche, particularly related to " + (imposterScore > blockScore ? "self-doubt and external validation" : "workload and deadlines") + ". Your creative spark is still there, but it is being dampened by anxiety.";
+            } else {
+                desc.innerText = "Alert: Your stress levels are approaching critical thresholds. The AI detects high creative fatigue and significant barriers to inspiration. Immediate creative recalibration is recommended.";
+            }
+
+            // Update Bars
+            setTimeout(() => {
+                document.getElementById('fill-block').style.width = `${blockScore}%`;
+                document.getElementById('metric-block-val').innerText = `${blockScore}%`;
+
+                document.getElementById('fill-imposter').style.width = `${imposterScore}%`;
+                document.getElementById('metric-imposter-val').innerText = `${imposterScore}%`;
+
+                document.getElementById('fill-finance').style.width = `${financeScore}%`;
+                document.getElementById('metric-finance-val').innerText = `${financeScore}%`;
+
+                document.getElementById('fill-resilience').style.width = `${resilienceScore}%`;
+                document.getElementById('metric-resilience-val').innerText = `${resilienceScore}%`;
+            }, 500);
+        }
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // =========================================
+        // 4. BACKGROUND CANVAS (Digital Brush)
+        // =========================================
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class BrushStroke {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() - 0.5) * 1.5;
+                this.speedY = (Math.random() - 0.5) * 1.5;
+                this.color = Math.random() > 0.5 ? 'rgba(0, 242, 255, 0.3)' : 'rgba(255, 0, 127, 0.2)';
+                this.life = 100;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life--;
+
+                if (this.x < 0 || this.x > width) this.speedX *= -1;
+                if (this.y < 0 || this.y > height) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        let strokes = [];
+        for (let i = 0; i < 50; i++) strokes.push(new BrushStroke());
+
+        // Mouse interaction for trails
+        let mouse = { x: null, y: null };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function animateBg() {
+            // Trail effect
+            ctx.fillStyle = 'rgba(8, 8, 12, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+
+            strokes.forEach((s, index) => {
+                s.update();
+                s.draw();
+                if (s.life <= 0) {
+                    strokes.splice(index, 1);
+                    strokes.push(new BrushStroke());
+                }
+            });
+
+            // Draw connecting lines if close
+            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+            ctx.beginPath();
+            for(let i=0; i<strokes.length; i++){
+                for(let j=i; j<strokes.length; j++){
+                    let dx = strokes[i].x - strokes[j].x;
+                    let dy = strokes[i].y - strokes[j].y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx.moveTo(strokes[i].x, strokes[i].y);
+                        ctx.lineTo(strokes[j].x, strokes[j].y);
+                    }
+                }
+            }
+            ctx.stroke();
+
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+    </script>
+</body>
+</html>

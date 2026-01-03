@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist NeuroSync | NeuroCalm AI</title>
+    <meta name="description" content="AI-driven stress analysis designed for creative professionals. Decode your creative blocks and optimize your flow state.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Orbitron:wght@400;500;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050507;
+            --bg-panel: rgba(15, 15, 25, 0.5);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Hot Pink */
+            --gold: #ffd700; /* Artistic Gold */
+            --success: #00ff88;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --font-art: 'Caveat', cursive; /* Artistic touch */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & ARTISTIC TRAILS
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+        }
+
+        .cursor-outline {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--primary);
+            transition: width 0.2s, height 0.2s, border-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 0, 85, 0.1);
+            border-color: var(--accent);
+            border-radius: 50% 50% 0 50%; /* Paint drip shape */
+        }
+
+        /* Ink Canvas for Mouse Trail */
+        #ink-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           3. DYNAMIC FLOW BACKGROUND
+           ========================================= */
+        #flow-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-dark) 85%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.4s;
+        }
+
+        nav.scrolled {
+            background: rgba(5, 5, 7, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 1rem 4rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            position: relative;
+        }
+
+        .hero-tag {
+            font-family: var(--font-art);
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            display: block;
+            transform: rotate(-2deg);
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            line-height: 1;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #fff, #b0b0b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+
+        .artist-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 1.2rem 3rem;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        .artist-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--accent);
+            transition: 0.4s;
+            z-index: -1;
+        }
+
+        .artist-btn:hover::before {
+            width: 100%;
+        }
+
+        .artist-btn:hover {
+            color: #fff;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
+        }
+
+        /* Floating Organic Shapes */
+        .organic-shape {
+            position: absolute;
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            background: linear-gradient(45deg, rgba(189, 0, 255, 0.1), rgba(0, 242, 255, 0.1));
+            filter: blur(40px);
+            z-index: -1;
+            animation: morph 8s ease-in-out infinite;
+        }
+
+        .shape-1 { width: 500px; height: 500px; top: -100px; right: -100px; background: var(--secondary); opacity: 0.2; }
+        .shape-2 { width: 300px; height: 300px; bottom: 100px; left: -50px; background: var(--accent); opacity: 0.15; animation-delay: 2s; }
+
+        @keyframes morph {
+            0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+        }
+
+        /* =========================================
+           6. SECTIONS & TYPOGRAPHY
+           ========================================= */
+        section {
+            padding: 8rem 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            margin-bottom: 5rem;
+            position: relative;
+        }
+
+        .section-num {
+            font-family: var(--font-display);
+            font-size: 6rem;
+            color: rgba(255, 255, 255, 0.03);
+            position: absolute;
+            top: -40px;
+            left: -20px;
+            z-index: -1;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            color: var(--primary);
+            font-family: var(--font-art);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Asymmetric Grid Layout */
+        .asym-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .text-block h3 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .text-block p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .art-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            padding: 3rem;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        .art-card:hover {
+            transform: scale(1.02);
+            border-color: var(--gold);
+        }
+
+        .art-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            filter: grayscale(100%);
+            transition: 0.4s;
+        }
+
+        .art-card:hover img {
+            filter: grayscale(0%);
+        }
+
+        /* =========================================
+           7. INTERACTIVE MOOD CANVAS
+           ========================================= */
+        .mood-demo {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 20px;
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        #mood-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .mood-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            background: rgba(0,0,0,0.8);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: 1px solid #333;
+            backdrop-filter: blur(10px);
+        }
+
+        .mood-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 30px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .mood-chaos { background: #ff0055; color: #fff; }
+        .mood-calm { background: #00f2ff; color: #000; }
+        .mood-flow { background: #ffd700; color: #000; }
+
+        .mood-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px currentColor; }
+
+        /* =========================================
+           8. SCROLL REVEAL ANIMATIONS
+           ========================================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: 1s var(--ease-smooth);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem;
+            border-top: 1px solid #111;
+            background: #020203;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            h1 { font-size: 3rem; }
+            .asym-grid { grid-template-columns: 1fr; }
+            section { padding: 4rem 2rem; }
+            .nav-links { display: none; }
+            .cursor-dot, .cursor-outline, #ink-canvas { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dynamic Backgrounds -->
+    <canvas id="flow-canvas"></canvas>
+    <canvas id="ink-canvas"></canvas>
+    <div class="vignette"></div>
+    
+    <!-- Organic Shapes -->
+    <div class="organic-shape shape-1"></div>
+    <div class="organic-shape shape-2"></div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="/index" class="logo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--accent)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NeuroCalm
+        </a>
+        <ul class="nav-links">
+            <li><a href="/index" data-hover>Home</a></li>
+            <li><a href="/category" data-hover>Categories</a></li>
+            <li><a href="/register" data-hover>Join</a></li>
+            <li><a href="#" style="color: var(--accent);">Artist Portal</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content reveal">
+            <span class="hero-tag">Designed for the Visionaries</span>
+            <h1>Decode Your <br><span style="color:var(--primary)">Creative Chaos</span></h1>
+            <p>Stress for artists isn't just tension—it's the friction of creation. Our AI translates your physiological signals into visual data, distinguishing between "Flow State" and "Burnout" in real-time.</p>
+            <a href="/artist_ques" class="artist-btn" data-hover>
+                <span>Visualize Your Rhythm</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Intro / Problem Section -->
+    <section>
+        <div class="asym-grid">
+            <div class="text-block reveal">
+                <div class="section-header">
+                    <span class="section-num">01</span>
+                    <span class="subtitle">The Artist's Paradox</span>
+                    <h2>Passion vs. Pressure</h2>
+                </div>
+                <p>Artists wear their stress differently. It manifests not just as fatigue, but as creative block, irritability with critique, and an inability to reach the "zone."</p>
+                <p>Traditional trackers miss this. <strong>NeuroCalm AI</strong> uses <span style="color:var(--gold)">Bio-Artistic Analysis</span>—tracking micro-expressions, skin conductance, and eye movement patterns specifically calibrated for creative workflows.</p>
+                <a href="#" style="color:var(--primary); text-decoration:none; border-bottom: 1px solid var(--primary);" data-hover>Read the Methodology &rarr;</a>
+            </div>
+            <div class="art-card reveal" style="animation-delay: 0.2s;">
+                <div style="position:absolute; top:20px; right:20px; padding:5px 15px; background:var(--accent); color:#fff; font-family:var(--font-display); font-size:0.8rem; border-radius:20px;">CRITICAL ALERT</div>
+                <h3 style="font-family:var(--font-display); font-size:1.5rem; margin-bottom:1rem;">Burnout Detected</h3>
+                <img src="https://picsum.photos/seed/stressart/600/400" alt="Stress Analysis Visual">
+                <p style="font-family:var(--font-art); font-size:1.5rem; color:var(--text-muted);">"The colors have lost their saturation..."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Mood Canvas Demo -->
+    <section id="demo">
+        <div class="section-header reveal" style="text-align: center;">
+            <span class="section-num">02</span>
+            <span class="subtitle">Interactive Visualization</span>
+            <h2>The Rhythm Canvas</h2>
+            <p style="color:var(--text-muted);">Experience how our AI visualizes stress levels. Select a mode below to simulate biometric states.</p>
+        </div>
+
+        <div class="mood-demo reveal">
+            <canvas id="mood-canvas"></canvas>
+            <div class="mood-controls">
+                <button class="mood-btn mood-chaos" onclick="setMood('chaos')" data-hover>Burnout</button>
+                <button class="mood-btn mood-flow" onclick="setMood('flow')" data-hover>Flow State</button>
+                <button class="mood-btn mood-calm" onclick="setMood('calm')" data-hover>Calm</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics Grid -->
+    <section>
+        <div class="section-header reveal">
+            <span class="section-num">03</span>
+            <span class="subtitle">Deep Analytics</span>
+            <h2>Metric by Metric</h2>
+        </div>
+
+        <div class="asym-grid">
+            <div class="art-card reveal">
+                <h3 style="font-family:var(--font-display); margin-bottom:1rem;">Cognitive Load</h3>
+                <p style="font-size:0.9rem; color:#aaa; margin-bottom:1rem;">Real-time CPU usage of the brain.</p>
+                <div style="height:10px; background:#333; border-radius:5px; overflow:hidden;">
+                    <div style="width:85%; height:100%; background:var(--accent); animation: pulseBar 2s infinite;"></div>
+                </div>
+                <div style="margin-top:10px; display:flex; justify-content:space-between; font-family:var(--font-tech);">
+                    <span>Current</span>
+                    <span style="color:var(--accent)">High (85%)</span>
+                </div>
+            </div>
+
+            <div class="text-block reveal" style="animation-delay:0.2s;">
+                <h3 style="color:var(--gold)">Creative Flow Duration</h3>
+                <p>Most artists struggle to sustain the "Flow State." Our AI tracks your alpha and theta waves to tell you exactly when you entered the zone and how long you stayed there.</p>
+                <ul style="list-style:none; margin-top:1rem;">
+                    <li style="margin-bottom:1rem; display:flex; gap:10px; align-items:center;">
+                        <span style="width:10px; height:10px; background:var(--success); border-radius:50%;"></span>
+                        <span>Peak Performance Windows Identified</span>
+                    </li>
+                    <li style="margin-bottom:1rem; display:flex; gap:10px; align-items:center;">
+                        <span style="width:10px; height:10px; background:var(--secondary); border-radius:50%;"></span>
+                        <span>Distraction Alerts (Social Media)</span>
+                    </li>
+                    <li style="margin-bottom:1rem; display:flex; gap:10px; align-items:center;">
+                        <span style="width:10px; height:10px; background:var(--primary); border-radius:50%;"></span>
+                        <span>Eye Strain Analysis</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <h2 style="font-family:var(--font-display); font-size:2rem; margin-bottom:1rem;">Ready to find your flow?</h2>
+        <p style="color:var(--text-muted); margin-bottom:2rem;">Join the neuro-network of 10,000+ artists.</p>
+        <a href="/register" class="artist-btn" data-hover>Start Free Trial</a>
+        <p style="margin-top:3rem; color:#444; font-size:0.8rem;">&copy; 2023 NeuroCalm AI. Empowering Creativity through Science.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR & HOVER LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, input, .art-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. DIGITAL INK TRAIL (Mouse Interaction)
+        // =========================================
+        const inkCanvas = document.getElementById('ink-canvas');
+        const iCtx = inkCanvas.getContext('2d');
+        let inkParticles = [];
+        let mouseX = 0, mouseY = 0;
+
+        inkCanvas.width = window.innerWidth;
+        inkCanvas.height = window.innerHeight;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            // Spawn particles on move
+            for(let i=0; i<3; i++) {
+                inkParticles.push(new InkParticle(mouseX, mouseY));
+            }
+        });
+
+        class InkParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 5 + 2;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * 2 - 1;
+                this.life = 1; // Opacity
+                this.color = Math.random() > 0.5 ? '#ff0055' : '#bd00ff';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 0.02;
+            }
+            draw() {
+                iCtx.fillStyle = this.color;
+                iCtx.globalAlpha = this.life;
+                iCtx.beginPath();
+                iCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                iCtx.fill();
+            }
+        }
+
+        function animateInk() {
+            iCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height);
+            for(let i = 0; i < inkParticles.length; i++) {
+                inkParticles[i].update();
+                inkParticles[i].draw();
+                if(inkParticles[i].life <= 0) {
+                    inkParticles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animateInk);
+        }
+        animateInk();
+
+        // =========================================
+        // 3. FLOW FIELD BACKGROUND (Creative Fluid)
+        // =========================================
+        const flowCanvas = document.getElementById('flow-canvas');
+        const fCtx = flowCanvas.getContext('2d');
+        flowCanvas.width = window.innerWidth;
+        flowCanvas.height = window.innerHeight;
+
+        let flowParticles = [];
+        const flowCount = 100;
+        const noiseScale = 0.005;
+
+        // Simple pseudo-noise function
+        function noise(x, y) {
+            return Math.sin(x * 0.01) + Math.cos(y * 0.01) * 2;
+        }
+
+        class FlowParticle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * flowCanvas.width;
+                this.y = Math.random() * flowCanvas.height;
+                this.vx = 0;
+                this.vy = 0;
+                this.history = [];
+                this.maxHistory = 10;
+                this.color = Math.random() > 0.8 ? '#ffd700' : '#00f2ff';
+            }
+            update() {
+                const angle = noise(this.x, this.y) * Math.PI * 4;
+                this.vx += Math.cos(angle) * 0.1;
+                this.vy += Math.sin(angle) * 0.1;
+                
+                // Limit speed
+                const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+                if(speed > 2) { this.vx *= 0.9; this.vy *= 0.9; }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Wrap around screen
+                if (this.x < 0 || this.x > flowCanvas.width || this.y < 0 || this.y > flowCanvas.height) {
+                    this.reset();
+                }
+
+                this.history.push({x: this.x, y: this.y});
+                if (this.history.length > this.maxHistory) {
+                    this.history.shift();
+                }
+            }
+            draw() {
+                fCtx.strokeStyle = this.color;
+                fCtx.lineWidth = 1;
+                fCtx.beginPath();
+                if (this.history.length > 0) {
+                    fCtx.moveTo(this.history[0].x, this.history[0].y);
+                    for (let i = 1; i < this.history.length; i++) {
+                        fCtx.lineTo(this.history[i].x, this.history[i].y);
+                    }
+                }
+                fCtx.stroke();
+            }
+        }
+
+        for (let i = 0; i < flowCount; i++) flowParticles.push(new FlowParticle());
+
+        function animateFlow() {
+            fCtx.fillStyle = 'rgba(5, 5, 7, 0.1)'; // Trails fade out
+            fCtx.fillRect(0, 0, flowCanvas.width, flowCanvas.height);
+            
+            flowParticles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateFlow);
+        }
+        animateFlow();
+
+        // =========================================
+        // 4. INTERACTIVE MOOD DEMO
+        // =========================================
+        const moodCanvas = document.getElementById('mood-canvas');
+        const mCtx = moodCanvas.getContext('2d');
+        let moodState = 'calm'; // chaos, flow, calm
+        let moodParticles = [];
+
+        function resizeMood() {
+            moodCanvas.width = moodCanvas.offsetWidth;
+            moodCanvas.height = moodCanvas.offsetHeight;
+        }
+        window.addEventListener('resize', () => {
+            flowCanvas.width = window.innerWidth;
+            flowCanvas.height = window.innerHeight;
+            resizeMood();
+            inkCanvas.width = window.innerWidth;
+            inkCanvas.height = window.innerHeight;
+        });
+        resizeMood();
+
+        class MoodP {
+            constructor() {
+                this.x = Math.random() * moodCanvas.width;
+                this.y = Math.random() * moodCanvas.height;
+                this.size = Math.random() * 5 + 1;
+                this.speed = Math.random() * 2 + 1;
+                this.angle = Math.random() * Math.PI * 2;
+            }
+            update() {
+                if (moodState === 'chaos') {
+                    this.x += Math.sin(this.angle * 5) * this.speed * 5;
+                    this.y += Math.cos(this.angle * 5) * this.speed * 5;
+                    this.size = Math.random() * 8 + 2;
+                } else if (moodState === 'flow') {
+                    this.y -= this.speed; // Upward flow
+                    this.size = Math.random() * 3 + 1;
+                } else { // Calm
+                    this.x += Math.cos(this.angle) * 0.5;
+                    this.y += Math.sin(this.angle) * 0.5;
+                    this.size = Math.random() * 2 + 1;
+                }
+
+                // Bounds
+                if(this.x < 0) this.x = moodCanvas.width;
+                if(this.x > moodCanvas.width) this.x = 0;
+                if(this.y < 0) this.y = moodCanvas.height;
+                if(this.y > moodCanvas.height) this.y = 0;
+            }
+            draw() {
+                let color;
+                if (moodState === 'chaos') color = '#ff0055';
+                else if (moodState === 'flow') color = '#ffd700';
+                else color = '#00f2ff';
+
+                mCtx.fillStyle = color;
+                mCtx.beginPath();
+                if (moodState === 'chaos') {
+                    mCtx.rect(this.x, this.y, this.size, this.size);
+                } else {
+                    mCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                }
+                mCtx.fill();
+            }
+        }
+
+        // Init Mood Particles
+        for(let i=0; i<150; i++) moodParticles.push(new MoodP());
+
+        function setMood(mood) {
+            moodState = mood;
+            // Clear canvas for visual reset
+            mCtx.clearRect(0,0,moodCanvas.width, moodCanvas.height);
+        }
+
+        function animateMood() {
+            mCtx.fillStyle = 'rgba(0,0,0,0.2)'; // Trail
+            mCtx.fillRect(0,0,moodCanvas.width, moodCanvas.height);
+            
+            moodParticles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateMood);
+        }
+        animateMood();
+
+        // =========================================
+        // 5. SCROLL REVEAL & NAV LOGIC
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // Helper Animation CSS
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes pulseBar { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        `;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>

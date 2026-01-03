@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroCalm Kids | Space Cadet Mission</title>
+    <meta name="description" content="A fun, interactive stress check for kids. Meet Robo-Friend and play games to feel happy!">
+    
+    <!-- Google Fonts: Fun & Sci-Fi -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@300;400;600&family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            /* Bright & Playful Palette */
+            --bg-space: #0B0E21;
+            --bg-panel: rgba(255, 255, 255, 0.1);
+            --primary: #00F2FF; /* Neon Blue */
+            --secondary: #FF00CC; /* Hot Pink */
+            --accent: #FFD300; /* Happy Yellow */
+            --purple: #BD00FF; /* Grape */
+            --green: #00FF88; /* Slime Green */
+            --text-main: #FFFFFF;
+            --font-fun: 'Fredoka', sans-serif;
+            --font-title: 'Chewy', cursive;
+            --font-tech: 'Orbitron', sans-serif;
+            --glass-border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom Wand Cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-space);
+            color: var(--text-main);
+            font-family: var(--font-fun);
+            overflow-x: hidden;
+            /* Starry Background Pattern */
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40 60, 130 270;
+        }
+
+        /* =========================================
+           2. MAGIC WAND CURSOR
+           ========================================= */
+        .cursor-trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: pop 0.5s forwards;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .magic-wand {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD300"><path d="M7.5 5.6L10 7 7.5 8.4 9 11l-2.5-1.4L4 11l1.5-2.6L3 7l2.5-1.4L4 3l2.5 1.4L8.5 2 7 4.4 9.5 3 8 5.6zM19 13l-2.5 1.4L19 16l2.5-1.4L24 16l-2.5 1.4L19 19l-2.5-1.4L14 16l2.5-1.4L14 13l2.5 1.4zM16 6l-1.2.7L16 8l1.2-.7L19 8l-1.8.7L16 10l-1.2-.7L13 8l1.8-.7L16 4zm-5.5 11l-4 9.5L4 16l-4 9.5 4-2.5 0 2.5 4-9.5 4 9.5 0-2.5 4 9.5z"/></svg>') no-repeat center;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%) rotate(45deg);
+            filter: drop-shadow(0 0 10px var(--accent));
+            transition: transform 0.1s ease-out;
+        }
+
+        /* =========================================
+           3. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(11,14,33,0.9), transparent);
+        }
+
+        .logo-kids {
+            font-family: var(--font-title);
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 3px 3px 0px var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 0.8rem 1.5rem;
+            background: var(--secondary);
+            border-radius: 50px;
+            color: #fff;
+            text-decoration: none;
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            border: 2px solid #fff;
+            box-shadow: 4px 4px 0px #000;
+            transition: transform 0.1s;
+        }
+
+        .nav-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #000;
+        }
+
+        /* =========================================
+           4. HERO SECTION & ROBOT
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            max-width: 1200px;
+            width: 100%;
+            align-items: center;
+            gap: 4rem;
+        }
+
+        .hero-text h1 {
+            font-family: var(--font-title);
+            font-size: 5rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            text-shadow: 4px 4px 0px var(--secondary);
+            transform: rotate(-2deg);
+        }
+
+        .hero-text p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #ddd;
+            background: rgba(0,0,0,0.4);
+            padding: 1rem;
+            border-radius: 15px;
+        }
+
+        .big-start-btn {
+            display: inline-block;
+            padding: 1.5rem 4rem;
+            background: var(--accent);
+            color: #000;
+            font-family: var(--font-title);
+            font-size: 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            border: 4px solid #fff;
+            box-shadow: 8px 8px 0px var(--green);
+            animation: bounce 2s infinite;
+            transition: transform 0.2s;
+        }
+
+        .big-start-btn:hover {
+            transform: scale(1.1) rotate(3deg);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        /* Robot SVG Container */
+        .robot-stage {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #robot-svg {
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 255, 0.5));
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Robot Animations */
+        .eye-left, .eye-right {
+            transform-origin: center;
+            transition: transform 0.1s;
+        }
+        
+        .robot-antenna {
+            transform-origin: bottom center;
+            animation: wiggle 3s infinite ease-in-out;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* =========================================
+           5. SECTIONS GENERAL
+           ========================================= */
+        section {
+            padding: 6rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: var(--font-title);
+            font-size: 3.5rem;
+            color: var(--text-main);
+            margin-bottom: 3rem;
+            text-shadow: 3px 3px 0px var(--purple);
+        }
+
+        /* =========================================
+           6. MOOD SELECTOR (Funny)
+           ========================================= */
+        .mood-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .mood-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            border-radius: 25px;
+            padding: 2rem;
+            width: 200px;
+            text-align: center;
+            cursor: none; /* Wand handles it */
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .mood-card:hover {
+            transform: scale(1.15) rotate(5deg);
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .mood-emoji {
+            font-size: 5rem;
+            display: block;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .mood-card:nth-child(even) .mood-emoji { animation-delay: 1.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* =========================================
+           7. BUBBLE POPPER GAME
+           ========================================= */
+        .game-container {
+            width: 100%;
+            height: 600px;
+            background: linear-gradient(to top, #1a1a40, #0B0E21);
+            border-radius: 30px;
+            border: 5px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        #bubble-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            font-family: var(--font-tech);
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .game-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+        }
+
+        .game-btn {
+            background: var(--green);
+            border: none;
+            padding: 1rem 3rem;
+            font-family: var(--font-title);
+            font-size: 2rem;
+            border-radius: 50px;
+            color: #000;
+            margin-top: 2rem;
+            cursor: none;
+        }
+
+        /* =========================================
+           8. BATTERY RECHARGE (Breathing)
+           ========================================= */
+        .battery-station {
+            background: #111;
+            border: 4px solid #333;
+            border-radius: 50px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .battery-bubble {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            position: relative;
+            box-shadow: 0 0 50px var(--primary);
+            /* Animation controlled by JS classes */
+        }
+
+        .battery-bubble::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 30%;
+            height: 30%;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+        }
+
+        .recharge-text {
+            font-family: var(--font-tech);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .recharge-btn {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 0.5rem 2rem;
+            border-radius: 30px;
+            font-family: var(--font-fun);
+            font-size: 1.2rem;
+            cursor: none;
+        }
+
+        /* Animation Classes for Breathing */
+        .inhale {
+            animation: inhaleAnim 4s ease-in-out forwards;
+        }
+        .hold {
+            animation: holdAnim 4s linear forwards;
+        }
+        .exhale {
+            animation: exhaleAnim 4s ease-in-out forwards;
+        }
+
+        @keyframes inhaleAnim { to { transform: scale(1.5); box-shadow: 0 0 100px var(--primary); } }
+        @keyframes holdAnim { from { transform: scale(1.5); } to { transform: scale(1.5); } }
+        @keyframes exhaleAnim { to { transform: scale(1); box-shadow: 0 0 50px var(--primary); } }
+
+        /* =========================================
+           9. FACTS / CONTENT SECTION
+           ========================================= */
+        .facts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .fact-card {
+            background: rgba(255,255,255,0.05);
+            padding: 2rem;
+            border-radius: 20px;
+            border-left: 10px solid var(--secondary);
+        }
+
+        .fact-card h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-family: var(--font-title);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem;
+            background: #050508;
+            color: #666;
+            font-family: var(--font-tech);
+        }
+
+        @media (max-width: 768px) {
+            .hero-content { grid-template-columns: 1fr; text-align: center; }
+            .hero-text h1 { font-size: 3.5rem; }
+            .robot-stage { height: 300px; }
+            .cursor-trail, .magic-wand { display: none; } /* Fallback for touch */
+            * { cursor: auto; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Magic Wand Cursor -->
+    <div class="magic-wand" id="magic-wand"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="/kids" class="logo-kids">
+            <span style="font-size:3rem;">🤖</span> NeuroCalm Jr.
+        </a>
+        <a href="/category" class="nav-btn">Change Pilot</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Hi Space Cadet!</h1>
+                <p>I'm Robo-Friend. My sensors say you might have a little <strong>stress dust</strong> on you. Let's zap it away together!</p>
+                <a href="/kids_ques" class="big-start-btn">START MISSION 🚀</a>
+            </div>
+            
+            <div class="robot-stage">
+                <!-- Interactive SVG Robot -->
+                <svg id="robot-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Shadow -->
+                    <ellipse cx="100" cy="180" rx="60" ry="10" fill="rgba(0,0,0,0.3)" />
+                    
+                    <!-- Body -->
+                    <rect x="60" y="100" width="80" height="70" rx="10" fill="#00F2FF" />
+                    <rect x="70" y="110" width="20" height="20" fill="#fff" opacity="0.5" rx="2" />
+                    <rect x="110" y="110" width="20" height="20" fill="#fff" opacity="0.5" rx="2" />
+                    
+                    <!-- Head Group -->
+                    <g id="head-group">
+                        <rect x="50" y="40" width="100" height="70" rx="15" fill="#fff" />
+                        <!-- Screen -->
+                        <rect x="60" y="50" width="80" height="50" rx="5" fill="#111" />
+                        <!-- Eyes -->
+                        <circle class="eye-left" cx="80" cy="75" r="12" fill="#00FF88" />
+                        <circle class="eye-right" cx="120" cy="75" r="12" fill="#00FF88" />
+                        <!-- Mouth -->
+                        <path d="M 85 95 Q 100 100 115 95" stroke="#fff" stroke-width="3" fill="none" id="robot-mouth" />
+                    </g>
+
+                    <!-- Antenna -->
+                    <g class="robot-antenna">
+                        <line x1="100" y1="40" x2="100" y2="20" stroke="#FF00CC" stroke-width="4" />
+                        <circle cx="100" cy="15" r="5" fill="#FFD300" />
+                    </g>
+                    
+                    <!-- Arms -->
+                    <line x1="50" y1="110" x2="30" y2="140" stroke="#fff" stroke-width="8" stroke-linecap="round" />
+                    <line x1="150" y1="110" x2="170" y2="140" stroke="#fff" stroke-width="8" stroke-linecap="round" />
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mood Section -->
+    <section id="mood-zone">
+        <h2 class="section-title">How is your Engine Running?</h2>
+        <div class="mood-grid">
+            <div class="mood-card" onmouseenter="playSound('happy')">
+                <span class="mood-emoji">😎</span>
+                <h3>Super Cool</h3>
+            </div>
+            <div class="mood-card" onmouseenter="playSound('okay')">
+                <span class="mood-emoji">🙂</span>
+                <h3>Just Okay</h3>
+            </div>
+            <div class="mood-card" onmouseenter="playSound('meh')">
+                <span class="mood-emoji">😕</span>
+                <h3>Wobbly</h3>
+            </div>
+            <div class="mood-card" onmouseenter="playSound('boom')">
+                <span class="mood-emoji">😫</span>
+                <h3>Overload!</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Section -->
+    <section id="game-zone">
+        <h2 class="section-title">Pop the Worry Bubbles!</h2>
+        <p style="text-align: center; color: #aaa; margin-bottom: 1rem;">Don't let the frowny faces reach the top!</p>
+        
+        <div class="game-container">
+            <div class="game-ui">
+                <span>Score: <span id="score">0</span></span>
+                <span>Time: <span id="timer">30</span>s</span>
+            </div>
+            <canvas id="bubble-canvas"></canvas>
+            
+            <!-- Start Overlay -->
+            <div class="game-overlay" id="game-start-screen">
+                <h1 style="font-family: var(--font-title); font-size: 4rem; color: var(--accent);">READY?</h1>
+                <button class="game-btn" onclick="startGame()">PLAY NOW</button>
+            </div>
+
+             <!-- Game Over Overlay -->
+             <div class="game-overlay" id="game-over-screen" style="display:none;">
+                <h1 style="font-family: var(--font-title); font-size: 4rem; color: var(--secondary);">GAME OVER</h1>
+                <h2 style="font-size: 2rem;">You Scored: <span id="final-score">0</span></h2>
+                <button class="game-btn" onclick="startGame()">TRY AGAIN</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Breathing Section -->
+    <section id="recharge">
+        <h2 class="section-title">Recharge Your Battery</h2>
+        <div class="battery-station">
+            <div class="battery-bubble" id="breath-bubble"></div>
+            <div class="recharge-text" id="breath-text">Press Start to Recharge</div>
+            <button class="recharge-btn" onclick="startBreathing()">Start Recharge ⚡</button>
+        </div>
+    </section>
+
+    <!-- Fun Facts -->
+    <section>
+        <h2 class="section-title">Did You Know?</h2>
+        <div class="facts-grid">
+            <div class="fact-card">
+                <h3>🧠 Brain Power</h3>
+                <p>Your brain is actually cooler than a supercomputer! It can make connections faster than light travels.</p>
+            </div>
+            <div class="fact-card">
+                <h3>🛌 Sleep Magic</h3>
+                <p>While you sleep, your brain cleans up all the "stress dust" from the day. It's like a nighttime janitor!</p>
+            </div>
+            <div class="fact-card">
+                <h3>😂 Laughing Gas</h3>
+                <p>Laughing releases special chemicals that make you feel strong and happy. It's true science!</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>Made with 💖 by NeuroCalm AI for awesome kids everywhere.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // =========================================
+        // 1. MAGIC WAND CURSOR
+        // =========================================
+        const wand = document.getElementById('magic-wand');
+        const trailContainer = document.body;
+
+        document.addEventListener('mousemove', (e) => {
+            // Move the wand
+            wand.style.left = e.clientX + 'px';
+            wand.style.top = e.clientY + 'px';
+            
+            // Rotate wand based on movement direction
+            const dx = e.movementX;
+            wand.style.transform = `translate(-50%, -50%) rotate(${dx}deg)`;
+
+            // Create colorful trail (confetti)
+            if (Math.random() > 0.8) {
+                const trail = document.createElement('div');
+                trail.classList.add('cursor-trail');
+                
+                // Random Color
+                const colors = ['#00F2FF', '#FF00CC', '#FFD300', '#00FF88'];
+                trail.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                trail.style.left = e.clientX + 'px';
+                trail.style.top = e.clientY + 'px';
+                
+                // Random size
+                const size = Math.random() * 15 + 5;
+                trail.style.width = size + 'px';
+                trail.style.height = size + 'px';
+
+                trailContainer.appendChild(trail);
+
+                // Cleanup
+                setTimeout(() => {
+                    trail.remove();
+                }, 500);
+            }
+        });
+
+        // =========================================
+        // 2. ROBOT INTERACTION (Eye Tracking)
+        // =========================================
+        const robotSvg = document.getElementById('robot-svg');
+        const eyeLeft = document.querySelector('.eye-left');
+        const eyeRight = document.querySelector('.eye-right');
+        const mouth = document.getElementById('robot-mouth');
+        const headGroup = document.getElementById('head-group');
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = robotSvg.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            // Calculate angle
+            const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+            
+            // Limit pupil movement distance
+            const distance = 3; 
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+
+            // Move pupils
+            eyeLeft.setAttribute('transform', `translate(${x}, ${y})`);
+            eyeRight.setAttribute('transform', `translate(${x}, ${y})`);
+
+            // Slight head movement
+            const headX = (e.clientX - centerX) * 0.02;
+            const headY = (e.clientY - centerY) * 0.02;
+            headGroup.style.transform = `translate(${headX}px, ${headY}px)`;
+        });
+
+        // Click Robot Nose Easter Egg
+        robotSvg.addEventListener('click', () => {
+            mouth.setAttribute('d', 'M 80 100 Q 100 115 120 100'); // Open mouth smile
+            setTimeout(() => {
+                mouth.setAttribute('d', 'M 85 95 Q 100 100 115 95'); // Normal
+            }, 500);
+        });
+
+        // =========================================
+        // 3. BUBBLE POPPER GAME
+        // =========================================
+        const canvas = document.getElementById('bubble-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
+        const startScreen = document.getElementById('game-start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreEl = document.getElementById('final-score');
+
+        let bubbles = [];
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let spawnInterval;
+        let isPlaying = false;
+
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+        });
+
+        class Bubble {
+            constructor() {
+                this.radius = Math.random() * 20 + 20;
+                this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
+                this.y = canvas.height + this.radius;
+                this.speed = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? '#FF00CC' : '#FFD300';
+                this.popped = false;
+                
+                // Face
+                this.isHappy = Math.random() > 0.3;
+            }
+
+            draw() {
+                if(this.popped) return;
+                
+                // Bubble
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color + '80'; // Transparent
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Shine
+                ctx.beginPath();
+                ctx.arc(this.x - this.radius/3, this.y - this.radius/3, this.radius/4, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+
+                // Emoji Face
+                ctx.font = `${this.radius}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#000';
+                ctx.fillText(this.isHappy ? '😊' : '😠', this.x, this.y);
+            }
+
+            update() {
+                this.y -= this.speed;
+            }
+        }
+
+        function startGame() {
+            // Reset
+            score = 0;
+            timeLeft = 30;
+            bubbles = [];
+            scoreEl.innerText = score;
+            timerEl.innerText = timeLeft;
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            isPlaying = true;
+
+            // Loops
+            gameInterval = setInterval(gameLoop, 1000/60);
+            spawnInterval = setInterval(spawnBubble, 800);
+            
+            // Timer
+            const timerDec = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    endGame(timerDec);
+                }
+            }, 1000);
+        }
+
+        function spawnBubble() {
+            bubbles.push(new Bubble());
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            bubbles.forEach((b, index) => {
+                b.update();
+                b.draw();
+                
+                // Remove if off screen
+                if (b.y + b.radius < 0) {
+                    bubbles.splice(index, 1);
+                }
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if(!isPlaying) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            bubbles.forEach((b, index) => {
+                const dist = Math.hypot(mouseX - b.x, mouseY - b.y);
+                if (dist < b.radius) {
+                    b.popped = true;
+                    bubbles.splice(index, 1);
+                    
+                    if(b.isHappy) {
+                        score -= 5; // Penalty for popping happy ones
+                    } else {
+                        score += 10; // Bonus for popping sad ones
+                    }
+                    scoreEl.innerText = score;
+                }
+            });
+        });
+
+        function endGame(timerDec) {
+            clearInterval(gameInterval);
+            clearInterval(spawnInterval);
+            clearInterval(timerDec);
+            isPlaying = false;
+            finalScoreEl.innerText = score;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // =========================================
+        // 4. BREATHING EXERCISE
+        // =========================================
+        const bubble = document.getElementById('breath-bubble');
+        const text = document.getElementById('breath-text');
+        let breathingInterval;
+
+        function startBreathing() {
+            // Reset
+            bubble.className = 'battery-bubble';
+            clearInterval(breathingInterval);
+
+            // Sequence
+            let step = 0;
+            
+            text.innerText = "Get Ready...";
+            setTimeout(() => {
+                breathingInterval = setInterval(() => {
+                    if(step === 0) {
+                        bubble.classList.add('inhale');
+                        text.innerText = "Breathe IN... 🌬️";
+                        step = 1;
+                    } else if (step === 1) {
+                        bubble.classList.remove('inhale');
+                        bubble.classList.add('hold');
+                        text.innerText = "Hold it! 🤫";
+                        step = 2;
+                    } else if (step === 2) {
+                        bubble.classList.remove('hold');
+                        bubble.classList.add('exhale');
+                        text.innerText = "Breathe OUT... 🕊️";
+                        step = 3;
+                    } else {
+                        bubble.classList.remove('exhale');
+                        text.innerText = "Great Job! 🌟";
+                        step = 0;
+                    }
+                }, 4000); // 4 seconds per phase
+            }, 1000);
+        }
+
+        // Mock Sound Function
+        function playSound(type) {
+            // In a real app, use Audio objects.
+            // Visual feedback for now:
+            const colors = {
+                'happy': '#00FF88',
+                'okay': '#00F2FF',
+                'meh': '#FFD300',
+                'boom': '#FF00CC'
+            };
+            document.body.style.backgroundColor = colors[type];
+            setTimeout(() => {
+                document.body.style.backgroundColor = 'var(--bg-space)';
+            }, 200);
+        }
+
+    </script>
+</body>
+</html>

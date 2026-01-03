@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Professional Analysis | NeuroCalm AI</title>
+    <meta name="description" content="Specialized stress detection for Information Technology professionals. High-tolerance neural calibration.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Fira+Code:wght@300;400;500&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050507;
+            --bg-panel: rgba(10, 20, 30, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Red */
+            --code-green: #00ff41;
+            --warning: #ffcc00;
+            --text-main: #e0e6ed;
+            --text-muted: #8892b0;
+            --font-display: 'Orbitron', sans-serif;
+            --font-code: 'Fira Code', monospace;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --circuit-color: rgba(0, 242, 255, 0.15);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-tech: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom Cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR (TERMINAL STYLE)
+           ========================================= */
+        .cursor-dot,
+        .cursor-block {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--code-green);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-block {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--primary);
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+        }
+
+        body:hover .cursor-block.hovered {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--code-green);
+        }
+
+        /* =========================================
+           3. BACKGROUND CANVAS (CIRCUIT GRID)
+           ========================================= */
+        #circuit-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(0, 242, 255, 0.05);
+        }
+
+        .logo {
+            font-family: var(--font-code);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--code-green);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .nav-links a::before {
+            content: '>';
+            position: absolute;
+            left: -15px;
+            opacity: 0;
+            transition: 0.3s;
+            color: var(--primary);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        .nav-links a:hover::before {
+            opacity: 1;
+            left: -10px;
+        }
+
+        /* =========================================
+           5. HERO SECTION (TERMINAL STYLE)
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            padding: 120px 5% 80px;
+            flex-direction: column;
+        }
+
+        .terminal-window {
+            background: rgba(10, 10, 15, 0.9);
+            border: 1px solid var(--circuit-color);
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .terminal-header {
+            background: #111;
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .terminal-body {
+            padding: 3rem;
+            font-family: var(--font-code);
+            line-height: 1.6;
+            min-height: 400px;
+        }
+
+        .command {
+            color: var(--code-green);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .output {
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .highlight { color: var(--primary); }
+        .warning { color: var(--warning); }
+
+        .glitch-title {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            color: #fff;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        /* =========================================
+           6. CONTENT SECTIONS
+           ========================================= */
+        section {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            margin-bottom: 4rem;
+            border-left: 4px solid var(--primary);
+            padding-left: 20px;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: #fff;
+        }
+
+        /* Resilience Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .tech-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s var(--ease-smooth);
+        }
+
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--secondary);
+            transition: 0.3s;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.1);
+        }
+
+        .tech-card:hover::before {
+            background: var(--code-green);
+            box-shadow: 0 0 15px var(--code-green);
+        }
+
+        .tech-card h3 {
+            font-family: var(--font-code);
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .tech-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* The "Long Page" Content: Deployment Anxiety */
+        .story-block {
+            background: linear-gradient(90deg, rgba(189,0,255,0.05), transparent);
+            border-left: 2px solid var(--secondary);
+            padding: 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .story-block::after {
+            content: 'LOG_ENTRY: 0x4F2A';
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            font-family: var(--font-code);
+            color: var(--secondary);
+            font-size: 0.8rem;
+            background: var(--bg-dark);
+            padding: 0 10px;
+        }
+
+        /* Stats Visualization */
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 4rem 0;
+            gap: 2rem;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--text-main);
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .stat-label {
+            font-family: var(--font-code);
+            color: var(--code-green);
+            letter-spacing: 2px;
+        }
+
+        /* =========================================
+           7. START BUTTON (FINAL CTA)
+           ========================================= */
+        .start-section {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .start-btn-wrapper {
+            position: relative;
+            margin-top: 3rem;
+        }
+
+        .btn-start {
+            background: transparent;
+            color: var(--primary);
+            font-family: var(--font-code);
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 1.5rem 4rem;
+            border: 2px solid var(--primary);
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            letter-spacing: 4px;
+            z-index: 2;
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 0%; height: 100%;
+            background: var(--primary);
+            transition: 0.3s var(--ease-tech);
+            z-index: -1;
+        }
+
+        .btn-start:hover {
+            color: #000;
+            box-shadow: 0 0 50px var(--primary);
+        }
+
+        .btn-start:hover::before {
+            width: 100%;
+        }
+
+        /* Floating particles around button */
+        .particle {
+            position: absolute;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Footer */
+        footer {
+            background: #000;
+            border-top: 1px solid #222;
+            padding: 3rem 0;
+            text-align: center;
+            font-family: var(--font-code);
+            color: #444;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* =========================================
+           8. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .cursor-blink::after {
+            content: '_';
+            animation: blink 1s infinite;
+            color: var(--code-green);
+            margin-left: 5px;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s var(--ease-smooth);
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            .glitch-title { font-size: 2rem; }
+            .terminal-body { padding: 1.5rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-block"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="circuit-canvas"></canvas>
+    <div class="scanlines"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--code-green)"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+            NEURO<span style="color:#fff">DEV</span>
+        </a>
+        <div class="nav-links">
+            <a href="/index" data-hover>Home</a>
+            <a href="/category" data-hover>Back to Categories</a>
+        </div>
+    </nav>
+
+    <!-- Hero / Terminal -->
+    <section class="hero">
+        <div class="terminal-window reveal">
+            <div class="terminal-header">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+                <span style="color: #555; font-family: var(--font-code); font-size: 0.8rem;">root@neurocalm-ai:~/it-protocol</span>
+            </div>
+            <div class="terminal-body">
+                <div class="command">root@neurocalm:~$ <span class="cursor-blink">analyze_profile --target="IT_Professional"</span></div>
+                <div class="output">
+                    > Loading biometric parameters... <span class="success">DONE</span><br>
+                    > Detecting work environment factors... <span class="highlight">HIGH_STRESS_DETECTED</span><br>
+                    > Analyzing resilience threshold... <span class="warning">ELEVATED_TOLERANCE</span>
+                </div>
+                
+                <h1 class="glitch-title">Code. Debug. Deploy.<br><span style="color:var(--primary)">Repeat.</span></h1>
+                
+                <div class="output" style="font-size: 1rem; max-width: 600px;">
+                    IT professionals operate in a constant state of "Deployment Mode." The NeuroCalm AI has been specifically calibrated to recognize that what appears as "Extreme Stress" in other demographics is often "Baseline Focus" for you. Your system handles higher loads. We account for that.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The IT Reality (Long Page Content) -->
+    <section>
+        <div class="section-header reveal">
+            <h2>THE DIGITAL RESILIENCE</h2>
+            <p style="color:var(--text-muted); max-width: 500px;">Why your stress response is unique and how our AI adapts.</p>
+        </div>
+
+        <div class="grid-container">
+            <div class="tech-card reveal">
+                <h3>01. Crunch Time</h3>
+                <p>You are used to 12-hour sprint cycles and "Go-Live" nights. Your cortisol spikes are synchronized with deadlines, not emotional distress. Our AI learns this pattern.</p>
+            </div>
+            <div class="tech-card reveal" style="transition-delay: 0.1s;">
+                <h3>02. Problem Solving</h3>
+                <p>Stress for you isn't a burden; it's a trigger for logic. You enter a "Flow State" that mimics high stress (heart rate up, pupil dilation) but is actually peak performance.</p>
+            </div>
+            <div class="tech-card reveal" style="transition-delay: 0.2s;">
+                <h3>03. Sedentary Load</h3>
+                <p>High cognitive load mixed with physical stagnation creates a unique stress signature. We monitor posture and screen-time fatigue distinct from emotional burnout.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Section -->
+    <section style="background: rgba(0,0,0,0.3);">
+        <div class="section-header reveal">
+            <h2>IT METRICS</h2>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-box reveal">
+                <div class="stat-number" data-target="60">0</div>
+                <div class="stat-label">Avg Work Hours</div>
+            </div>
+            <div class="stat-box reveal">
+                <div class="stat-number" data-target="15">0</div>
+                <div class="stat-label">Coffees/Day</div>
+            </div>
+            <div class="stat-box reveal">
+                <div class="stat-number" data-target="42">0</div>
+                <div class="stat-label">Bugs Fixed/Hr</div>
+            </div>
+        </div>
+
+        <div class="story-block reveal">
+            <h3 style="font-family: var(--font-code); color: var(--warning); margin-bottom: 1rem;">>> WARNING: SILENT BURNOUT DETECTED</h3>
+            <p style="color: var(--text-muted); line-height: 1.8;">
+                Even with high resilience, the "Always On" culture creates a specific pathology: <em>Silent Burnout</em>. 
+                Because you are problem solvers, you don't complain. You fix. You internalize the stress. 
+                <br><br>
+                Our AI detects the subtle micro-expressions of resignation before you even realize you are burning out. It separates "Productive Stress" from "Destructive Fatigue."
+            </p>
+        </div>
+    </section>
+
+    <!-- Calibration Explanation -->
+    <section>
+        <div class="grid-container">
+            <div style="grid-column: span 2;" class="reveal">
+                <h2 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 1.5rem;">CALIBRATION: <span style="color:var(--primary)">THRESHOLD x1.5</span></h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem; line-height: 1.8;">
+                    For the general population, a heart rate of 100bpm while resting signals high stress. 
+                    For a DevOps engineer debugging a server failure at 3 AM, 100bpm is "Focus". 
+                    <br><br>
+                    We have adjusted our sensitivity. We look for the <strong>anomalies</strong> within your normal high-stress environment. 
+                    We ignore the caffeine jitters and flag the emotional disengagement.
+                </p>
+                <div style="display: flex; gap: 20px;">
+                    <div style="border: 1px solid #333; padding: 15px; border-radius: 8px;">
+                        <div style="color: var(--primary); font-family: var(--font-code);">Focus</div>
+                        <div style="font-size: 1.2rem;">Normal for IT</div>
+                    </div>
+                    <div style="border: 1px solid var(--accent); padding: 15px; border-radius: 8px;">
+                        <div style="color: var(--accent); font-family: var(--font-code);">Burnout</div>
+                        <div style="font-size: 1.2rem;">Alert Level</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Start Section -->
+    <section class="start-section">
+        <div class="reveal">
+            <h2 style="font-family: var(--font-display); font-size: 3rem; margin-bottom: 1rem;">READY TO DEBUG?</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">
+                The system is initialized with the "Tech Sector" preset. 
+                Connect your camera to begin the biometric sync.
+            </p>
+
+            <div class="start-btn-wrapper">
+                <button class="btn-start" onclick="startAnalysis()" data-hover>
+                    Start Protocol
+                </button>
+                <!-- Decorative particles -->
+                <div class="particle"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>NeuroCalm AI // IT_Division // System Status: OPTIMAL</p>
+        <p style="font-size: 0.8rem; margin-top: 10px; color: #333;">Designed for the backbone of the digital world.</p>
+    </footer>
+
+    <!-- Logic -->
+    <script>
+        // =========================================
+        // 1. CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorBlock = document.querySelector('.cursor-block');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorBlock.style.left = `${posX}px`;
+            cursorBlock.style.top = `${posY}px`;
+        });
+
+        document.querySelectorAll('a, button, input').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorBlock.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorBlock.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. CIRCUIT GRID CANVAS
+        // =========================================
+        const canvas = document.getElementById('circuit-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let nodes = [];
+        const nodeCount = 40;
+
+        class Node {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = '#00f2ff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < nodeCount; i++) nodes.push(new Node());
+
+        function animateCircuits() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Grid Background
+            ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            
+            for(let x=0; x<canvas.width; x+=gridSize) {
+                ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+            }
+            for(let y=0; y<canvas.height; y+=gridSize) {
+                ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+            }
+
+            // Draw Nodes & Connections
+            nodes.forEach(node => {
+                node.update();
+                node.draw();
+
+                // Connect to mouse
+                const dx = mouse.x - node.x;
+                const dy = mouse.y - node.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (dist < 200) {
+                    ctx.beginPath();
+                    ctx.moveTo(node.x, node.y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.strokeStyle = `rgba(0, 242, 255, ${1 - dist/200})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+
+            requestAnimationFrame(animateCircuits);
+        }
+
+        const mouse = { x: null, y: null };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        animateCircuits();
+
+        // =========================================
+        // 3. ANIMATED COUNTERS
+        // =========================================
+        const counters = document.querySelectorAll('.stat-number');
+        let hasCounted = false;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    
+                    // Count up logic
+                    if(entry.target.classList.contains('stat-box') && !hasCounted) {
+                        counters.forEach(counter => {
+                            const target = +counter.getAttribute('data-target');
+                            const inc = target / 100;
+                            let count = 0;
+                            const updateCount = () => {
+                                count += inc;
+                                if(count < target) {
+                                    counter.innerText = Math.ceil(count);
+                                    requestAnimationFrame(updateCount);
+                                } else {
+                                    counter.innerText = target + (counter.nextElementSibling.innerText.includes('Hours') ? 'h' : '');
+                                }
+                            };
+                            updateCount();
+                        });
+                        hasCounted = true;
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // =========================================
+        // 4. START BUTTON LOGIC
+        // =========================================
+        function startAnalysis() {
+            const btn = document.querySelector('.btn-start');
+            btn.innerHTML = "INITIALIZING...";
+            btn.style.background = "var(--primary)";
+            btn.style.color = "#000";
+            
+            setTimeout(() => {
+                btn.innerHTML = "ACCESS GRANTED";
+                // Redirect logic here
+                // window.location.href = "demo.html";
+                alert("Redirecting to IT-Personalized Stress Detection Interface...");
+            }, 2000);
+            window.location.href = "/it_ques"; 
+        }
+
+    </script>
+</body>
+</html>

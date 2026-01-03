@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Analytics | NeuroCalm AI</title>
+    <meta name="description" content="Real-time AI stress analysis for World, India, and Tamil Nadu demographics.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & THEME
+           ========================================= */
+        :root {
+            /* Theme Colors */
+            --bg-deep: #030308;
+            --bg-panel: rgba(10, 12, 25, 0.7);
+            --bg-panel-light: rgba(20, 25, 40, 0.8);
+            
+            --primary: #00f2ff; /* Cyan - Data */
+            --primary-dim: rgba(0, 242, 255, 0.1);
+            --secondary: #bd00ff; /* Purple - Trends */
+            --secondary-dim: rgba(189, 0, 255, 0.1);
+            --accent: #ff0055; /* Red - Alert */
+            --warning: #ffcc00; /* Yellow - Warning */
+            --success: #00ff88; /* Green - Calm */
+            --tn-region: #ff9f43; /* Specific color for Tamil Nadu */
+
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+
+            /* Typography */
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-body: 'Outfit', sans-serif;
+
+            /* Effects */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            --neon-glow-cyan: 0 0 10px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
+            --neon-glow-purple: 0 0 10px rgba(189, 0, 255, 0.5), 0 0 20px rgba(189, 0, 255, 0.3);
+            
+            /* Transitions */
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. DYNAMIC CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. BACKGROUND & CANVAS
+           ========================================= */
+        #analytics-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .overlay-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, transparent 100%);
+        }
+
+        /* =========================================
+           4. LAYOUT & NAVIGATION
+           ========================================= */
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: var(--glass-border);
+            margin-bottom: 4rem;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            margin-left: 2rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            text-align: center;
+            padding: 4rem 0 6rem;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .btn-start {
+            padding: 1.2rem 4rem;
+            font-size: 1.3rem;
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--bg-deep);
+            background: var(--primary);
+            border: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+
+        .btn-start:hover {
+            background: #fff;
+            box-shadow: 0 0 30px var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* =========================================
+           6. DASHBOARD GRID
+           ========================================= */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+            margin-bottom: 4rem;
+        }
+
+        .card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(15px);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s var(--ease-smooth);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card:hover {
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        /* Grid Spans */
+        .span-12 { grid-column: span 12; }
+        .span-8 { grid-column: span 8; }
+        .span-6 { grid-column: span 6; }
+        .span-4 { grid-column: span 4; }
+        .span-3 { grid-column: span 3; }
+
+        @media (max-width: 1200px) {
+            .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+        }
+
+        /* =========================================
+           7. DATA VISUALIZATION COMPONENTS
+           ========================================= */
+        
+        /* Custom Chart Container */
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+        
+        canvas.chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Stat Numbers */
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .stat-trend {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .trend-up { color: var(--accent); }
+        .trend-down { color: var(--success); }
+
+        /* Region Specifics */
+        .region-card {
+            border-left: 4px solid var(--primary);
+        }
+        .region-card.india { border-color: var(--secondary); }
+        .region-card.tn { border-color: var(--tn-region); }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: var(--font-tech);
+            font-size: 1rem;
+        }
+
+        .progress-line {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1s ease-out;
+            width: 0%; /* JS triggers */
+        }
+
+        /* =========================================
+           8. TABS
+           ========================================= */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--font-tech);
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--primary-dim);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* =========================================
+           9. LONG PAGE SECTIONS
+           ========================================= */
+        .section-break {
+            height: 100px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin: 4rem 0;
+            position: relative;
+        }
+
+        .section-break::after {
+            content: 'DATA STREAM // 2025';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-deep);
+            padding: 0 20px;
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: var(--glass-border);
+            padding: 3rem 0;
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+            margin-top: 6rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="analytics-canvas"></canvas>
+    <div class="overlay-grid"></div>
+
+    <div class="wrapper">
+        <!-- Navigation -->
+        <nav>
+            <a href="index.html" class="logo">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary)">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+                NEUROCALM <span style="color:var(--primary); font-size:0.8em;">ANALYTICS</span>
+            </a>
+            <div class="nav-links">
+                <a href="/index">Home</a>
+                <a href="/analytics" class="active">Global Stats</a>
+                <a href="/reports" class="active">Upload Reports</a>
+                <a href="/category">Categories</a>
+                <a href="/dashboard" style="color:#fff;">Dashboard</a>
+            </div>
+        </nav>
+
+        <!-- Hero -->
+        <section class="hero">
+            <h1>GLOBAL STRESS <br><span style="color: var(--primary)">INTELLIGENCE</span></h1>
+            <p>Analyzing biometric stress patterns across continents. Real-time data tracking for World, India, and Tamil Nadu demographics projected to 2025.</p>
+            <button class="btn-start" data-hover onclick="scrollToStats()">Initialize Analysis</button>
+        </section>
+
+        <!-- Dashboard Overview -->
+        <div class="dashboard">
+            
+            <!-- KPI Cards -->
+            <div class="card span-4">
+                <div class="card-header">
+                    <span class="card-title">World Average Stress</span>
+                    <div style="color:var(--primary);">GLOBAL</div>
+                </div>
+                <div class="stat-value">42%</div>
+                <div class="stat-label">Projected Index 2025</div>
+                <div class="stat-trend trend-up">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 14l5-5 5 5z"/></svg>
+                    +2.4% YoY
+                </div>
+            </div>
+
+            <div class="card span-4 india">
+                <div class="card-header">
+                    <span class="card-title">India Stress Index</span>
+                    <div style="color:var(--secondary);">IND</div>
+                </div>
+                <div class="stat-value">58%</div>
+                <div class="stat-label">Projected Index 2025</div>
+                <div class="stat-trend trend-up">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 14l5-5 5 5z"/></svg>
+                    +5.1% YoY
+                </div>
+            </div>
+
+            <div class="card span-4 tn">
+                <div class="card-header">
+                    <span class="card-title">Tamil Nadu Index</span>
+                    <div style="color:var(--tn-region);">TN</div>
+                </div>
+                <div class="stat-value">65%</div>
+                <div class="stat-label">Projected Index 2025</div>
+                <div class="stat-trend trend-up">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 14l5-5 5 5z"/></svg>
+                    +1.8% YoY
+                </div>
+            </div>
+
+            <!-- Main Chart: 2020-2025 Projection -->
+            <div class="card span-12">
+                <div class="card-header">
+                    <span class="card-title">Historical Trend & Projection (2020 - 2025)</span>
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('all', this)" data-hover>Global</button>
+                        <button class="tab-btn" onclick="switchTab('india', this)" data-hover>India</button>
+                        <button class="tab-btn" onclick="switchTab('tn', this)" data-hover>Tamil Nadu</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Demographic Breakdown -->
+            <div class="card span-6">
+                <div class="card-header">
+                    <span class="card-title">Demographic Heatmap (TN)</span>
+                </div>
+                <div style="padding: 10px 0;">
+                    <div class="data-row">
+                        <span>Students (NEET/JEE)</span>
+                        <span style="color:var(--accent)">78%</span>
+                    </div>
+                    <div class="progress-line"><div class="progress-fill" style="width: 78%; background: var(--accent);"></div></div>
+                    
+                    <div class="data-row" style="margin-top:15px;">
+                        <span>IT Professionals</span>
+                        <span style="color:var(--warning)">62%</span>
+                    </div>
+                    <div class="progress-line"><div class="progress-fill" style="width: 62%; background: var(--warning);"></div></div>
+
+                    <div class="data-row" style="margin-top:15px;">
+                        <span>Healthcare Workers</span>
+                        <span style="color:var(--secondary)">55%</span>
+                    </div>
+                    <div class="progress-line"><div class="progress-fill" style="width: 55%; background: var(--secondary);"></div></div>
+
+                    <div class="data-row" style="margin-top:15px;">
+                        <span>Homemakers</span>
+                        <span style="color:var(--success)">45%</span>
+                    </div>
+                    <div class="progress-line"><div class="progress-fill" style="width: 45%; background: var(--success);"></div></div>
+                </div>
+            </div>
+
+            <!-- Stress by Region (India Map Placeholder) -->
+            <div class="card span-6">
+                <div class="card-header">
+                    <span class="card-title">Regional Anomalies</span>
+                </div>
+                <div class="chart-container" style="height: 200px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); color:var(--text-muted);">
+                    <div style="text-align:center;">
+                        <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M3 3v18h18"/>
+                            <path d="M18 9l-5 5-4-4-6 6"/>
+                        </svg>
+                        <p style="margin-top:10px;">Heatmap Visualization</p>
+                        <p style="font-size:0.8rem;">High stress detected in Chennai Metro</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Long Content: Detailed Analysis -->
+            <div class="card span-12">
+                <div class="card-header">
+                    <span class="card-title">Detailed Narrative Analysis</span>
+                </div>
+                <div style="font-family: var(--font-body); color: #ccc; line-height: 1.6;">
+                    <p style="margin-bottom: 1rem;">
+                        <strong style="color:var(--primary)">Global Context (2025 Projection):</strong> Post-pandemic analysis reveals a persistent elevation in stress levels globally, driven by economic instability and digital overload. The Global Stress Index (GSI) has plateaued at 42%, indicating a "New Normal" of chronic low-level anxiety.
+                    </p>
+                    <p style="margin-bottom: 1rem;">
+                        <strong style="color:var(--secondary)">India Specifics:</strong> India shows a sharper trajectory, reaching 58% in 2025 projections. Key drivers include intense competitive education structures and rapid urbanization. The demographic shift towards a 24/7 startup culture has blurred work-life boundaries significantly.
+                    </p>
+                    <p>
+                        <strong style="color:var(--tn-region)">Tamil Nadu Deep Dive:</strong> Tamil Nadu registers one of the highest regional averages at 65%. Specific triggers identified by our AI models include high pressure in the state board/competitive exam cycles and the rapid industrialization of Tier-2 cities. However, coastal regions show lower indices, suggesting environmental factors (proximity to the ocean) play a role in stress reduction.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <p>NeuroCalm AI Analytics Engine v2.5.4</p>
+            <p>Generated by Secure Neural Node #8821</p>
+        </footer>
+    </div>
+
+    <!-- COMPLEX LOGIC ENGINE -->
+    <script>
+        // =========================================
+        // 1. CURSOR SYSTEM
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        function scrollToStats() {
+            document.querySelector('.dashboard').scrollIntoView({behavior: 'smooth'});
+        }
+
+        // =========================================
+        // 2. BACKGROUND CANVAS ENGINE
+        // =========================================
+        const bgCanvas = document.getElementById('analytics-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let width, height;
+
+        function resizeBg() {
+            width = bgCanvas.width = window.innerWidth;
+            height = bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        // Particles for "Data Flow"
+        class DataParticle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff';
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce
+                if(this.x < 0 || this.x > width) this.vx *= -1;
+                if(this.y < 0 || this.y > height) this.vy *= -1;
+
+                // Mouse Interaction
+                const dx = cursorDot.getBoundingClientRect().left - this.x;
+                const dy = cursorDot.getBoundingClientRect().top - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < 150) {
+                    this.vx -= dx * 0.0001;
+                    this.vy -= dy * 0.0001;
+                }
+
+                bgCtx.beginPath();
+                bgCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                bgCtx.fillStyle = this.color;
+                bgCtx.fill();
+            }
+        }
+
+        const particles = Array.from({length: 80}, () => new DataParticle());
+
+        function animateBg() {
+            bgCtx.clearRect(0, 0, width, height);
+            // Draw connecting lines
+            particles.forEach((p, index) => {
+                p.update();
+                for(let j = index; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 100) {
+                        bgCtx.strokeStyle = `rgba(0, 242, 255, ${0.1 - dist/1000})`;
+                        bgCtx.lineWidth = 1;
+                        bgCtx.beginPath();
+                        bgCtx.moveTo(p.x, p.y);
+                        bgCtx.lineTo(p2.x, p2.y);
+                        bgCtx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // =========================================
+        // 3. CHART ENGINE (Custom Canvas)
+        // =========================================
+        const chartCanvas = document.getElementById('trendChart');
+        const ctx = chartCanvas.getContext('2d');
+        
+        // Data Models
+        const dataSets = {
+            all: [35, 36, 38, 39, 41, 42], // 2020-2025
+            india: [45, 48, 52, 54, 56, 58],
+            tn: [48, 52, 58, 61, 63, 65]
+        };
+        const labels = ["2020", "2021", "2022", "2023", "2024", "2025"];
+        let currentData = dataSets.all;
+        let currentColor = '#00f2ff';
+
+        function resizeChart() {
+            // Handle high DPI
+            const dpr = window.devicePixelRatio || 1;
+            const rect = chartCanvas.parentElement.getBoundingClientRect();
+            chartCanvas.width = rect.width * dpr;
+            chartCanvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            drawChart();
+        }
+        window.addEventListener('resize', resizeChart);
+
+        function drawChart() {
+            const rect = chartCanvas.parentElement.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+            const padding = 40;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Grid Lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let i=0; i<=5; i++) {
+                const y = padding + (h - 2*padding) * (i/5);
+                ctx.moveTo(padding, y);
+                ctx.lineTo(w - padding, y);
+                
+                // Y Axis Labels
+                ctx.fillStyle = '#8b9bb4';
+                ctx.font = '12px Rajdhani';
+                ctx.fillText(100 - (i*20), 10, y + 4);
+            }
+            ctx.stroke();
+
+            // X Axis Labels
+            labels.forEach((label, i) => {
+                const x = padding + (w - 2*padding) * (i / (labels.length - 1));
+                ctx.fillStyle = '#8b9bb4';
+                ctx.fillText(label, x - 15, h - 10);
+            });
+
+            // Draw Line
+            ctx.beginPath();
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = currentColor;
+
+            const maxVal = 100;
+            const stepX = (w - 2*padding) / (labels.length - 1);
+            const stepY = (h - 2*padding) / maxVal;
+
+            const points = currentData.map((val, i) => {
+                const x = padding + i * stepX;
+                const y = h - padding - (val * stepY);
+                return {x, y};
+            });
+
+            ctx.moveTo(points[0].x, points[0].y);
+            // Bezier Curve
+            for(let i=0; i < points.length - 1; i++) {
+                const x_mid = (points[i].x + points[i+1].x) / 2;
+                const y_mid = (points[i].y + points[i+1].y) / 2;
+                const cp_x1 = (x_mid + points[i].x) / 2;
+                const cp_x2 = (x_mid + points[i+1].x) / 2;
+                ctx.quadraticCurveTo(points[i].x, points[i].y, x_mid, y_mid); 
+            }
+            ctx.lineTo(points[points.length-1].x, points[points.length-1].y);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Draw Points & Gradients
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.fillStyle = '#fff';
+                ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.fillStyle = currentColor;
+                ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+                ctx.fill();
+            });
+            
+            // Fill Gradient under line
+            ctx.lineTo(points[points.length-1].x, h - padding);
+            ctx.lineTo(padding, h - padding);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, currentColor + '33'); // 20% opacity
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+
+        // =========================================
+        // 4. TAB INTERACTION
+        // =========================================
+        function switchTab(key, btn) {
+            // Update UI
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update Data
+            currentData = dataSets[key];
+            if(key === 'all') currentColor = '#00f2ff';
+            if(key === 'india') currentColor = '#bd00ff';
+            if(key === 'tn') currentColor = '#ff9f43';
+
+            drawChart();
+        }
+
+        // Initialize
+        setTimeout(resizeChart, 100);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Assessment | NeuroCalm AI</title>
+    <meta name="description" content="Complete your neural stress assessment to calibrate the AI detection algorithm.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #030305;
+            --bg-panel: rgba(10, 15, 25, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --primary-dim: rgba(0, 242, 255, 0.2);
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Red - High Stress */
+            --warning: #ffcc00;
+            --success: #00ff88;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .cursor-outline {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND (ECG WAVE)
+           ========================================= */
+        #ecg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT & NAVIGATION
+           ========================================= */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4rem 2rem 8rem;
+        }
+
+        .header-section {
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 2rem;
+        }
+
+        .header-title h1 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-title span {
+            color: var(--primary);
+        }
+
+        .progress-indicator {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transition: 0.3s;
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .step-dot.completed {
+            background: var(--success);
+        }
+
+        /* =========================================
+           5. ASSESSMENT WIZARD CARDS
+           ========================================= */
+        .wizard-container {
+            width: 100%;
+            max-width: 1000px;
+            position: relative;
+            min-height: 600px;
+        }
+
+        .step-content {
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.6s var(--ease-smooth);
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-header {
+            margin-bottom: 3rem;
+        }
+
+        .step-header h2 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-header p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        /* Navigation Buttons */
+        .wizard-controls {
+            margin-top: 3rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-main);
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 242, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.4);
+        }
+
+        /* =========================================
+           6. STEP 1: CATEGORY SELECTION
+           ========================================= */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .cat-option {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: none;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cat-option:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .cat-option.selected {
+            border-color: var(--success);
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .cat-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        .cat-option:hover .cat-icon, .cat-option.selected .cat-icon {
+            color: #fff;
+        }
+
+        /* =========================================
+           7. STEP 2: SYMPTOM SELECTOR
+           ========================================= */
+        .symptom-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .symptom-chip {
+            padding: 0.8rem 1.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .symptom-chip:hover {
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .symptom-chip.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+        }
+
+        /* =========================================
+           8. STEP 3: INTENSITY SLIDER
+           ========================================= */
+        .slider-wrapper {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            outline: none;
+            margin-top: 2rem;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: none;
+            box-shadow: 0 0 20px var(--primary);
+            transition: 0.3s;
+            margin-top: -10px; /* Center on track */
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .intensity-display {
+            font-size: 4rem;
+            font-family: var(--font-display);
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            text-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+        }
+
+        /* =========================================
+           9. STEP 4: REACTION TEST (MINI GAME)
+           ========================================= */
+        .reaction-game-area {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-state {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: #555;
+        }
+
+        .game-area.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .game-area.success {
+            background: var(--success);
+            color: #000;
+        }
+
+        .reaction-score {
+            margin-top: 1rem;
+            text-align: center;
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        /* =========================================
+           10. STEP 5: SLEEP HABITS
+           ========================================= */
+        .habit-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.03);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .habit-card:hover {
+            border-color: var(--secondary);
+            background: rgba(189, 0, 255, 0.05);
+        }
+
+        .habit-toggle {
+            width: 50px;
+            height: 26px;
+            background: #333;
+            border-radius: 13px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .habit-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .habit-card.active .habit-toggle {
+            background: var(--success);
+        }
+
+        .habit-card.active .habit-toggle::after {
+            left: 27px;
+        }
+
+        /* =========================================
+           11. FOOTER
+           ========================================= */
+        footer {
+            margin-top: auto;
+            padding: 2rem;
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+            border-top: 1px solid #111;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            background: #020203;
+        }
+
+        /* =========================================
+           12. LOADING OVERLAY
+           ========================================= */
+        #analyzing-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-line {
+            width: 300px;
+            height: 2px;
+            background: var(--primary);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .scanner-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: #fff;
+            animation: scan 1s infinite linear;
+        }
+
+        @keyframes scan {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
+        .loader-text {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            letter-spacing: 3px;
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        @media (max-width: 768px) {
+            .header-title h1 { font-size: 2rem; }
+            .wizard-controls { flex-direction: column-reverse; gap: 1rem; }
+            .btn { width: 100%; justify-content: center; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background -->
+    <canvas id="ecg-canvas"></canvas>
+    <div class="grid-bg"></div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Header -->
+        <header class="header-section reveal">
+            <div class="header-title">
+                <h1>Neural <span>Assessment</span></h1>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Calibration Protocol v2.4</p>
+            </div>
+            <div class="progress-indicator">
+                <div class="step-dot active" id="dot-1"></div>
+                <div class="step-dot" id="dot-2"></div>
+                <div class="step-dot" id="dot-3"></div>
+                <div class="step-dot" id="dot-4"></div>
+                <div class="step-dot" id="dot-5"></div>
+            </div>
+        </header>
+
+        <!-- Wizard Content -->
+        <div class="wizard-container">
+            
+            <!-- Step 1: Category -->
+            <div class="step-content active" id="step-1">
+                <div class="step-header">
+                    <h2>01. Identify Persona</h2>
+                    <p>Select the category that best matches your current occupational or lifestyle state.</p>
+                </div>
+                <div class="category-grid" id="category-grid">
+                    <!-- Injected via JS -->
+                </div>
+                <div class="wizard-controls">
+                    <div></div> <!-- Spacer -->
+                    <button class="btn btn-primary" onclick="nextStep(2)" data-hover>Next Phase</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Symptoms -->
+            <div class="step-content" id="step-2">
+                <div class="step-header">
+                    <h2>02. Symptom Analysis</h2>
+                    <p>Select all physical or mental symptoms you are experiencing right now.</p>
+                </div>
+                <div class="symptom-container">
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Headache</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Fatigue</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Insomnia</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Anxiety</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Muscle Tension</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Irritability</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Rapid Heartbeat</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Lack of Focus</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Chest Pain</div>
+                    <div class="symptom-chip" onclick="toggleChip(this)" data-hover>Sweating</div>
+                </div>
+                <div class="wizard-controls">
+                    <button class="btn" onclick="prevStep(1)" data-hover>Back</button>
+                    <button class="btn btn-primary" onclick="nextStep(3)" data-hover>Next Phase</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Intensity -->
+            <div class="step-content" id="step-3">
+                <div class="step-header">
+                    <h2>03. Stress Intensity</h2>
+                    <p>On a scale of 0 to 100, how intense is your current stress level?</p>
+                </div>
+                <div class="slider-wrapper">
+                    <div class="intensity-display" id="intensity-val">50</div>
+                    <input type="range" min="0" max="100" value="50" id="stress-slider" oninput="updateIntensity(this.value)">
+                    <div class="slider-labels">
+                        <span>Relaxed</span>
+                        <span>Moderate</span>
+                        <span>Critical</span>
+                    </div>
+                </div>
+                <div class="wizard-controls">
+                    <button class="btn" onclick="prevStep(2)" data-hover>Back</button>
+                    <button class="btn btn-primary" onclick="nextStep(4)" data-hover>Next Phase</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Reaction Test -->
+            <div class="step-content" id="step-4">
+                <div class="step-header">
+                    <h2>04. Cognitive Speed Test</h2>
+                    <p>Stress affects reaction time. Click the box as soon as it turns <span style="color:var(--success)">GREEN</span>.</p>
+                </div>
+                
+                <div class="reaction-game-area" id="game-area" onclick="handleGameClick()">
+                    <div class="game-state" id="game-msg">Click to Start</div>
+                </div>
+                <div class="reaction-score" id="game-feedback"></div>
+
+                <div class="wizard-controls" style="margin-top: 2rem;">
+                    <button class="btn" onclick="prevStep(3)" data-hover>Back</button>
+                    <button class="btn btn-primary" id="game-next-btn" onclick="nextStep(5)" style="display:none; opacity:0.5; pointer-events:none;" data-hover>Next Phase</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Habits -->
+            <div class="step-content" id="step-5">
+                <div class="step-header">
+                    <h2>05. Lifestyle Habits</h2>
+                    <p>Review your recent sleep and activity patterns.</p>
+                </div>
+                
+                <div class="habit-card" onclick="toggleHabit(this)" data-hover>
+                    <span>Slept less than 6 hours last night?</span>
+                    <div class="habit-toggle"></div>
+                </div>
+                <div class="habit-card" onclick="toggleHabit(this)" data-hover>
+                    <span>Consumed caffeine today?</span>
+                    <div class="habit-toggle"></div>
+                </div>
+                <div class="habit-card" onclick="toggleHabit(this)" data-hover>
+                    <span>Exercised in the last 24 hours?</span>
+                    <div class="habit-toggle"></div>
+                </div>
+
+                <div class="wizard-controls">
+                    <button class="btn" onclick="prevStep(4)" data-hover>Back</button>
+                    <button class="btn btn-primary" onclick="submitAssessment()" data-hover>Initialize Analysis</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 NeuroCalm AI. Secure Assessment Environment.</p>
+    </footer>
+
+    <!-- Analysis Overlay -->
+    <div id="analyzing-overlay">
+        <div class="scanner-line"></div>
+        <div class="loader-text">PROCESSING NEURAL DATA...</div>
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. WIZARD NAVIGATION LOGIC
+        // =========================================
+        function showStep(stepNum) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+            // Show target step
+            document.getElementById(`step-${stepNum}`).classList.add('active');
+            
+            // Update dots
+            document.querySelectorAll('.step-dot').forEach((d, i) => {
+                if (i + 1 === stepNum) {
+                    d.classList.add('active');
+                    d.classList.remove('completed');
+                } else if (i + 1 < stepNum) {
+                    d.classList.add('completed');
+                    d.classList.remove('active');
+                } else {
+                    d.classList.remove('active', 'completed');
+                }
+            });
+        }
+
+        function nextStep(num) {
+            showStep(num);
+        }
+
+        function prevStep(num) {
+            showStep(num);
+        }
+
+        // =========================================
+        // 3. STEP 1: CATEGORIES (JS Injection)
+        // =========================================
+        const categories = [
+            { name: 'IT Employee', icon: '💻' },
+            { name: 'Student', icon: '🎓' },
+            { name: 'Doctor', icon: '⚕️' },
+            { name: 'Athlete', icon: '🏃' },
+            { name: 'Artist', icon: '🎨' },
+            { name: 'Teacher', icon: '📚' },
+            { name: 'Business', icon: '💼' },
+            { name: 'Other', icon: '🔮' }
+        ];
+
+        const catGrid = document.getElementById('category-grid');
+        categories.forEach(cat => {
+            const div = document.createElement('div');
+            div.className = 'cat-option';
+            div.innerHTML = `<div class="cat-icon">${cat.icon}</div><h3>${cat.name}</h3>`;
+            div.onclick = function() {
+                document.querySelectorAll('.cat-option').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+            };
+            div.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            div.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+            catGrid.appendChild(div);
+        });
+
+        // =========================================
+        // 4. STEP 2: SYMPTOM TOGGLES
+        // =========================================
+        function toggleChip(el) {
+            el.classList.toggle('active');
+        }
+
+        // =========================================
+        // 5. STEP 3: INTENSITY SLIDER
+        // =========================================
+        function updateIntensity(val) {
+            const display = document.getElementById('intensity-val');
+            display.innerText = val;
+            
+            // Color shift based on intensity
+            if(val < 40) {
+                display.style.color = 'var(--success)';
+                display.style.textShadow = '0 0 30px rgba(0, 255, 136, 0.3)';
+            } else if (val < 75) {
+                display.style.color = 'var(--warning)';
+                display.style.textShadow = '0 0 30px rgba(255, 204, 0, 0.3)';
+            } else {
+                display.style.color = 'var(--accent)';
+                display.style.textShadow = '0 0 30px rgba(255, 0, 85, 0.5)';
+            }
+        }
+
+        // =========================================
+        // 6. STEP 4: REACTION GAME LOGIC
+        // =========================================
+        const gameArea = document.getElementById('game-area');
+        const gameMsg = document.getElementById('game-msg');
+        const feedback = document.getElementById('game-feedback');
+        const nextBtn = document.getElementById('game-next-btn');
+        
+        let gameState = 'idle'; // idle, waiting, ready, finished
+        let startTime;
+        let attempts = 0;
+        let totalTime = 0;
+
+        function startGame() {
+            gameState = 'waiting';
+            gameArea.className = 'reaction-game-area'; // Reset colors
+            gameArea.style.background = 'var(--accent)';
+            gameMsg.innerText = "WAIT FOR GREEN...";
+            
+            const randomDelay = Math.floor(Math.random() * 3000) + 1000;
+            
+            setTimeout(() => {
+                if(gameState === 'waiting') {
+                    gameState = 'ready';
+                    startTime = Date.now();
+                    gameArea.style.background = 'var(--success)';
+                    gameMsg.innerText = "CLICK NOW!";
+                    gameArea.classList.add('active');
+                }
+            }, randomDelay);
+        }
+
+        function handleGameClick() {
+            if(gameState === 'idle' || gameState === 'finished') {
+                startGame();
+            } else if (gameState === 'waiting') {
+                // Too early
+                gameState = 'idle';
+                gameArea.style.background = '#fff';
+                gameMsg.innerText = "TOO EARLY! CLICK TO RETRY";
+                feedback.innerText = "Penalty Applied";
+            } else if (gameState === 'ready') {
+                // Success
+                const reactionTime = Date.now() - startTime;
+                totalTime += reactionTime;
+                attempts++;
+                feedback.innerText = `Reaction: ${reactionTime}ms`;
+                
+                gameState = 'idle';
+                gameArea.style.background = 'var(--bg-panel)';
+                gameMsg.innerText = "CLICK AGAIN";
+                
+                if(attempts >= 3) {
+                    finishGame();
+                } else {
+                    setTimeout(startGame, 1000);
+                }
+            }
+        }
+
+        function finishGame() {
+            gameState = 'finished';
+            gameArea.style.background = 'var(--secondary)';
+            gameMsg.innerText = "TEST COMPLETE";
+            const avg = Math.floor(totalTime / 3);
+            feedback.innerText = `Average Speed: ${avg}ms | Analysis: ${avg < 250 ? 'Optimal' : 'Elevated Stress'}`;
+            
+            nextBtn.style.display = 'inline-flex';
+            nextBtn.style.opacity = '1';
+            nextBtn.style.pointerEvents = 'all';
+        }
+
+        // =========================================
+        // 7. STEP 5: HABIT TOGGLES
+        // =========================================
+        function toggleHabit(el) {
+            el.classList.toggle('active');
+        }
+
+        // =========================================
+        // 8. SUBMISSION & CANVAS ECG
+        // =========================================
+        function submitAssessment() {
+            const overlay = document.getElementById('analyzing-overlay');
+            overlay.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert("Assessment Data Uploaded. Redirecting to Dashboard...");
+                // window.location.href = 'dashboard.html'; // hypothetical
+                overlay.style.display = 'none';
+            }, 3000);
+        }
+
+        // ECG Animation Logic
+        const canvas = document.getElementById('ecg-canvas');
+        const ctx = canvas.getContext('2d');
+        let x = 0;
+        let y = canvas.height / 2;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        function drawECG() {
+            // Fade out effect
+            ctx.fillStyle = 'rgba(3, 3, 5, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            x += 2;
+
+            // Heartbeat Pattern Logic
+            const time = Date.now();
+            // Create spikes every ~60 frames
+            if (x % 200 < 10) {
+                y = canvas.height / 2 - (Math.random() * 100);
+                ctx.strokeStyle = '#ff0055';
+                ctx.lineWidth = 3;
+            } else {
+                y = canvas.height / 2 + (Math.sin(time * 0.01) * 20);
+                ctx.strokeStyle = '#00f2ff';
+                ctx.lineWidth = 1;
+            }
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            // Reset x to loop
+            if (x > canvas.width) {
+                x = 0;
+                ctx.moveTo(0, canvas.height / 2);
+            }
+
+            requestAnimationFrame(drawECG);
+        }
+
+        drawECG();
+
+        // Reveal on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+    <script>
+      const assessmentData = {
+          category: selectedCategory,
+          score: calculatedScore,
+          intensity: sliderValue,
+          reactionTime: reactionMs,
+          sleep: sleepHabit,
+          caffeine: caffeineHabit,
+          symptoms: activeSymptoms
+      };
+      sessionStorage.setItem('neuroCalmData', JSON.stringify(assessmentData));
+      window.location.href = 'result.html';
+    </script>
+</body>
+</html>

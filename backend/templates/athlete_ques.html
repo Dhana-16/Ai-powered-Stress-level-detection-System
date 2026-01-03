@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Stress Protocol | NeuroCalm AI</title>
+    <meta name="description" content="Advanced AI stress detection analysis for professional athletes.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Teko:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #020205;
+            --bg-card: rgba(10, 15, 25, 0.7);
+            --primary: #00f2ff; /* Cyan Neon */
+            --primary-dim: rgba(0, 242, 255, 0.1);
+            --secondary: #bd00ff; /* Purple Neon */
+            --accent: #ff0055; /* Alert Red */
+            --success: #00ff88; /* Optimal Green */
+            --warning: #ffcc00; /* Caution Yellow */
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-data: 'Teko', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--secondary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(189, 0, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           3. BACKGROUND SYSTEM
+           ========================================= */
+        #neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 95%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT & NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            padding: 5px 15px;
+            border: 1px solid var(--success);
+            color: var(--success);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        /* =========================================
+           5. MAIN CONTAINER
+           ========================================= */
+        main {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 120px 2rem 2rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            z-index: 1001;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s var(--ease-smooth);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* =========================================
+           6. SECTION STYLES
+           ========================================= */
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: fadeIn 0.8s var(--ease-smooth);
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* --- Intro Screen --- */
+        .intro-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .intro-tag {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            font-family: var(--font-display);
+            margin-bottom: 2rem;
+            border-radius: 4px;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .intro-desc {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .btn-main {
+            display: inline-block;
+            padding: 1.2rem 4rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.2rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 242, 255, 0.3);
+            color: #fff;
+        }
+
+        /* --- Question Screen --- */
+        .question-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 4rem;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .q-number {
+            font-family: var(--font-data);
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .q-text {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 3rem;
+            color: #fff;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 12px;
+            color: #ccc;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .option-btn:hover {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--primary);
+            color: #fff;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* --- Analysis Screen --- */
+        .analysis-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+        }
+
+        .spinner-ring {
+            width: 150px;
+            height: 150px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .spinner-ring::before {
+            content: 'AI';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-display);
+            color: var(--primary);
+            font-weight: 900;
+        }
+
+        .log-terminal {
+            width: 100%;
+            max-width: 600px;
+            height: 200px;
+            background: #000;
+            border: 1px solid #333;
+            padding: 1rem;
+            font-family: var(--font-data);
+            color: var(--success);
+            font-size: 1.2rem;
+            text-align: left;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: inset 0 0 20px rgba(0,255,136,0.1);
+        }
+
+        .log-line {
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: typeIn 0.2s forwards;
+        }
+
+        /* --- Result Screen --- */
+        .result-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .gauge-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            border: var(--glass-border);
+        }
+
+        .score-display {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            color: var(--text-main);
+            margin: 1rem 0;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .score-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .status-text {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .advice-card {
+            background: rgba(255,255,255,0.02);
+            border-left: 4px solid var(--primary);
+            padding: 2rem;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .advice-card h4 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: #fff;
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* SVG Gauge Styling */
+        .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 15; }
+        .gauge-value { fill: none; stroke-width: 15; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 1.5s ease-out; }
+
+        /* =========================================
+           7. ANIMATIONS
+           ========================================= */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes typeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .result-dashboard { grid-template-columns: 1fr; }
+            .question-card { padding: 2rem; }
+            .options-grid { grid-template-columns: 1fr; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background -->
+    <canvas id="neural-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NeuroCalm
+        </a>
+        <div class="status-badge">System Online</div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Screen 1: Intro -->
+        <div id="screen-intro" class="screen active">
+            <div class="intro-content">
+                <span class="intro-tag">Athlete Protocol V4.2</span>
+                <h1>Performance Stress <br><span class="gradient-text">Analysis</span></h1>
+                <p class="intro-desc">
+                    High performance requires high recovery. Our AI system will analyze 20 biometric and psychological data points to determine your current stress load and risk of overtraining.
+                </p>
+                <a href="#" class="btn-main" onclick="startQuiz()" data-hover>Initialize Scan</a>
+            </div>
+        </div>
+
+        <!-- Screen 2: Questions -->
+        <div id="screen-quiz" class="screen">
+            <div class="question-card">
+                <span class="q-number">QUERY <span id="q-num">1</span> / 20</span>
+                <h2 class="q-text" id="q-text">Loading...</h2>
+                <div class="options-grid" id="options-container">
+                    <!-- Options injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Analysis -->
+        <div id="screen-analysis" class="screen">
+            <div class="analysis-wrapper">
+                <div class="spinner-ring"></div>
+                <h2 style="font-family: var(--font-display); margin-bottom: 1rem;">Processing Biometrics</h2>
+                <div class="log-terminal" id="log-terminal">
+                    <!-- Logs injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 4: Results -->
+        <div id="screen-results" class="screen">
+            <h2 style="text-align: center; font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 2rem;">
+                Analysis <span class="gradient-text">Complete</span>
+            </h2>
+            
+            <div class="result-dashboard">
+                <!-- Left: Gauge -->
+                <div class="gauge-container">
+                    <h3 style="color:var(--text-muted); margin-bottom:1rem;">TOTAL STRESS LOAD</h3>
+                    <div style="position: relative; width: 250px; height: 250px; margin: 0 auto;">
+                        <svg viewBox="0 0 200 200" style="transform: rotate(-90deg); width: 100%; height: 100%;">
+                            <circle class="gauge-bg" cx="100" cy="100" r="90"></circle>
+                            <circle class="gauge-value" id="gauge-circle" cx="100" cy="100" r="90" stroke="var(--primary)" stroke-dasharray="565.48" stroke-dashoffset="565.48"></circle>
+                        </svg>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div class="score-display" id="score-val">0</div>
+                            <div class="score-label">Score</div>
+                        </div>
+                    </div>
+                    <div class="status-text" id="status-text" style="color: var(--success);">Optimal</div>
+                </div>
+
+                <!-- Right: Details -->
+                <div class="details-container">
+                    <h3 style="font-family: var(--font-display); margin-bottom: 1.5rem;">AI Recommendations</h3>
+                    <div id="advice-container">
+                        <!-- Injected JS -->
+                    </div>
+                    
+                    <button class="action-btn" onclick="location.reload()" data-hover>New Scan</button>
+                    <button class="action-btn" style="border-color: var(--primary); color: var(--primary); margin-top: 10px;" onclick="window.print()" data-hover>Download Report</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. QUESTIONNAIRE DATA (20 Questions)
+        // =========================================
+        const questions = [
+            {
+                text: "How many hours of quality sleep did you get last night?",
+                options: [
+                    { label: "Less than 5 hours", score: 20 },
+                    { label: "5 - 7 hours", score: 15 },
+                    { label: "7 - 9 hours", score: 5 },
+                    { label: "More than 9 hours", score: 10 }
+                ]
+            },
+            {
+                text: "How would you rate your current muscle soreness (DOMS)?",
+                options: [
+                    { label: "Extreme (Unable to train)", score: 25 },
+                    { label: "High (Affects movement)", score: 15 },
+                    { label: "Moderate (Warm-up needed)", score: 10 },
+                    { label: "None / Light", score: 5 }
+                ]
+            },
+            {
+                text: "How intense was your training session yesterday?",
+                options: [
+                    { label: "No training / Rest", score: 5 },
+                    { label: "Light Recovery", score: 10 },
+                    { label: "Moderate", score: 15 },
+                    { label: "Maximum Effort / Race", score: 25 }
+                ]
+            },
+            {
+                text: "Do you feel mentally fatigued or 'brain fog'?",
+                options: [
+                    { label: "Constantly exhausted", score: 20 },
+                    { label: "Often", score: 15 },
+                    { label: "Sometimes", score: 10 },
+                    { label: "Sharp and focused", score: 5 }
+                ]
+            },
+            {
+                text: "How is your appetite right now?",
+                options: [
+                    { label: "Non-existent", score: 20 },
+                    { label: "Poor", score: 15 },
+                    { label: "Normal", score: 5 },
+                    { label: "Increased (Ravenous)", score: 10 }
+                ]
+            },
+            {
+                text: "How many cups of caffeine/energy drinks did you consume today?",
+                options: [
+                    { label: "None", score: 0 },
+                    { label: "1-2", score: 5 },
+                    { label: "3-4", score: 10 },
+                    { label: "5 or more", score: 20 }
+                ]
+            },
+            {
+                text: "Are you currently feeling pressure to perform for an upcoming event?",
+                options: [
+                    { label: "No pressure", score: 0 },
+                    { label: "Mild pressure", score: 10 },
+                    { label: "High pressure", score: 20 },
+                    { label: "Extreme anxiety", score: 30 }
+                ]
+            },
+            {
+                text: "How hydrated do you feel?",
+                options: [
+                    { label: "Dehydrated (Dry mouth)", score: 20 },
+                    { label: "Slightly thirsty", score: 10 },
+                    { label: "Hydrated", score: 5 },
+                    { label: "Over-hydrated", score: 5 }
+                ]
+            },
+            {
+                text: "Do you have any current injuries or nagging pains?",
+                options: [
+                    { label: "Severe injury", score: 30 },
+                    { label: "Moderate pain", score: 20 },
+                    { label: "Minor niggle", score: 10 },
+                    { label: "Pain free", score: 0 }
+                ]
+            },
+            {
+                text: "How is your mood generally today?",
+                options: [
+                    { label: "Depressed / Irritable", score: 25 },
+                    { label: "Anxious", score: 20 },
+                    { label: "Neutral", score: 10 },
+                    { label: "Motivated / Happy", score: 5 }
+                ]
+            },
+            {
+                text: "What is your resting heart rate compared to normal?",
+                options: [
+                    { label: "Significantly higher", score: 20 },
+                    { label: "Slightly higher", score: 15 },
+                    { label: "Normal", score: 5 },
+                    { label: "Lower than normal", score: 5 }
+                ]
+            },
+            {
+                text: "How would you rate your motivation to train today?",
+                options: [
+                    { label: "Zero motivation", score: 25 },
+                    { label: "Low motivation", score: 15 },
+                    { label: "Normal motivation", score: 10 },
+                    { label: "High motivation", score: 5 }
+                ]
+            },
+            {
+                text: "Have you experienced any sleep disturbances recently?",
+                options: [
+                    { label: "Constant insomnia", score: 25 },
+                    { label: "Waking up often", score: 15 },
+                    { label: "Occasional", score: 10 },
+                    { label: "Slept soundly", score: 0 }
+                ]
+            },
+            {
+                text: "How is your digestion/stomach feeling?",
+                options: [
+                    { label: "Upset / Nauseous", score: 20 },
+                    { label: "Bloated", score: 15 },
+                    { label: "Normal", score: 5 },
+                    { label: "Great", score: 0 }
+                ]
+            },
+            {
+                text: "Do you feel isolated from your support system (team/family)?",
+                options: [
+                    { label: "Very isolated", score: 25 },
+                    { label: "Somewhat", score: 15 },
+                    { label: "Connected", score: 5 },
+                    { label: "Very supported", score: 0 }
+                ]
+            },
+            {
+                text: "How much free time do you have outside of training/work?",
+                options: [
+                    { label: "None", score: 20 },
+                    { label: "Very little", score: 15 },
+                    { label: "A decent amount", score: 10 },
+                    { label: "Plenty", score: 5 }
+                ]
+            },
+            {
+                text: "Are you dealing with financial stress?",
+                options: [
+                    { label: "Crisis level", score: 30 },
+                    { label: "High stress", score: 20 },
+                    { label: "Moderate", score: 10 },
+                    { label: "Stable", score: 0 }
+                ]
+            },
+            {
+                text: "How often do you check social media regarding your sport?",
+                options: [
+                    { label: "Obsessively", score: 20 },
+                    { label: "Often", score: 15 },
+                    { label: "Sometimes", score: 10 },
+                    { label: "Rarely", score: 5 }
+                ]
+            },
+            {
+                text: "Do you feel physically weak or shaky?",
+                options: [
+                    { label: "Yes, very weak", score: 25 },
+                    { label: "A bit shaky", score: 15 },
+                    { label: "Normal strength", score: 5 },
+                    { label: "Stronger than usual", score: 0 }
+                ]
+            },
+            {
+                text: "Overall, how ready do you feel for your next challenge?",
+                options: [
+                    { label: "Unprepared", score: 20 },
+                    { label: "Anxious", score: 15 },
+                    { label: "Ready", score: 5 },
+                    { label: "Unstoppable", score: 5 }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+
+        // =========================================
+        // 2. CURSOR & CANVAS (REUSED)
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .option-btn').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // Canvas Animation (Simplified Neural Network)
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+        
+        for(let i=0; i<50; i++) particles.push(new Particle());
+        function animate() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => p.update());
+            // Connect
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+            for(let i=0; i<particles.length; i++){
+                for(let j=i; j<particles.length; j++){
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // =========================================
+        // 3. APP LOGIC
+        // =========================================
+
+        function startQuiz() {
+            switchScreen('screen-intro', 'screen-quiz');
+            loadQuestion(0);
+        }
+
+        function switchScreen(hideId, showId) {
+            document.getElementById(hideId).classList.remove('active');
+            document.getElementById(showId).classList.add('active');
+        }
+
+        function loadQuestion(index) {
+            const q = questions[index];
+            document.getElementById('q-num').innerText = index + 1;
+            
+            // Animate text change
+            const qText = document.getElementById('q-text');
+            qText.style.opacity = 0;
+            qText.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                qText.innerText = q.text;
+                qText.style.transition = '0.5s ease';
+                qText.style.opacity = 1;
+                qText.style.transform = 'translateY(0)';
+            }, 200);
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = ''; // Clear previous
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.label;
+                btn.onclick = () => handleAnswer(opt.score);
+                container.appendChild(btn);
+            });
+
+            // Update Progress Bar
+            const pct = ((index) / 20) * 100;
+            document.getElementById('progress').style.width = `${pct}%`;
+        }
+
+        function handleAnswer(score) {
+            totalScore += score;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < 20) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            switchScreen('screen-quiz', 'screen-analysis');
+            document.getElementById('progress').style.width = `100%`;
+            runAnalysisSimulation();
+        }
+
+        // =========================================
+        // 4. ANALYSIS SIMULATION & RESULTS
+        // =========================================
+        const logs = [
+            "Connecting to Neural Hub...",
+            "Synthesizing Cortisol Data...",
+            "Analyzing HRV Patterns...",
+            "Cross-referencing Sleep Cycles...",
+            "Calculating Recovery Deficit...",
+            "Generating Wellness Report...",
+            "Finalizing Algorithm..."
+        ];
+
+        function runAnalysisSimulation() {
+            const term = document.getElementById('log-terminal');
+            let i = 0;
+            
+            const interval = setInterval(() => {
+                if(i < logs.length) {
+                    const div = document.createElement('div');
+                    div.className = 'log-line';
+                    div.innerText = `> ${logs[i]}`;
+                    term.appendChild(div);
+                    term.scrollTop = term.scrollHeight;
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        showResults();
+                    }, 1000);
+                }
+            }, 800);
+        }
+
+        function showResults() {
+            switchScreen('screen-analysis', 'screen-results');
+            
+            // Determine Status
+            let status = "";
+            let color = "";
+            let advice = [];
+            let maxScore = 500; // Approx max possible score based on weights
+            let percent = Math.min((totalScore / maxScore) * 100, 100);
+
+            if (totalScore <= 100) {
+                status = "OPTIMAL ZONE";
+                color = "var(--success)";
+                advice = [
+                    { title: "Maintain", text: "Your recovery is excellent. Stick to your current routine." },
+                    { title: "Train Hard", text: "Your body is ready for high-intensity blocks." }
+                ];
+            } else if (totalScore <= 200) {
+                status = "MODERATE LOAD";
+                color = "var(--primary)";
+                advice = [
+                    { title: "Monitor", text: "You are handling training well, but watch for early fatigue." },
+                    { title: "Sleep Focus", text: "Ensure you are hitting 8 hours to maintain this level." }
+                ];
+            } else if (totalScore <= 300) {
+                status = "HIGH STRESS";
+                color = "var(--warning)";
+                advice = [
+                    { title: "Deload Week", text: "Consider reducing training volume by 40% for 7 days." },
+                    { title: "Mental Rest", text: "Incorporate meditation or yoga to lower mental stress." }
+                ];
+            } else {
+                status = "CRITICAL RISK";
+                color = "var(--accent)";
+                advice = [
+                    { title: "STOP Training", text: "You are at risk of injury or burnout. Take 3-5 days off." },
+                    { title: "Seek Help", text: "Consult a sports psychologist or physician." },
+                    { title: "Nutrition", text: "Focus on anti-inflammatory foods and hydration." }
+                ];
+            }
+
+            // Render Dashboard
+            document.getElementById('score-val').innerText = totalScore;
+            document.getElementById('score-val').style.color = color;
+            
+            const statusEl = document.getElementById('status-text');
+            statusEl.innerText = status;
+            statusEl.style.color = color;
+
+            // Animate Gauge
+            // Circumference 2 * pi * 90 ≈ 565.48
+            const circle = document.getElementById('gauge-circle');
+            const offset = 565.48 - (565.48 * percent) / 100;
+            circle.style.stroke = color;
+            setTimeout(() => {
+                circle.style.strokeDashoffset = offset;
+            }, 500);
+
+            // Render Advice
+            const adviceContainer = document.getElementById('advice-container');
+            adviceContainer.innerHTML = '';
+            advice.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'advice-card';
+                div.style.borderLeftColor = color;
+                div.innerHTML = `<h4>${item.title}</h4><p>${item.text}</p>`;
+                adviceContainer.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>

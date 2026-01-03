@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroCalm AI | User Dashboard</title>
+    <meta name="description" content="AI-Powered Stress Detection Dashboard - Real-time analytics and motivation.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050507;
+            --bg-panel: rgba(15, 20, 35, 0.65);
+            --bg-panel-hover: rgba(25, 35, 55, 0.8);
+            --primary: #00f2ff; /* Cyan Neon */
+            --primary-dim: rgba(0, 242, 255, 0.1);
+            --secondary: #bd00ff; /* Purple Neon */
+            --secondary-dim: rgba(189, 0, 255, 0.1);
+            --accent: #ff0055; /* Pink Neon */
+            --success: #00ff88; /* Green Neon */
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --shadow-glow: 0 0 20px rgba(0, 242, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. DYNAMIC BACKGROUND & CURSOR
+           ========================================= */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. LAYOUT STRUCTURE
+           ========================================= */
+        .dashboard-wrapper {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            min-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(3, 3, 5, 0.95);
+            border-right: var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            transition: 0.3s var(--ease-smooth);
+            position: relative;
+        }
+
+        .nav-icon:hover, .nav-icon.active {
+            background: var(--primary-dim);
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        .nav-icon.active::after {
+            content: '';
+            position: absolute;
+            left: -15px;
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            padding: 2rem 3rem;
+            overflow-y: auto;
+        }
+
+        /* Top Header */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-text h1 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: #fff;
+        }
+
+        .welcome-text p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--bg-panel);
+            padding: 8px 15px 8px 8px;
+            border-radius: 50px;
+            border: var(--glass-border);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* =========================================
+           4. DASHBOARD GRID SYSTEM
+           ========================================= */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto auto auto;
+            gap: 24px;
+            margin-bottom: 4rem;
+        }
+
+        .card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            backdrop-filter: blur(15px);
+            transition: 0.4s var(--ease-smooth);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .card-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        /* Specific Card Sizes */
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .span-4 { grid-column: span 4; }
+
+        /* Stress Meter Card (Main Focus) */
+        .stress-card {
+            background: linear-gradient(160deg, rgba(189, 0, 255, 0.1), rgba(0, 0, 0, 0.3));
+            border: 1px solid var(--secondary);
+        }
+
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .gauge-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0deg 240deg, rgba(255,255,255,0.05) 240deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+        }
+
+        .gauge-inner {
+            width: 150px;
+            height: 150px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .stress-value {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stress-label {
+            color: var(--success);
+            font-family: var(--font-tech);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: -5px;
+        }
+
+        /* Category Selector */
+        .category-btn {
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            width: 100%;
+            cursor: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.3s;
+            margin-top: auto;
+        }
+
+        .category-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+        }
+
+        /* Motivational Section */
+        .motivation-quote {
+            font-size: 1.4rem;
+            font-style: italic;
+            line-height: 1.4;
+            color: #fff;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .motivator {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at top right, rgba(0, 255, 136, 0.1), transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Chart Simulation (CSS Bars) */
+        .chart-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 100%;
+            padding-top: 20px;
+            gap: 10px;
+        }
+
+        .bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .bar {
+            width: 100%;
+            background: linear-gradient(to top, rgba(0, 242, 255, 0.2), var(--primary));
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 1s ease-out;
+            height: 0%; /* JS fills this */
+        }
+
+        .bar::after {
+            content: attr(data-val);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #fff;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        
+        .bar:hover::after { opacity: 1; }
+        
+        .bar-label {
+            margin-top: 10px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-tech);
+        }
+
+        /* Recommendation Pills */
+        .rec-pill {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.3s;
+        }
+
+        .rec-pill:hover {
+            background: rgba(0, 242, 255, 0.05);
+            border-color: var(--primary);
+        }
+
+        .rec-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-dim);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        /* Long Page Content Sections */
+        .content-section {
+            margin-bottom: 4rem;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 5px;
+            height: 25px;
+            background: var(--secondary);
+            display: block;
+            border-radius: 2px;
+        }
+
+        .journal-entry {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .journal-textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            resize: vertical;
+            min-height: 150px;
+            outline: none;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.02);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+
+        .stat-val {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--secondary);
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0, 242, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); } }
+        
+        .pulse-anim { animation: pulse 2s infinite; }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+            .span-3, .span-4 { grid-column: span 2; }
+        }
+        @media (max-width: 900px) {
+            .dashboard-wrapper { grid-template-columns: 1fr; }
+            .sidebar { 
+                position: fixed; bottom: 0; top: auto; width: 100%; height: 70px; 
+                flex-direction: row; justify-content: space-around; padding: 0;
+                border-right: none; border-top: var(--glass-border);
+            }
+            .nav-icon { margin: 0; }
+            .nav-icon.active::after { bottom: -10px; top: auto; left: 50%; transform: translateX(-50%); width: 20px; height: 4px; border-radius: 4px 4px 0 0; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .span-2, .span-3, .span-4 { grid-column: span 1; }
+            .main-content { padding-bottom: 100px; }
+        }
+        .page-exit {
+    animation: sidebarFade 0.4s ease forwards;
+}
+
+@keyframes sidebarFade {
+    to {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+}
+
+    </style>
+</head>
+<body>
+
+    <!-- Background -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="nav-icon active" data-hover title="Dashboard">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            </div>
+            <div class="nav-icon" data-hover title="Analysis" data-page="/analysis">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+            </div>
+            <div class="nav-icon" data-hover title="Goals" data-page="/goals">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
+            <div class="nav-icon" data-hover title="Settings" data-page="/settings">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+    <div class="welcome-text">
+        <h1>
+            Good Afternoon,
+            <span style="color: var(--primary)">
+                {{ user_name }}
+            </span>
+        </h1>
+        <p>NeuroCalm AI System • Session Active</p>
+    </div>
+
+    <div class="user-profile" data-hover>
+        <div class="avatar">
+            {{ user_name[0] }}
+        </div>
+        <div style="font-size: 0.9rem;">
+            <div style="color:#fff; font-weight:600;">
+                {{ user_name }}
+            </div>
+            <div style="color:var(--text-muted); font-size:0.8rem;">
+                Premium Member
+            </div>
+        </div>
+    </div>
+</header>
+
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                
+                <!-- 1. Main Stress Meter -->
+                <div class="card stress-card span-2">
+                    <div class="card-header">
+                        <span class="card-title">Current Stress Level</span>
+                        <div class="card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-circle pulse-anim">
+                            <div class="gauge-inner">
+                                <span class="stress-value" id="stress-val">24</span>
+                                <span class="stress-label">Optimal</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="text-align: center; margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                        Your biometric markers indicate a state of calm focus. Keep up the good work.
+                    </p>
+                </div>
+
+                <!-- 2. Vital Signs (Simulated) -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Heart Rate</span>
+                        <div class="card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+                    </div>
+                    <div style="text-align: center; margin: auto 0;">
+                        <span style="font-family: var(--font-display); font-size: 2.5rem; color: #fff;" id="hr-val">72</span>
+                        <span style="font-size: 1rem; color: var(--text-muted);">BPM</span>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:5px;">
+                            <span>Min: 65</span><span>Max: 89</span>
+                        </div>
+                        <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
+                            <div style="width:45%; height:100%; background:var(--secondary);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Sleep Quality -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Sleep Analysis</span>
+                        <div class="card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg></div>
+                    </div>
+                    <div style="display: flex; align-items: flex-end; gap: 5px; margin: auto 0;">
+                        <div style="width: 12px; height: 30px; background: var(--primary-dim); border-radius: 2px;"></div>
+                        <div style="width: 12px; height: 50px; background: var(--primary-dim); border-radius: 2px;"></div>
+                        <div style="width: 12px; height: 70px; background: var(--primary); border-radius: 2px; box-shadow: 0 0 10px var(--primary);"></div>
+                        <div style="width: 12px; height: 45px; background: var(--primary-dim); border-radius: 2px;"></div>
+                        <div style="width: 12px; height: 60px; background: var(--primary-dim); border-radius: 2px;"></div>
+                    </div>
+                    <p style="text-align: center; font-size: 0.9rem; color: #fff; margin-top: 1rem;">7h 42m Average</p>
+                </div>
+
+                <!-- 4. Category Selector (Requested Feature) -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Profile Mode</span>
+                        <div class="card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <span style="font-size: 1.2rem; color: #fff; font-weight: 600;" id="current-category">Working Professional</span>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">Algorithms tuned for Office Environment</p>
+                    </div>
+                    <button class="category-btn" onclick="window.location.href='/category'" data-hover>
+                        Select Category
+                    </button>
+                </div>
+
+                <!-- 5. Motivational Quote (Requested Feature) -->
+                <div class="card span-3" style="background: rgba(0, 255, 136, 0.05); border-color: rgba(0, 255, 136, 0.2);">
+                    <div class="motivator"></div>
+                    <div class="card-header">
+                        <span class="card-title" style="color: var(--success);">Daily Motivation</span>
+                        <div class="card-icon" style="color: var(--success); background: rgba(0, 255, 136, 0.1);"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+                    </div>
+                    <p class="motivation-quote" id="quote-text">
+                        "It is not stress that kills us, it is our reaction to it."
+                    </p>
+                    <p style="text-align: right; font-family: var(--font-tech); color: var(--success); margin-top: 10px;">- Hans Selye</p>
+                </div>
+
+                <!-- 6. Weekly Chart -->
+                <div class="card span-2">
+                    <div class="card-header">
+                        <span class="card-title">Stress History</span>
+                        <div class="card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg></div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="bar-group"><div class="bar" style="height: 40%; background: var(--success);" data-val="40"></div><span class="bar-label">Mon</span></div>
+                        <div class="bar-group"><div class="bar" style="height: 55%; background: var(--warning);" data-val="55"></div><span class="bar-label">Tue</span></div>
+                        <div class="bar-group"><div class="bar" style="height: 30%; background: var(--success);" data-val="30"></div><span class="bar-label">Wed</span></div>
+                        <div class="bar-group"><div class="bar" style="height: 70%; background: var(--accent);" data-val="70"></div><span class="bar-label">Thu</span></div>
+                        <div class="bar-group"><div class="bar" style="height: 45%; background: var(--warning);" data-val="45"></div><span class="bar-label">Fri</span></div>
+                        <div class="bar-group"><div class="bar" style="height: 20%; background: var(--success);" data-val="20"></div><span class="bar-label">Sat</span></div>
+                        <div class="bar-group"><div class="bar" style="height: 25%; background: var(--success);" data-val="25"></div><span class="bar-label">Sun</span></div>
+                    </div>
+                </div>
+
+                <!-- 7. AI Recommendations -->
+                <div class="card span-2">
+                    <div class="card-header">
+                        <span class="card-title">AI Suggestions</span>
+                        <div class="card-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg></div>
+                    </div>
+                    
+                    <div class="rec-pill" data-hover>
+                        <div class="rec-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        </div>
+                        <div>
+                            <h4 style="color: #fff; font-family: var(--font-tech);">Mindfulness Session</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Based on your current mood, a 5-min breathing exercise is recommended.</p>
+                        </div>
+                    </div>
+
+                    <div class="rec-pill" data-hover>
+                        <div class="rec-icon" style="background: rgba(255, 0, 85, 0.1); color: var(--accent);">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </div>
+                        <div>
+                            <h4 style="color: #fff; font-family: var(--font-tech);">Screen Break</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">You have been seated for 3 hours. Stretch and hydrate.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Long Page Content Sections -->
+            
+            <!-- Statistics Section -->
+            <section class="content-section">
+                <h2 class="section-title">Performance Metrics</h2>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-val">92%</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Focus Score</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val">14</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Stress Events</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val">2.1L</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Water Intake</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val">85%</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Energy Level</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Section -->
+            <section class="content-section">
+                <h2 class="section-title">Mental Journal</h2>
+                <div class="journal-entry">
+                    <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">How are you feeling right now? Recording your thoughts helps the AI calibrate future analysis.</p>
+                    <textarea class="journal-textarea" placeholder="Type your thoughts here..."></textarea>
+                    <div style="text-align: right; margin-top: 1rem;">
+                        <button class="category-btn" style="width: auto; background: var(--bg-panel); border: 1px solid var(--primary);" data-hover>Save Entry</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Goals Section -->
+            <section class="content-section">
+                <h2 class="section-title">Wellness Goals</h2>
+                <div class="rec-pill" style="flex-direction: column; align-items: flex-start;" data-hover>
+                    <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+                        <span style="color: #fff; font-weight: 600;">Daily Meditation</span>
+                        <span style="color: var(--success);">8/10 mins</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                        <div style="width: 80%; height: 100%; background: var(--success); border-radius: 3px;"></div>
+                    </div>
+                </div>
+
+                <div class="rec-pill" style="flex-direction: column; align-items: flex-start; margin-top: 15px;" data-hover>
+                    <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+                        <span style="color: #fff; font-weight: 600;">Deep Sleep Target</span>
+                        <span style="color: var(--warning);">6.5/8 hrs</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                        <div style="width: 65%; height: 100%; background: var(--warning); border-radius: 3px;"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR & INTERACTION
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        const hoverElements = document.querySelectorAll('[data-hover]');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. CANVAS BACKGROUND (Neural Network)
+        // =========================================
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        const mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff';
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+            update() {
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                let forceDirectionX = dx / distance;
+                let forceDirectionY = dy / distance;
+                let maxDistance = mouse.radius;
+                let force = (maxDistance - distance) / maxDistance;
+                let directionX = forceDirectionX * force * this.density;
+                let directionY = forceDirectionY * force * this.density;
+
+                if (distance < mouse.radius) {
+                    this.x -= directionX;
+                    this.y -= directionY;
+                } else {
+                    if (this.x !== this.baseX) {
+                        let dx = this.x - this.baseX;
+                        this.x -= dx/10;
+                    }
+                    if (this.y !== this.baseY) {
+                        let dy = this.y - this.baseY;
+                        this.y -= dy/10;
+                    }
+                }
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 15000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+            requestAnimationFrame(animateParticles);
+        }
+
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = dx*dx + dy*dy;
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(255, 255, 255,' + opacityValue * 0.05 + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        initParticles();
+        animateParticles();
+
+        // =========================================
+        // 3. DASHBOARD DATA SIMULATION
+        // =========================================
+        // Random Heart Rate Fluctuation
+        setInterval(() => {
+            const hr = document.getElementById('hr-val');
+            const current = parseInt(hr.innerText);
+            const variation = Math.floor(Math.random() * 5) - 2;
+            hr.innerText = Math.max(60, Math.min(100, current + variation));
+        }, 2000);
+
+        // Random Stress Value Fluctuation
+        setInterval(() => {
+            const stress = document.getElementById('stress-val');
+            // Occasional update
+            if(Math.random() > 0.7) {
+                let current = parseInt(stress.innerText);
+                const variation = Math.floor(Math.random() * 3) - 1;
+                let newVal = Math.max(10, Math.min(90, current + variation));
+                stress.innerText = newVal;
+                
+                // Update color based on value
+                const label = stress.nextElementSibling;
+                if(newVal < 30) { 
+                    label.style.color = 'var(--success)'; label.innerText = "Optimal"; 
+                } else if(newVal < 60) { 
+                    label.style.color = 'var(--warning)'; label.innerText = "Moderate"; 
+                } else { 
+                    label.style.color = 'var(--accent)'; label.innerText = "High"; 
+                }
+            }
+        }, 3000);
+
+        // Chart Animation
+        window.addEventListener('load', () => {
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach(bar => {
+                // Trigger the CSS transition by slightly modifying height after load
+                const h = bar.style.height;
+                bar.style.height = '0';
+                setTimeout(() => {
+                    bar.style.height = h;
+                }, 100);
+            });
+        });
+
+        // =========================================
+        // 4. CATEGORY SELECTOR LOGIC
+        // =========================================
+        const categories = [
+            "Working Professional", "College Student", "Athlete", 
+            "Artist", "Doctor", "Freelancer", "Teacher", "Housewife"
+        ];
+
+        function changeCategory() {
+            const el = document.getElementById('current-category');
+            const btn = document.querySelector('.category-btn');
+            
+            // Visual feedback
+            btn.innerText = "Switching...";
+            btn.style.opacity = "0.7";
+            
+            setTimeout(() => {
+                // Pick random category (simulating selection)
+                const rand = categories[Math.floor(Math.random() * categories.length)];
+                el.innerText = rand;
+                btn.innerText = "Change Category";
+                btn.style.opacity = "1";
+                
+                // Show a temporary success notification (toast simulation)
+                alert(`AI Neural Model Recalibrated for: ${rand}`);
+            }, 800);
+        }
+
+        // =========================================
+        // 5. QUOTE ROTATOR
+        // =========================================
+        const quotes = [
+            "It is not stress that kills us, it is our reaction to it.",
+            "Keep your face always toward the sunshine—and shadows will fall behind you.",
+            "The greatest weapon against stress is our ability to choose one thought over another.",
+            "You don't have to control your thoughts. You just have to stop letting them control you."
+        ];
+        const authors = ["Hans Selye", "Walt Whitman", "William James", "Dan Millman"];
+
+        setInterval(() => {
+            const qEl = document.getElementById('quote-text');
+            const i = Math.floor(Math.random() * quotes.length);
+            
+            qEl.style.opacity = 0;
+            setTimeout(() => {
+                qEl.innerText = `"${quotes[i]}"`;
+                // Update author (simple text replace for demo)
+                qEl.nextElementSibling.innerText = `- ${authors[i]}`;
+                qEl.style.opacity = 1;
+            }, 500);
+        }, 10000);
+
+    </script>
+    <script>
+    document.querySelectorAll(".nav-icon").forEach(icon => {
+        icon.addEventListener("click", () => {
+
+            // Remove active state
+            document.querySelectorAll(".nav-icon").forEach(i => i.classList.remove("active"));
+            icon.classList.add("active");
+
+            const page = icon.getAttribute("data-page");
+
+            if (page) {
+                document.body.classList.add("page-exit");
+
+                setTimeout(() => {
+                    window.location.href = page;
+                }, 400);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

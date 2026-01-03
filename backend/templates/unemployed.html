@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transition Phase | NeuroCalm AI</title>
+    <meta name="description" content="AI-powered stress management and motivation for career transition phases.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050508;
+            --bg-panel: rgba(15, 12, 10, 0.7);
+            --primary: #00f2ff; /* Tech Blue */
+            --secondary: #bd00ff; /* Tech Purple */
+            --accent-gold: #ffd700; /* Motivation/Hope */
+            --accent-gold-dim: rgba(255, 215, 0, 0.1);
+            --accent-warm: #ff8c00; /* Warmth */
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-serif: 'Playfair Display', serif; /* For motivational quotes */
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 215, 0, 0.15);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR (GOLD EDITION)
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-gold);
+            box-shadow: 0 0 10px var(--accent-gold);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--accent-gold);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            mix-blend-mode: difference;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 215, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #canvas-dust {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #canvas-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: auto; /* Interactive */
+        }
+
+        .overlay-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 95%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.4s;
+        }
+
+        nav.scrolled {
+            background: rgba(5, 5, 8, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 1rem 4rem;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span { color: var(--accent-gold); }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-gold);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-gold);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after { width: 100%; }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            padding: 120px 20px;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            z-index: 10;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            padding: 8px 24px;
+            border: 1px solid var(--accent-gold);
+            border-radius: 50px;
+            color: var(--accent-gold);
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 215, 0, 0.05);
+            backdrop-filter: blur(5px);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, #b0b0b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+        }
+
+        h1 span {
+            color: var(--accent-gold);
+            -webkit-text-fill-color: var(--accent-gold);
+            display: block;
+            font-size: 2rem;
+            margin-top: 10px;
+            font-weight: 400;
+            font-family: var(--font-serif);
+            font-style: italic;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease-out 0.4s backwards;
+        }
+
+        /* THE START BUTTON */
+        .start-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 4rem;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #000;
+            background: linear-gradient(45deg, var(--accent-gold), var(--accent-warm));
+            border: none;
+            border-radius: 50px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s var(--ease-bounce);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            animation: fadeInUp 1s ease-out 0.6s backwards;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: 0.6s;
+        }
+
+        .start-btn:hover::before {
+            left: 100%;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
+            color: #000;
+        }
+
+        /* =========================================
+           6. INTERACTIVE NETWORK BUILDER
+           ========================================= */
+        .interaction-section {
+            height: 600px;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .instruction-overlay {
+            text-align: center;
+            pointer-events: none;
+            background: rgba(0,0,0,0.6);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .instruction-overlay h3 {
+            color: var(--accent-gold);
+            font-family: var(--font-display);
+            margin-bottom: 0.5rem;
+        }
+
+        /* =========================================
+           7. MOTIVATIONAL CONTENT (Long Page)
+           ========================================= */
+        .motivation-section {
+            padding: 8rem 2rem;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(to bottom, var(--bg-deep), #0a0a0e);
+        }
+
+        .quote-card {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 8rem;
+            position: relative;
+        }
+
+        .quote-icon {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.05);
+            font-family: serif;
+            position: absolute;
+            top: -20px;
+            left: -40px;
+        }
+
+        .quote-text {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            line-height: 1.4;
+            color: #fff;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .quote-author {
+            color: var(--accent-gold);
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto 6rem;
+        }
+
+        .glass-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 3rem;
+            border-radius: 20px;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-gold);
+            background: rgba(20, 15, 10, 0.9);
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--accent-gold), transparent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: 0.4s;
+        }
+
+        .glass-card:hover::before { transform: scaleX(1); }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent-warm);
+        }
+
+        .glass-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .glass-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           8. READINESS ANALYSIS (Simulated)
+           ========================================= */
+        .analysis-section {
+            padding: 8rem 2rem;
+            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.05), transparent 70%);
+            z-index: 10;
+            position: relative;
+            text-align: center;
+        }
+
+        .analysis-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--accent-gold);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analysis-container h2 {
+            font-family: var(--font-display);
+            margin-bottom: 2rem;
+            color: var(--accent-gold);
+        }
+
+        .metric {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .metric-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-warm));
+            width: 0%;
+            transition: width 1.5s ease-out;
+            box-shadow: 0 0 10px var(--accent-gold);
+        }
+
+        /* =========================================
+           9. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: 1s ease;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            .nav-links { display: none; }
+            .start-btn { width: 100%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="canvas-dust"></canvas> <!-- Ambient Gold Dust -->
+    <canvas id="canvas-network"></canvas> <!-- User Interactive Network -->
+    <div class="overlay-gradient"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--accent-gold)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NeuroCalm<span>AI</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/index">Home</a></li>
+            <li><a href="/category">Categories</a></li>
+            <li><a href="#" style="color: var(--accent-gold);">Transition Mode</a></li>
+            <li><a href="/login">Log In</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-tag">Resilience Module Active</div>
+                <h1>Not a Stop.<br><span>A New Beginning.</span></h1>
+                <p>This is merely a transition period. Let our AI help you manage the stress of uncertainty, clear the fog, and identify your next path with confidence.</p>
+                <a href="/unemployed_ques">
+                    <button class="start-btn" id="start-btn" data-hover>
+                        Begin Assessment
+                    </button>
+                </a>
+                
+            </div>
+        </section>
+
+        <!-- Interactive Network Section -->
+        <section class="interaction-section">
+            <div class="instruction-overlay reveal">
+                <h3>Rebuild Your Network</h3>
+                <p style="color: #ccc; font-family: var(--font-tech);">Click anywhere to create new opportunities. <br>Connect them to build your future.</p>
+            </div>
+        </section>
+
+        <!-- Motivational Content -->
+        <section class="motivation-section">
+            <div class="container">
+                <div class="quote-card reveal">
+                    <div class="quote-icon">“</div>
+                    <p class="quote-text">Sometimes good things fall apart so better things can fall together. This period is not a measure of your worth, but a canvas for your potential.</p>
+                    <p class="quote-author">- System Motivation Core</p>
+                </div>
+
+                <div class="grid-cards">
+                    <div class="glass-card reveal" style="transition-delay: 0.1s;">
+                        <div class="card-icon">🛡️</div>
+                        <h3>Protect Your Peace</h3>
+                        <p>Unemployment often brings external judgment. Our AI filters out the noise to focus on your internal biometric stability.</p>
+                    </div>
+                    <div class="glass-card reveal" style="transition-delay: 0.2s;">
+                        <div class="card-icon">⏳</div>
+                        <h3>The Power of Pause</h3>
+                        <p>Use this time not just for searching, but for recalibrating. Analyze your stress triggers to prepare for the marathon ahead.</p>
+                    </div>
+                    <div class="glass-card reveal" style="transition-delay: 0.3s;">
+                        <div class="card-icon">🚀</div>
+                        <h3>Momentum Builder</h3>
+                        <p>Small wins create big confidence. Track your daily progress, application efforts, and skill development metrics.</p>
+                    </div>
+                </div>
+
+                <div class="quote-card reveal">
+                    <div class="quote-icon">“</div>
+                    <p class="quote-text">Success is not final, failure is not fatal: it is the courage to continue that counts. Your value remains constant, even when the market changes.</p>
+                    <p class="quote-author">- NeuroCalm Logic</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analysis Section -->
+        <section class="analysis-section">
+            <div class="analysis-container reveal">
+                <h2>Readiness Index</h2>
+                <p style="color: #aaa; margin-bottom: 2rem;">Real-time analysis of your preparation and stress levels.</p>
+
+                <div class="metric">
+                    <div class="metric-label">
+                        <span>Confidence Level</span>
+                        <span id="val-1">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="bar-1"></div>
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">
+                        <span>Focus & Clarity</span>
+                        <span id="val-2">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="bar-2"></div>
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">
+                        <span>Stress Management</span>
+                        <span id="val-3">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="bar-3"></div>
+                    </div>
+                </div>
+
+                <button class="start-btn" style="margin-top: 2rem; padding: 1rem 3rem; font-size: 1rem;" data-hover onclick="alert('Motivational Protocol Initiated. Sending daily affirmations.');">
+                    Enable Daily Affirmations
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: #020203; padding: 3rem; text-align: center; border-top: 1px solid #222; color: #555; position: relative; z-index: 10;">
+        <p style="font-family: var(--font-tech); letter-spacing: 2px;">NEUROCALM AI SYSTEMS</p>
+        <p style="margin-top: 1rem;">&copy; 2023. Believing in your potential.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. NAVBAR SCROLL
+        // =========================================
+        const nav = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // =========================================
+        // 3. CANVAS 1: RISING GOLD DUST (Hope)
+        // =========================================
+        const canvasDust = document.getElementById('canvas-dust');
+        const ctxDust = canvasDust.getContext('2d');
+        
+        canvasDust.width = window.innerWidth;
+        canvasDust.height = window.innerHeight;
+
+        let dustParticles = [];
+
+        class Dust {
+            constructor() {
+                this.x = Math.random() * canvasDust.width;
+                this.y = canvasDust.height + Math.random() * 100;
+                this.size = Math.random() * 2;
+                this.speed = Math.random() * 1 + 0.2;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y -= this.speed; // Move Up
+                if (this.y < -10) this.y = canvasDust.height + 10; // Reset
+                
+                ctxDust.beginPath();
+                ctxDust.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctxDust.fillStyle = `rgba(255, 215, 0, ${this.opacity})`;
+                ctxDust.fill();
+            }
+        }
+
+        for(let i=0; i<100; i++) dustParticles.push(new Dust());
+
+        function animateDust() {
+            ctxDust.clearRect(0, 0, canvasDust.width, canvasDust.height);
+            dustParticles.forEach(p => p.update());
+            requestAnimationFrame(animateDust);
+        }
+        animateDust();
+
+        // =========================================
+        // 4. CANVAS 2: NETWORK BUILDER (Interactive)
+        // =========================================
+        const canvasNet = document.getElementById('canvas-network');
+        const ctxNet = canvasNet.getContext('2d');
+        
+        canvasNet.width = window.innerWidth;
+        canvasNet.height = window.innerHeight;
+
+        let netNodes = [];
+        const connectionDist = 150;
+
+        class Node {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = 0;
+                this.targetSize = Math.random() * 4 + 2;
+                this.color = '#ffd700';
+            }
+            update() {
+                // Pop-in effect
+                if(this.size < this.targetSize) this.size += 0.2;
+                
+                ctxNet.beginPath();
+                ctxNet.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctxNet.fillStyle = this.color;
+                ctxNet.shadowBlur = 10;
+                ctxNet.shadowColor = this.color;
+                ctxNet.fill();
+                ctxNet.shadowBlur = 0;
+            }
+        }
+
+        function drawNetwork() {
+            ctxNet.clearRect(0, 0, canvasNet.width, canvasNet.height);
+            
+            // Draw Connections
+            ctxNet.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+            ctxNet.lineWidth = 1;
+            
+            for(let i=0; i<netNodes.length; i++) {
+                for(let j=i+1; j<netNodes.length; j++) {
+                    const dx = netNodes[i].x - netNodes[j].x;
+                    const dy = netNodes[i].y - netNodes[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if(dist < connectionDist) {
+                        ctxNet.beginPath();
+                        ctxNet.moveTo(netNodes[i].x, netNodes[i].y);
+                        ctxNet.lineTo(netNodes[j].x, netNodes[j].y);
+                        ctxNet.stroke();
+                    }
+                }
+                netNodes[i].update();
+            }
+            requestAnimationFrame(drawNetwork);
+        }
+
+        drawNetwork();
+
+        // Interaction: Add Nodes on Click
+        canvasNet.addEventListener('click', (e) => {
+            netNodes.push(new Node(e.clientX, e.clientY));
+        });
+
+        // Resize Handlers
+        window.addEventListener('resize', () => {
+            canvasDust.width = window.innerWidth;
+            canvasDust.height = window.innerHeight;
+            canvasNet.width = window.innerWidth;
+            canvasNet.height = window.innerHeight;
+        });
+
+        // =========================================
+        // 5. START BUTTON & ANALYSIS
+        // =========================================
+        document.getElementById('start-btn').addEventListener('click', () => {
+            document.querySelector('.analysis-section').scrollIntoView({behavior: 'smooth'});
+        });
+
+        // Scroll Reveal & Bar Animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    
+                    // If it's the analysis container, trigger bars
+                    if(entry.target.querySelector('.progress-bar')) {
+                        setTimeout(() => {
+                            document.getElementById('bar-1').style.width = '85%';
+                            document.getElementById('val-1').innerText = '85%';
+                            
+                            document.getElementById('bar-2').style.width = '92%';
+                            document.getElementById('val-2').innerText = '92%';
+                            
+                            document.getElementById('bar-3').style.width = '78%';
+                            document.getElementById('val-3').innerText = '78%';
+                        }, 500);
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>

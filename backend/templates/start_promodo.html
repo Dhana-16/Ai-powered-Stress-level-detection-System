@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroFocus | Adaptive Pomodoro System</title>
+    <meta name="description" content="AI-powered adaptive Pomodoro timer that adjusts to your real-time cognitive load.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #020204;
+            --bg-panel: rgba(10, 15, 25, 0.7);
+            --primary: #00f2ff; /* Cyan - Focus */
+            --primary-dim: rgba(0, 242, 255, 0.15);
+            --secondary: #bd00ff; /* Purple - Break */
+            --secondary-dim: rgba(189, 0, 255, 0.15);
+            --accent: #ff0055; /* Red - Stress/Alert */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #64748b;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & UTILS
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. WARP SPEED BACKGROUND (CANVAS)
+           ========================================= */
+        #warp-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, transparent 0%, var(--bg-deep) 85%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT STRUCTURE
+           ========================================= */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            padding: 2rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: var(--glass-border);
+            margin-bottom: 4rem;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo span { color: var(--primary); }
+
+        /* =========================================
+           5. SMART TIMER SECTION (HERO)
+           ========================================= */
+        .timer-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-bottom: 8rem;
+            min-height: 80vh;
+        }
+
+        /* Left: The Visual Timer */
+        .timer-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-circle {
+            width: 450px;
+            height: 450px;
+            position: relative;
+        }
+
+        .timer-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 10;
+        }
+
+        .circle-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 10;
+            stroke-linecap: round;
+            stroke-dasharray: 1256; /* 2 * PI * 200 */
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s;
+            filter: drop-shadow(0 0 10px var(--primary));
+        }
+
+        /* Mode Colors */
+        .mode-focus .circle-progress { stroke: var(--primary); filter: drop-shadow(0 0 15px var(--primary)); }
+        .mode-short .circle-progress { stroke: var(--secondary); filter: drop-shadow(0 0 15px var(--secondary)); }
+        .mode-long .circle-progress { stroke: var(--success); filter: drop-shadow(0 0 15px var(--success)); }
+
+        .timer-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .time-display {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .mode-label {
+            font-family: var(--font-mono);
+            letter-spacing: 5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 1rem;
+        }
+
+        /* Right: Controls & AI Status */
+        .timer-controls {
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-controls::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
+
+        .ai-status-panel {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        .focus-gauge {
+            width: 100%;
+            height: 6px;
+            background: #111;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .focus-fill {
+            height: 100%;
+            width: 75%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            box-shadow: 0 0 10px var(--primary);
+            transition: width 0.5s ease;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-control {
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .btn-control:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--primary);
+        }
+
+        .btn-control.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        .main-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-large {
+            flex: 1;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, var(--primary), #00a8ff);
+            color: #000;
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.2);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 242, 255, 0.4);
+        }
+
+        .btn-reset {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* =========================================
+           6. ADAPTIVE NOTIFICATIONS
+           ========================================= */
+        .adaptive-alert {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 350px;
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--primary);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.5s var(--ease-bounce);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .adaptive-alert.show {
+            transform: translateX(0);
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-display);
+            color: var(--primary);
+        }
+
+        .alert-body {
+            font-size: 0.9rem;
+            color: #ccc;
+            line-height: 1.5;
+        }
+
+        /* =========================================
+           7. TASK COMMAND SECTION
+           ========================================= */
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 8rem;
+        }
+
+        .task-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 16px;
+            position: relative;
+            transition: 0.3s;
+            cursor: none;
+        }
+
+        .task-card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.02);
+            transform: translateY(-5px);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .task-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .task-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-est {
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-family: var(--font-mono);
+        }
+
+        .progress-line {
+            height: 4px;
+            background: #222;
+            border-radius: 2px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--secondary);
+            transition: width 1s;
+        }
+
+        /* =========================================
+           8. ANALYTICS & LONG SCROLL
+           ========================================= */
+        .analytics-dashboard {
+            background: rgba(0,0,0,0.3);
+            border-radius: 30px;
+            padding: 4rem;
+            border: var(--glass-border);
+            margin-bottom: 6rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: #fff;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            height: 300px;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 0 1rem;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .chart-bar {
+            width: 5%;
+            background: var(--primary-dim);
+            border-top: 2px solid var(--primary);
+            transition: height 0.5s;
+            position: relative;
+        }
+
+        .chart-bar:hover {
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* =========================================
+           9. SETTINGS & FOOTER
+           ========================================= */
+        .settings-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 6rem;
+        }
+
+        .setting-group {
+            background: rgba(255,255,255,0.02);
+            padding: 2rem;
+            border-radius: 16px;
+            border: var(--glass-border);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background: #222;
+            border-radius: 13px;
+            position: relative;
+            cursor: none;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 20px; height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch.on { background: var(--success); }
+        .toggle-switch.on::after { left: 27px; }
+
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: #444;
+            border-top: 1px solid #111;
+            font-size: 0.9rem;
+        }
+
+        /* =========================================
+           10. RESPONSIVE DESIGN
+           ========================================= */
+        @media (max-width: 968px) {
+            .timer-hero { grid-template-columns: 1fr; text-align: center; }
+            .timer-circle { width: 300px; height: 300px; }
+            .time-display { font-size: 3.5rem; }
+            .settings-section { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background Canvas -->
+    <canvas id="warp-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--primary)">
+                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                </svg>
+                NEURO<span>FOCUS</span>
+            </div>
+            <div style="display: flex; gap: 2rem;">
+                <a href="#" style="color:var(--text-muted); text-decoration: none;">Dashboard</a>
+                <a href="#" style="color:var(--text-main); text-decoration: none; border-bottom: 2px solid var(--primary);">Focus Timer</a>
+            </div>
+        </header>
+
+        <!-- Hero / Timer Section -->
+        <section class="timer-hero">
+            
+            <!-- Left: Visual Timer -->
+            <div class="timer-visual mode-focus" id="timer-wrapper">
+                <div class="timer-circle">
+                    <svg class="timer-svg">
+                        <circle class="circle-bg" cx="225" cy="225" r="200"></circle>
+                        <circle class="circle-progress" cx="225" cy="225" r="200" id="progress-ring"></circle>
+                    </svg>
+                    <div class="timer-content">
+                        <div class="time-display" id="time-display">25:00</div>
+                        <div class="mode-label" id="mode-label">Deep Focus</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Controls -->
+            <div class="timer-controls">
+                <h3 style="font-family: var(--font-display); margin-bottom: 1.5rem; font-size: 1.5rem;">Timer Protocol</h3>
+                
+                <!-- AI Status Panel -->
+                <div class="ai-status-panel">
+                    <div class="ai-header">
+                        <span>NEURAL SYNC STATUS</span>
+                        <span id="ai-percentage">85%</span>
+                    </div>
+                    <div class="focus-gauge">
+                        <div class="focus-fill" id="focus-fill" style="width: 85%;"></div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem; font-family: var(--font-mono);">
+                        System is monitoring activity levels for adaptive adjustment.
+                    </div>
+                </div>
+
+                <!-- Mode Selectors -->
+                <div class="control-buttons">
+                    <button class="btn-control active" onclick="setMode('focus')" data-hover>Focus (25m)</button>
+                    <button class="btn-control" onclick="setMode('short')" data-hover>Short Break (5m)</button>
+                    <button class="btn-control" onclick="setMode('long')" data-hover>Long Break (15m)</button>
+                    <button class="btn-control" onclick="setMode('adaptive')" data-hover>AI Adaptive</button>
+                </div>
+
+                <!-- Main Actions -->
+                <div class="main-actions">
+                    <button class="btn-large btn-start" id="start-btn" onclick="toggleTimer()" data-hover>Initialize</button>
+                    <button class="btn-large btn-reset" onclick="resetTimer()" data-hover>
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Adaptive Notification -->
+        <div class="adaptive-alert" id="alert-box">
+            <div class="alert-header">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                ADAPTIVE ADJUSTMENT
+            </div>
+            <div class="alert-body" id="alert-msg">
+                High focus levels detected. Extending current session by 5 minutes to maintain flow state.
+            </div>
+        </div>
+
+        <!-- Task Command Center -->
+        <section>
+            <div class="section-title">Active Protocols</div>
+            <div class="task-grid">
+                <div class="task-card" data-hover>
+                    <div class="task-header">
+                        <span class="task-tag">CODING</span>
+                        <span class="task-est">Est: 1h 20m</span>
+                    </div>
+                    <div class="task-title">Frontend Architecture Optimization</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Refactor component hierarchy and implement state management.</p>
+                    <div class="progress-line"><div class="progress-line-fill" style="width: 65%;"></div></div>
+                </div>
+
+                <div class="task-card" data-hover>
+                    <div class="task-header">
+                        <span class="task-tag">DESIGN</span>
+                        <span class="task-est">Est: 45m</span>
+                    </div>
+                    <div class="task-title">Neon UI Assets Creation</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Design icon sets and glassmorphism styles for dark mode.</p>
+                    <div class="progress-line"><div class="progress-line-fill" style="width: 30%;"></div></div>
+                </div>
+
+                <div class="task-card" data-hover>
+                    <div class="task-header">
+                        <span class="task-tag">RESEARCH</span>
+                        <span class="task-est">Est: 2h</span>
+                    </div>
+                    <div class="task-title">Biometric API Integration</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Review documentation for WebBluetooth and HeartRate sensors.</p>
+                    <div class="progress-line"><div class="progress-line-fill" style="width: 10%;"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Dashboard -->
+        <section class="analytics-dashboard reveal">
+            <div class="section-title">Cognitive Performance Log</div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-val" style="color: var(--primary);">4.2h</div>
+                    <div class="stat-label">Total Focus Today</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color: var(--success);">92%</div>
+                    <div class="stat-label">Focus Score</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color: var(--warning);">12</div>
+                    <div class="stat-label">AI Adjustments</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color: var(--secondary);">3</div>
+                    <div class="stat-label">Flow States</div>
+                </div>
+            </div>
+
+            <div class="chart-container" id="chart-container">
+                <!-- Bars generated via JS -->
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section class="settings-section">
+            <div class="setting-group">
+                <h3 style="font-family: var(--font-display); margin-bottom: 2rem;">Neural Calibration</h3>
+                
+                <div class="setting-row">
+                    <div>
+                        <div style="font-weight: 600;">AI Auto-Adjustment</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Allow system to modify timer length dynamically.</div>
+                    </div>
+                    <div class="toggle-switch on" onclick="this.classList.toggle('on')" data-hover></div>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <div style="font-weight: 600;">Biometric Sync</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Use webcam data for heart rate detection (Simulated).</div>
+                    </div>
+                    <div class="toggle-switch on" onclick="this.classList.toggle('on')" data-hover></div>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <div style="font-weight: 600;">Break Enforcement</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Force mandatory breaks after extended focus.</div>
+                    </div>
+                    <div class="toggle-switch" onclick="this.classList.toggle('on')" data-hover></div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3 style="font-family: var(--font-display); margin-bottom: 2rem;">Audio Feedback</h3>
+                
+                <div class="setting-row">
+                    <div>
+                        <div style="font-weight: 600;">Ambient Soundscapes</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Play neural wave sounds during focus.</div>
+                    </div>
+                    <div class="toggle-switch on" onclick="this.classList.toggle('on')" data-hover></div>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <div style="font-weight: 600;">Completion Chime</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Play sound when timer ends.</div>
+                    </div>
+                    <div class="toggle-switch on" onclick="this.classList.toggle('on')" data-hover></div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2023 NeuroFocus AI. Adaptive Productivity Systems.</p>
+        </footer>
+
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. WARP CANVAS ANIMATION
+        // =========================================
+        const canvas = document.getElementById('warp-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        const speed = 2;
+        let warpActive = false;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Star {
+            constructor() {
+                this.x = (Math.random() - 0.5) * canvas.width * 2;
+                this.y = (Math.random() - 0.5) * canvas.height * 2;
+                this.z = Math.random() * canvas.width;
+                this.pz = this.z;
+            }
+
+            update() {
+                this.z = this.z - (warpActive ? 20 : 2); // Speed up when timer running
+                
+                if (this.z < 1) {
+                    this.z = canvas.width;
+                    this.x = (Math.random() - 0.5) * canvas.width * 2;
+                    this.y = (Math.random() - 0.5) * canvas.height * 2;
+                    this.pz = this.z;
+                }
+            }
+
+            show() {
+                const sx = (this.x / this.z) * canvas.width + canvas.width / 2;
+                const sy = (this.y / this.z) * canvas.height + canvas.height / 2;
+                const r = (1 - this.z / canvas.width) * 4;
+
+                ctx.beginPath();
+                ctx.arc(sx, sy, r, 0, Math.PI * 2);
+                ctx.fillStyle = warpActive ? '#fff' : '#00f2ff';
+                ctx.fill();
+
+                // Trail effect
+                if(warpActive) {
+                    const px = (this.x / this.pz) * canvas.width + canvas.width / 2;
+                    const py = (this.y / this.pz) * canvas.height + canvas.height / 2;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(sx, sy);
+                    ctx.strokeStyle = `rgba(0, 242, 255, ${1 - this.z/canvas.width})`;
+                    ctx.stroke();
+                }
+
+                this.pz = this.z;
+            }
+        }
+
+        for (let i = 0; i < 400; i++) stars.push(new Star());
+
+        function animateWarp() {
+            ctx.fillStyle = 'rgba(2, 2, 4, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            stars.forEach(star => {
+                star.update();
+                star.show();
+            });
+            requestAnimationFrame(animateWarp);
+        }
+        animateWarp();
+
+        // =========================================
+        // 3. TIMER LOGIC
+        // =========================================
+        let timeLeft = 25 * 60; // seconds
+        let totalTime = 25 * 60;
+        let timerId = null;
+        let isRunning = false;
+        let currentMode = 'focus'; // focus, short, long
+
+        const circle = document.getElementById('progress-ring');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function updateDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('time-display').innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+            
+            const percent = ((totalTime - timeLeft) / totalTime) * 100;
+            setProgress(percent);
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('start-btn');
+            if (isRunning) {
+                clearInterval(timerId);
+                isRunning = false;
+                btn.innerText = "Resume";
+                warpActive = false;
+            } else {
+                isRunning = true;
+                btn.innerText = "Pause";
+                warpActive = true;
+                timerId = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                        checkAdaptiveTrigger();
+                    } else {
+                        clearInterval(timerId);
+                        isRunning = false;
+                        btn.innerText = "Initialize";
+                        warpActive = false;
+                        alert("Protocol Complete.");
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            isRunning = false;
+            warpActive = false;
+            
+            // Set based on mode
+            if(currentMode === 'focus') timeLeft = 25*60;
+            else if(currentMode === 'short') timeLeft = 5*60;
+            else if(currentMode === 'long') timeLeft = 15*60;
+            else if(currentMode === 'adaptive') timeLeft = 25*60; // Base for adaptive
+
+            totalTime = timeLeft;
+            document.getElementById('start-btn').innerText = "Initialize";
+            updateDisplay();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            const wrapper = document.getElementById('timer-wrapper');
+            const label = document.getElementById('mode-label');
+            const buttons = document.querySelectorAll('.btn-control');
+            
+            buttons.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            wrapper.className = `timer-visual mode-${mode}`;
+            
+            if(mode === 'focus') label.innerText = "Deep Focus";
+            if(mode === 'short') label.innerText = "Recharge";
+            if(mode === 'long') label.innerText = "System Recovery";
+            if(mode === 'adaptive') label.innerText = "AI Flow State";
+
+            resetTimer();
+        }
+
+        // =========================================
+        // 4. ADAPTIVE AI SIMULATION
+        // =========================================
+        function checkAdaptiveTrigger() {
+            // Simulate AI check every 30 seconds (randomly)
+            if(Math.random() > 0.995 && currentMode === 'adaptive' && isRunning) {
+                const adjustment = Math.random() > 0.5 ? 300 : -300; // +/- 5 mins
+                timeLeft += adjustment;
+                totalTime += adjustment;
+                
+                const alert = document.getElementById('alert-box');
+                const msg = document.getElementById('alert-msg');
+                
+                msg.innerText = adjustment > 0 
+                    ? "High cognitive focus detected. Extending session by 5 minutes." 
+                    : "Fatigue signs detected. Reducing session duration to prevent burnout.";
+                
+                alert.classList.add('show');
+                
+                // Update Gauge
+                const gauge = document.getElementById('focus-fill');
+                const pct = document.getElementById('ai-percentage');
+                let cur = parseInt(pct.innerText);
+                let newPct = Math.max(0, Math.min(100, cur + (adjustment > 0 ? 5 : -10)));
+                
+                gauge.style.width = newPct + "%";
+                pct.innerText = newPct + "%";
+
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        // Initialize
+        updateDisplay();
+
+        // =========================================
+        // 5. CHART GENERATION
+        // =========================================
+        const chartContainer = document.getElementById('chart-container');
+        for(let i=0; i<20; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'chart-bar';
+            const height = Math.floor(Math.random() * 80) + 20;
+            bar.style.height = height + "%";
+            bar.title = `Session ${i+1}: ${height}% Focus`;
+            chartContainer.appendChild(bar);
+        }
+
+        // Scroll Reveal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if(e.isIntersecting) e.target.style.opacity = 1;
+            });
+        });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unemployment Stress Protocol | NeuroCalm AI</title>
+    <meta name="description" content="AI-powered stress analysis for individuals between jobs. 20-point neural assessment.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #030307;
+            --bg-panel: rgba(15, 20, 35, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Red/Pink */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --neon-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & ANIMATIONS
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--secondary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(189, 0, 255, 0.1);
+            border-color: var(--primary);
+            mix-blend-mode: screen;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 242, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #data-stream-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 0%, transparent 0%, var(--bg-deep) 90%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT & CONTAINER
+           ========================================= */
+        .app-container {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 6rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding-top: 4rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-family: var(--font-tech);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            border-radius: 50px;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #b0b0b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.intro {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* =========================================
+           5. INTRO & START BUTTON
+           ========================================= */
+        .start-section {
+            text-align: center;
+            margin: 4rem 0;
+            padding: 3rem;
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: #fff;
+            border: none;
+            padding: 1.2rem 4rem;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(189, 0, 255, 0.3);
+            margin-top: 2rem;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 0, 85, 0.6);
+        }
+
+        .start-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg) translateY(-100%);
+            transition: 0.5s;
+        }
+
+        .start-btn:hover::after {
+            transform: rotate(45deg) translateY(100%);
+        }
+
+        /* =========================================
+           6. QUESTION CARDS & SLIDERS
+           ========================================= */
+        .question-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            backdrop-filter: blur(10px);
+            opacity: 0; /* Hidden initially */
+            transform: translateY(50px);
+            transition: all 0.8s var(--ease-elastic);
+            position: relative;
+        }
+
+        .question-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .question-card.answered {
+            opacity: 0.7;
+            border-left: 4px solid var(--success);
+        }
+
+        .q-number {
+            font-family: var(--font-tech);
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
+            letter-spacing: 2px;
+        }
+
+        .q-text {
+            font-family: var(--font-body);
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            line-height: 1.4;
+        }
+
+        /* Custom Range Slider */
+        .range-container {
+            position: relative;
+            padding: 0 10px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #2a2a35;
+            border-radius: 5px;
+            outline: none;
+            cursor: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid #fff;
+            cursor: none;
+            box-shadow: 0 0 10px var(--primary);
+            transition: 0.2s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-tech);
+        }
+
+        .range-value-display {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 900;
+        }
+
+        /* =========================================
+           7. ANALYSIS SCREEN
+           ========================================= */
+        .processing-screen {
+            display: none;
+            text-align: center;
+            padding: 5rem 2rem;
+            background: rgba(0,0,0,0.8);
+            border-radius: 20px;
+            margin: 4rem 0;
+            border: 1px solid var(--primary);
+        }
+
+        .spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(0, 242, 255, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .log-text {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* =========================================
+           8. RESULT DASHBOARD
+           ========================================= */
+        .result-dashboard {
+            display: none;
+            animation: fadeIn 1s ease-out;
+            padding-top: 2rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 8px solid #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            top: -8px; left: -8px; right: -8px; bottom: -8px;
+            border-radius: 50%;
+            border: 8px solid var(--accent);
+            border-top-color: transparent;
+            border-left-color: transparent;
+            animation: spin 2s linear infinite;
+        }
+
+        .score-number {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 900;
+            z-index: 2;
+        }
+
+        .score-label {
+            position: absolute;
+            bottom: 30px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .analysis-text {
+            background: var(--bg-panel);
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 3px solid var(--success);
+            margin-bottom: 2rem;
+        }
+
+        .recommendations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .rec-card {
+            background: rgba(255,255,255,0.03);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+
+        .rec-card:hover {
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .rec-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 4rem auto 0;
+            text-align: center;
+            padding: 1rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            font-family: var(--font-tech);
+            transition: 0.3s;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="neural-canvas"></canvas>
+    <canvas id="data-stream-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Main App -->
+    <main class="app-container">
+        <header>
+            <span class="badge">Module: U-N-01</span>
+            <h1>Unemployment Stress <br><span style="color: var(--primary)">Analysis Protocol</span></h1>
+            <p class="intro">NeuroCalm AI specializes in detecting stress patterns unique to career transitions. Please answer 20 questions to calibrate your neural profile.</p>
+        </header>
+
+        <!-- Start Section -->
+        <div id="start-screen" class="start-section">
+            <h2 style="font-family: var(--font-display); margin-bottom: 1rem;">Ready to Begin?</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">The system will track your biometric confidence levels as you respond. This process takes approximately 3 minutes.</p>
+            <button class="start-btn" id="start-btn" data-hover>Initialize Scan</button>
+        </div>
+
+        <!-- Questions Container (Will be populated by JS) -->
+        <div id="questions-wrapper"></div>
+
+        <!-- Processing Screen -->
+        <div id="processing" class="processing-screen">
+            <div class="spinner"></div>
+            <div class="log-text" id="log-1">Establishing secure connection...</div>
+            <div class="log-text" id="log-2" style="opacity:0">Analyzing response latency...</div>
+            <div class="log-text" id="log-3" style="opacity:0">Synthesizing stress markers...</div>
+            <div class="log-text" id="log-4" style="opacity:0">Generating neural report...</div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="result-dashboard">
+            <div class="result-header">
+                <div>
+                    <h2 style="font-family: var(--font-display); font-size: 2rem;">Analysis Complete</h2>
+                    <p style="color: var(--text-muted);">ID: USER_9942-A</p>
+                </div>
+                <div class="score-circle">
+                    <span class="score-number" id="final-score">0</span>
+                    <span class="score-label">STRESS IDX</span>
+                </div>
+            </div>
+
+            <div class="analysis-text">
+                <h3 style="color: var(--primary); margin-bottom: 1rem; font-family: var(--font-display);">Neural Interpretation</h3>
+                <p id="result-description" style="line-height: 1.6; color: #ddd;">
+                    Calculating...
+                </p>
+            </div>
+
+            <h3 style="font-family: var(--font-display); margin-bottom: 1.5rem;">Recommended Protocols</h3>
+            <div class="recommendations" id="rec-container">
+                <!-- Recommendations injected here -->
+            </div>
+
+            <a href="index.html" class="action-btn" data-hover>Return to Dashboard</a>
+        </div>
+    </main>
+
+    <script>
+        // =========================================
+        // 1. DATA: 20 QUESTIONS (Unemployment Themed)
+        // =========================================
+        const questions = [
+            "How frequently do you check your bank balance with a sense of dread?",
+            "To what extent does the lack of a daily routine disrupt your sleep patterns?",
+            "When seeing peers succeed on social media, how intense is your feeling of inadequacy?",
+            "How often do you decline social invitations due to financial or self-esteem concerns?",
+            "How difficult is it to maintain a productive morning schedule without work obligations?",
+            "On a scale of 1-10, how much anxiety do you feel when submitting a job application?",
+            "How often do you feel 'invisible' or less valuable because you aren't currently employed?",
+            "How frequently do you experience physical symptoms (headaches, fatigue) related to worry?",
+            "How much have you lost interest in hobbies you used to enjoy?",
+            "To what extent has financial strain impacted your close relationships?",
+            "How would you rate your average daily energy level?",
+            "How often do you feel paralyzed by an uncertain future?",
+            "How motivated do you feel to learn new skills during this period?",
+            "How many hours per day do you spend in complete isolation?",
+            "Have your eating habits changed significantly (over/under eating) due to stress?",
+            "How easily do you become irritable or angry with family members?",
+            "How difficult is it to focus on reading or complex tasks?",
+            "How often do you practice self-care activities (exercise, meditation)?",
+            "How strong is your support network during this time?",
+            "Overall, how hopeful do you feel about the next 6 months?"
+        ];
+
+        // =========================================
+        // 2. STATE MANAGEMENT
+        // =========================================
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+        const maxScore = questions.length * 10; // Max 10 points per question
+        let answers = [];
+
+        const startBtn = document.getElementById('start-btn');
+        const startScreen = document.getElementById('start-screen');
+        const questionsWrapper = document.getElementById('questions-wrapper');
+        const processing = document.getElementById('processing');
+        const resultsSection = document.getElementById('results');
+
+        // =========================================
+        // 3. CURSOR & ANIMATION LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('button, a, input').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 4. APP LOGIC
+        // =========================================
+        startBtn.addEventListener('click', () => {
+            startScreen.style.opacity = '0';
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                initQuestions();
+            }, 500);
+        });
+
+        function initQuestions() {
+            renderQuestion(0);
+        }
+
+        function renderQuestion(index) {
+            if (index >= questions.length) {
+                finishQuiz();
+                return;
+            }
+
+            const qData = questions[index];
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.innerHTML = `
+                <span class="q-number">QUERY 0${index + 1} / 20</span>
+                <p class="q-text">${qData}</p>
+                <div class="range-value-display" id="val-${index}">5</div>
+                <div class="range-container">
+                    <input type="range" min="1" max="10" value="5" class="stress-slider" data-index="${index}">
+                    <div class="range-labels">
+                        <span>Low</span>
+                        <span>Neutral</span>
+                        <span>High</span>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button class="next-btn" style="background: var(--primary); border: none; padding: 0.8rem 2rem; border-radius: 30px; font-weight: bold; font-family: var(--font-tech); text-transform: uppercase; opacity: 0.5; pointer-events: none;">Confirm</button>
+                </div>
+            `;
+
+            questionsWrapper.appendChild(card);
+            
+            // Reveal animation
+            setTimeout(() => card.classList.add('active'), 100);
+
+            // Logic for slider
+            const slider = card.querySelector('input');
+            const display = document.getElementById(`val-${index}`);
+            const nextBtn = card.querySelector('.next-btn');
+
+            slider.addEventListener('input', (e) => {
+                display.innerText = e.target.value;
+                // Visual feedback color change
+                const val = parseInt(e.target.value);
+                if(val < 4) display.style.color = 'var(--success)';
+                else if(val < 7) display.style.color = 'var(--warning)';
+                else display.style.color = 'var(--accent)';
+                
+                // Enable button
+                nextBtn.style.opacity = '1';
+                nextBtn.style.pointerEvents = 'all';
+                nextBtn.style.animation = 'pulse 2s infinite';
+            });
+
+            nextBtn.addEventListener('click', () => {
+                const val = parseInt(slider.value);
+                answers.push(val);
+                
+                card.classList.remove('active');
+                card.classList.add('answered');
+                
+                // Auto Scroll to next
+                setTimeout(() => {
+                    renderQuestion(index + 1);
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            });
+        }
+
+        function finishQuiz() {
+            processing.style.display = 'block';
+            processing.scrollIntoView({ behavior: 'smooth' });
+
+            // Fake loading steps
+            setTimeout(() => document.getElementById('log-2').style.opacity = '1', 800);
+            setTimeout(() => document.getElementById('log-3').style.opacity = '1', 1600);
+            setTimeout(() => document.getElementById('log-4').style.opacity = '1', 2400);
+
+            setTimeout(() => {
+                processing.style.display = 'none';
+                calculateResults();
+                resultsSection.style.display = 'block';
+            }, 3200);
+        }
+
+        function calculateResults() {
+            totalScore = answers.reduce((a, b) => a + b, 0);
+            const maxPossible = 20 * 10;
+            const percentage = (totalScore / maxPossible) * 100;
+
+            // Animate Score
+            const scoreEl = document.getElementById('final-score');
+            let current = 0;
+            const interval = setInterval(() => {
+                current++;
+                scoreEl.innerText = Math.round((current / maxPossible) * 100) + "%";
+                if (current >= totalScore) clearInterval(interval);
+            }, 20);
+
+            generateAnalysis(percentage);
+        }
+
+        function generateAnalysis(percentage) {
+            let desc = "";
+            let recs = [];
+
+            if (percentage < 30) {
+                desc = "Your neural markers indicate a <strong>Resilient</strong> state. While the uncertainty of unemployment is present, your physiological stress response is well-regulated. You are maintaining healthy boundaries.";
+                recs = [
+                    { icon: "🧘", title: "Maintain Routine", text: "Keep using your current schedule to prevent regression." },
+                    { icon: "💪", title: "Skill Building", text: "You have the mental bandwidth to upskill now." },
+                    { icon: "🤝", title: "Networking", text: "Your confidence is high; reach out to connections." }
+                ];
+            } else if (percentage < 60) {
+                desc = "Analysis reveals a <strong>Moderate</strong> stress load. You are managing, but specific triggers (likely financial or social) are causing intermittent spikes in cortisol. Proactive management is advised.";
+                recs = [
+                    { icon: "📉", title: "Limit Social Media", text: "Reduce comparison triggers during the morning." },
+                    { icon: "🏃", title: "Physical Activity", text: "Daily cardio to burn off excess adrenaline." },
+                    { icon: "📝", title: "Structured Job Hunt", text: "Set fixed hours for applications to prevent obsession." }
+                ];
+            } else {
+                desc = "Critical Alert: System detects <strong>High</strong> stress levels. The period of unemployment has significantly impacted your sleep, self-worth, and emotional stability. Immediate de-escalation protocols are recommended.";
+                recs = [
+                    { icon: "🆘", title: "Seek Support", text: "Consider speaking with a counselor or support group." },
+                    { icon: "😴", title: "Sleep Hygiene", text: "Prioritize rest over productivity for 48 hours." },
+                    { icon: "💰", title: "Financial Audit", text: "Create a strict survival budget to reduce money anxiety." }
+                ];
+            }
+
+            document.getElementById('result-description').innerHTML = desc;
+            
+            const recContainer = document.getElementById('rec-container');
+            recs.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'rec-card';
+                div.innerHTML = `<div class="rec-icon">${r.icon}</div><h4 style="color:#fff; margin-bottom:0.5rem;">${r.title}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${r.text}</p>`;
+                recContainer.appendChild(div);
+            });
+        }
+
+        // =========================================
+        // 5. CANVAS BACKGROUNDS (Simplified)
+        // =========================================
+        // Neural Network
+        const canvas1 = document.getElementById('neural-canvas');
+        const ctx1 = canvas1.getContext('2d');
+        let particles = [];
+        
+        canvas1.width = window.innerWidth;
+        canvas1.height = window.innerHeight;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas1.width;
+                this.y = Math.random() * canvas1.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if(this.x < 0 || this.x > canvas1.width) this.vx *= -1;
+                if(this.y < 0 || this.y > canvas1.height) this.vy *= -1;
+                ctx1.fillStyle = 'rgba(0, 242, 255, 0.5)';
+                ctx1.beginPath();
+                ctx1.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx1.fill();
+            }
+        }
+
+        for(let i=0; i<60; i++) particles.push(new Particle());
+
+        function animateCanvas() {
+            ctx1.clearRect(0,0,canvas1.width, canvas1.height);
+            particles.forEach(p => p.update());
+            // Connect
+            for(let i=0; i<particles.length; i++){
+                for(let j=i; j<particles.length; j++){
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx1.strokeStyle = `rgba(0, 242, 255, ${0.1 - dist/1500})`;
+                        ctx1.beginPath();
+                        ctx1.moveTo(particles[i].x, particles[i].y);
+                        ctx1.lineTo(particles[j].x, particles[j].y);
+                        ctx1.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+    </script>
+</body>
+</html>

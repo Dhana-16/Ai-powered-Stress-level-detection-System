@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Stress AI | NeuroCalm</title>
+    <meta name="description" content="AI-powered stress analysis designed specifically for educators and teachers.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #020205;
+            --bg-panel: rgba(15, 20, 35, 0.7);
+            --primary: #00f2ff; /* Cyan Neon */
+            --secondary: #7000ff; /* Deep Purple */
+            --accent: #ff0055; /* Red Alert */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & UTILITIES
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--secondary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(189, 0, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 5;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary), #fff, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND
+           ========================================= */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(112, 0, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(112, 0, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. HERO SECTION
+           ========================================= */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 2rem;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            mix-blend-mode: difference;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .main-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            transition: opacity 0.8s;
+        }
+
+        .main-hero.hidden {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .hero-badge {
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--primary);
+            border-radius: 50px;
+            color: var(--primary);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            background: rgba(0, 242, 255, 0.05);
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        /* Start Button */
+        .btn-start {
+            position: relative;
+            padding: 1.5rem 4rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--bg-dark);
+            background: var(--primary);
+            border: none;
+            clip-path: polygon(15% 0, 100% 0, 100% 70%, 85% 100%, 0 100%, 0 30%);
+            transition: all 0.3s var(--ease-out);
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.4);
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05) translateY(-5px);
+            background: #fff;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.6);
+        }
+
+        .btn-start:hover::before {
+            left: 100%;
+        }
+
+        /* =========================================
+           5. ASSESSMENT WIZARD (QUIZ)
+           ========================================= */
+        #assessment-container {
+            display: none;
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 100px;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        #assessment-container.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .quiz-card {
+            width: 100%;
+            max-width: 800px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 30px;
+            padding: 3rem;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-bottom: 3rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .question-counter {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+
+        .question-text {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 3rem;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Options (Likert Scale) */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 3rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem 0.5rem;
+            color: var(--text-muted);
+            border-radius: 10px;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-btn span.val {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .option-btn span.lbl {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .option-btn:hover {
+            border-color: var(--secondary);
+            background: rgba(189, 0, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .option-btn.selected {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(189, 0, 255, 0.4);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-nav {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-nav:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            border: none;
+            color: var(--bg-dark);
+            font-weight: 700;
+        }
+
+        .btn-next:hover {
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        /* =========================================
+           6. LOADING / ANALYZING SCREEN
+           ========================================= */
+        #loading-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 2, 5, 0.95);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .loader-ring {
+            width: 100px;
+            height: 100px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 2rem;
+        }
+
+        .loading-text {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+        }
+
+        .loading-subtext {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* =========================================
+           7. RESULTS DASHBOARD
+           ========================================= */
+        #results-container {
+            display: none;
+            min-height: 100vh;
+            padding: 120px 2rem 50px;
+            animation: fadeIn 1s forwards;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .result-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .score-circle-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .score-canvas {
+            max-width: 300px;
+            max-height: 300px;
+        }
+
+        .result-value {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .result-value h2 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .result-value p {
+            color: var(--text-muted);
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .analysis-details h3 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+
+        .radar-container {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .recommendation-list {
+            list-style: none;
+        }
+
+        .recommendation-list li {
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-left: 3px solid var(--primary);
+            border-radius: 0 10px 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .rec-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 242, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        /* =========================================
+           8. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; box-shadow: 0 0 20px rgba(0, 242, 255, 0.4); } 100% { opacity: 0.8; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 968px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .options-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 2.5rem; }
+            .question-text { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="grid-overlay"></div>
+
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+            </svg>
+            NeuroEd
+        </a>
+        <div style="font-family: var(--font-mono); color: var(--text-muted);">TEACHER PROTOCOL V2.0</div>
+    </header>
+
+    <!-- Main Hero / Start Section -->
+    <section id="hero-section" class="main-hero">
+        <div class="container">
+            <span class="hero-badge">AI-Powered Analysis</span>
+            <h1>Teacher Stress <br><span class="gradient-text">Detection System</span></h1>
+            <p class="hero-desc">
+                Our specialized neural network analyzes classroom management, administrative load, and work-life balance to predict your stress levels with clinical accuracy.
+            </p>
+            <button class="btn-start" onclick="startAssessment()" data-hover>
+                Start Assessment
+            </button>
+        </div>
+    </section>
+
+    <!-- Assessment Container (Quiz) -->
+    <section id="assessment-container">
+        <div class="container">
+            <div class="quiz-card">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+
+                <div class="question-counter">QUESTION <span id="q-current">1</span> / 20</div>
+                
+                <div class="question-text" id="q-text">
+                    <!-- Question text injected here -->
+                </div>
+
+                <div class="options-grid">
+                    <button class="option-btn" onclick="selectOption(1)" data-hover>
+                        <span class="val">1</span>
+                        <span class="lbl">Never</span>
+                    </button>
+                    <button class="option-btn" onclick="selectOption(2)" data-hover>
+                        <span class="val">2</span>
+                        <span class="lbl">Rarely</span>
+                    </button>
+                    <button class="option-btn" onclick="selectOption(3)" data-hover>
+                        <span class="val">3</span>
+                        <span class="lbl">Sometimes</span>
+                    </button>
+                    <button class="option-btn" onclick="selectOption(4)" data-hover>
+                        <span class="val">4</span>
+                        <span class="lbl">Often</span>
+                    </button>
+                    <button class="option-btn" onclick="selectOption(5)" data-hover>
+                        <span class="val">5</span>
+                        <span class="lbl">Always</span>
+                    </button>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn-nav" id="btn-prev" onclick="prevQuestion()" data-hover>Previous</button>
+                    <button class="btn-nav btn-next" id="btn-next" onclick="nextQuestion()" data-hover disabled>Next</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader-ring"></div>
+        <div class="loading-text">ANALYZING BIOMETRIC DATA</div>
+        <div class="loading-subtext" id="loading-msg">Processing Classroom Management Load...</div>
+    </div>
+
+    <!-- Results Dashboard -->
+    <section id="results-container">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h1 style="font-size: 3rem;">Assessment <span class="gradient-text">Complete</span></h1>
+                <p style="color: var(--text-muted);">Here is your personalized stress profile.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Left: Score Gauge -->
+                <div class="result-card score-circle-container">
+                    <h3 style="position: absolute; top: 2rem; left: 2rem;">Overall Stress Index</h3>
+                    <canvas id="score-canvas" width="300" height="300"></canvas>
+                    <div class="result-value">
+                        <h2 id="final-score">0</h2>
+                        <p id="stress-level">High</p>
+                    </div>
+                </div>
+
+                <!-- Right: Analysis & Radar -->
+                <div class="result-card analysis-details">
+                    <h3>Stress Factors Analysis</h3>
+                    <canvas id="radar-canvas" class="radar-container"></canvas>
+                    
+                    <h3 style="margin-top: 2rem;">AI Recommendations</h3>
+                    <ul class="recommendation-list">
+                        <li>
+                            <div class="rec-icon">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            </div>
+                            <div>
+                                <strong>Micro-breaks recommended</strong>
+                                <div style="font-size: 0.9rem; color: var(--text-muted);">Implement 5-minute meditation sessions between classes.</div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="rec-icon" style="color: var(--accent); background: rgba(255,0,85,0.1);">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                            </div>
+                            <div>
+                                <strong>Workload Delegation</strong>
+                                <div style="font-size: 0.9rem; color: var(--text-muted);">Consider peer-grading for non-critical assignments to reduce load.</div>
+                            </div>
+                        </li>
+                    </ul>
+                    <button class="btn-nav" style="width: 100%; margin-top: 2rem; background: var(--secondary); border: none;" onclick="location.reload()" data-hover>Restart Assessment</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // =========================================
+        // 1. DATA: 20 TEACHER QUESTIONS
+        // =========================================
+        const questions = [
+            { text: "I feel overwhelmed by the amount of grading I need to complete.", category: "Workload" },
+            { text: "I often bring work home (physical or mental tasks).", category: "Workload" },
+            { text: "I feel that I have insufficient time to prepare for lessons.", category: "Time" },
+            { text: "Classroom disruptions from students significantly stress me out.", category: "Classroom" },
+            { text: "I feel unsupported by the school administration.", category: "Admin" },
+            { text: "Dealing with difficult parents causes me anxiety.", category: "Admin" },
+            { text: "I feel physically exhausted at the end of the workday.", category: "Physical" },
+            { text: "I have trouble sleeping because of work-related thoughts.", category: "Physical" },
+            { text: "I feel that my salary does not match my workload.", category: "Financial" },
+            { text: "I struggle to maintain a healthy work-life balance.", category: "Personal" },
+            { text: "I feel responsible for students' academic failures.", category: "Emotional" },
+            { text: "I frequently experience headaches or tension while at school.", category: "Physical" },
+            { text: "I feel isolated or lonely in my role as a teacher.", category: "Personal" },
+            { text: "Constant curriculum changes make me feel unstable.", category: "Admin" },
+            { text: "I feel pressure to perform well during teacher evaluations.", category: "Admin" },
+            { text: "I find it difficult to say 'no' to additional requests.", category: "Workload" },
+            { text: "I feel undervalued by the students.", category: "Classroom" },
+            { text: "I worry about losing my job or funding cuts.", category: "Financial" },
+            { text: "I lack the necessary resources or technology to teach effectively.", category: "Resources" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let answers = new Array(questions.length).fill(null);
+
+        // =========================================
+        // 2. CURSOR & CANVAS BACKGROUND
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // Canvas Network Logic
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = (Math.random() - 0.5) * 1;
+                this.size = Math.random() * 2;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = '#7000ff';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        for(let i=0; i<50; i++) particles.push(new Particle());
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            
+            // Connect
+            for(let a=0; a<particles.length; a++) {
+                for(let b=a; b<particles.length; b++) {
+                    const dx = particles[a].x - particles[b].x;
+                    const dy = particles[a].y - particles[b].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx.strokeStyle = `rgba(112, 0, 255, ${1 - dist/150})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // =========================================
+        // 3. QUIZ LOGIC
+        // =========================================
+        function startAssessment() {
+            document.getElementById('hero-section').classList.add('hidden');
+            setTimeout(() => {
+                document.getElementById('hero-section').style.display = 'none';
+                const assess = document.getElementById('assessment-container');
+                assess.style.display = 'flex';
+                // Trigger reflow
+                void assess.offsetWidth;
+                assess.classList.add('active');
+                renderQuestion();
+            }, 800);
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById('q-current').innerText = currentQuestionIndex + 1;
+            document.getElementById('q-text').innerText = q.text;
+            
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Reset Options
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+            const prevAns = answers[currentQuestionIndex];
+            if(prevAns) {
+                document.querySelectorAll('.option-btn')[prevAns-1].classList.add('selected');
+                document.getElementById('btn-next').disabled = false;
+            } else {
+                document.getElementById('btn-next').disabled = true;
+            }
+
+            // Button States
+            document.getElementById('btn-prev').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+            document.getElementById('btn-next').innerText = currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next';
+        }
+
+        function selectOption(val) {
+            answers[currentQuestionIndex] = val;
+            
+            // Visual Update
+            document.querySelectorAll('.option-btn').forEach((btn, idx) => {
+                if(idx + 1 === val) btn.classList.add('selected');
+                else btn.classList.remove('selected');
+            });
+            
+            document.getElementById('btn-next').disabled = false;
+        }
+
+        function nextQuestion() {
+            if(currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                // Simple fade transition could go here
+                renderQuestion();
+            } else {
+                finishAssessment();
+            }
+        }
+
+        function prevQuestion() {
+            if(currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        // =========================================
+        // 4. FINISH & CALCULATE
+        // =========================================
+        function finishAssessment() {
+            document.getElementById('assessment-container').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('assessment-container').style.display = 'none';
+                showLoading();
+            }, 500);
+        }
+
+        function showLoading() {
+            const screen = document.getElementById('loading-screen');
+            screen.style.display = 'flex';
+            
+            const msgs = [
+                "Processing Classroom Management Load...",
+                "Analyzing Administrative Stress...",
+                "Checking Work-Life Balance Metrics...",
+                "Generating Neuro-Report...",
+                "Finalizing..."
+            ];
+            
+            let step = 0;
+            const interval = setInterval(() => {
+                document.getElementById('loading-msg').innerText = msgs[step];
+                step++;
+                if(step >= msgs.length) {
+                    clearInterval(interval);
+                    setTimeout(showResults, 1000);
+                }
+            }, 800);
+        }
+
+        function showResults() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('results-container').style.display = 'block';
+            
+            // Calculate Score
+            const totalScore = answers.reduce((a, b) => a + b, 0);
+            const maxScore = 20 * 5;
+            const percentage = (totalScore / maxScore) * 100;
+            
+            // Animate Score
+            animateValue(document.getElementById('final-score'), 0, Math.round(percentage), 2000);
+            
+            // Set Text
+            const levelEl = document.getElementById('stress-level');
+            let color;
+            if(percentage < 40) { levelEl.innerText = "Low"; color = "#00ff88"; }
+            else if(percentage < 70) { levelEl.innerText = "Moderate"; color = "#ffcc00"; }
+            else { levelEl.innerText = "High"; color = "#ff0055"; }
+            
+            levelEl.style.color = color;
+
+            // Draw Charts
+            drawGauge(percentage, color);
+            drawRadar();
+        }
+
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // =========================================
+        // 5. CHART DRAWING LOGIC
+        // =========================================
+        function drawGauge(percentage, color) {
+            const c = document.getElementById('score-canvas');
+            const cx = c.getContext('2d');
+            const w = c.width, h = c.height;
+            const center = w/2, radius = 120;
+
+            let currentPercent = 0;
+            const animate = () => {
+                if(currentPercent < percentage) currentPercent += 1;
+                else currentPercent = percentage;
+
+                cx.clearRect(0, 0, w, h);
+
+                // Background Circle
+                cx.beginPath();
+                cx.arc(center, center, radius, 0.7 * Math.PI, 2.3 * Math.PI);
+                cx.strokeStyle = 'rgba(255,255,255,0.1)';
+                cx.lineWidth = 20;
+                cx.lineCap = 'round';
+                cx.stroke();
+
+                // Progress Arc
+                const endAngle = 0.7 * Math.PI + (currentPercent/100) * (2.3 * Math.PI - 0.7 * Math.PI);
+                cx.beginPath();
+                cx.arc(center, center, radius, 0.7 * Math.PI, endAngle);
+                cx.strokeStyle = color;
+                cx.shadowBlur = 20;
+                cx.shadowColor = color;
+                cx.stroke();
+                cx.shadowBlur = 0;
+
+                if(currentPercent < percentage) requestAnimationFrame(animate);
+            };
+            animate();
+        }
+
+        function drawRadar() {
+            const c = document.getElementById('radar-canvas');
+            const ctx = c.getContext('2d');
+            c.width = c.offsetWidth;
+            c.height = c.offsetHeight;
+            const w = c.width, h = c.height;
+            const cx = w/2, cy = h/2, radius = Math.min(w,h)/2 - 40;
+
+            // Dummy Category Data (In a real app, map answers to categories)
+            const data = [80, 60, 90, 40, 70]; // Workload, Admin, Emotional, Physical, Personal
+            const labels = ["Workload", "Admin", "Emotional", "Physical", "Personal"];
+            const angleSlice = (Math.PI * 2) / 5;
+
+            // Draw Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            for(let level=1; level<=4; level++) {
+                ctx.beginPath();
+                for(let i=0; i<5; i++) {
+                    const r = (radius/4) * level;
+                    const angle = i * angleSlice - Math.PI/2;
+                    ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+                }
+                ctx.closePath();
+                ctx.stroke();
+            }
+
+            // Draw Data
+            ctx.beginPath();
+            ctx.strokeStyle = '#00f2ff';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.2)';
+            
+            for(let i=0; i<5; i++) {
+                const r = (data[i]/100) * radius;
+                const angle = i * angleSlice - Math.PI/2;
+                const x = cx + r * Math.cos(angle);
+                const y = cy + r * Math.sin(angle);
+                if(i===0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Rajdhani';
+            ctx.textAlign = 'center';
+            for(let i=0; i<5; i++) {
+                const angle = i * angleSlice - Math.PI/2;
+                const x = cx + (radius + 20) * Math.cos(angle);
+                const y = cy + (radius + 20) * Math.sin(angle);
+                ctx.fillText(labels[i], x, y);
+            }
+        }
+    </script>
+</body>
+</html>

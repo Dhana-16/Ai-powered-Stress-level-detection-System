@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educator Analysis | NeuroCalm AI</title>
+    <meta name="description" content="AI-powered stress analysis tailored for the modern educator.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Permanent+Marker&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050508;
+            --bg-card: rgba(15, 20, 35, 0.6);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Pink */
+            --chalk-green: #2ecc71; /* Success/Blackboard Green */
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --font-chalk: 'Permanent Marker', cursive;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--chalk-green);
+            box-shadow: 0 0 10px var(--chalk-green);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--chalk-green);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND (Digital Chalkboard)
+           ========================================= */
+        #math-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 90%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.3s;
+            background: rgba(5,5,8,0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--chalk-green);
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            padding: 0 5%;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 700px;
+            position: relative;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--chalk-green);
+            color: var(--chalk-green);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-family: var(--font-tech);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 span {
+            display: block;
+            color: transparent;
+            -webkit-text-stroke: 1px #fff;
+        }
+
+        h1 .highlight {
+            color: var(--primary);
+            -webkit-text-stroke: 0;
+            text-shadow: 0 0 20px var(--primary);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.7;
+        }
+
+        /* Hero Visuals (Floating Elements) */
+        .hero-visual {
+            position: absolute;
+            right: -10%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 600px;
+            height: 600px;
+            pointer-events: none;
+        }
+
+        .book-3d {
+            position: absolute;
+            background: linear-gradient(135deg, #2c3e50, #000);
+            border: 1px solid var(--text-muted);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .book-1 { width: 180px; height: 260px; top: 20%; right: 30%; animation-delay: 0s; transform: rotate(-15deg); }
+        .book-2 { width: 160px; height: 240px; bottom: 30%; right: 10%; animation-delay: 2s; transform: rotate(10deg); border-color: var(--primary); }
+        
+        .chalkboard-dust {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+            filter: blur(40px);
+            top: 40%; right: 20%;
+        }
+
+        /* =========================================
+           6. STATISTICS SECTION (The Reality)
+           ========================================= */
+        .stats-section {
+            padding: 8rem 5%;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8), transparent);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header .chalk-text {
+            font-family: var(--font-chalk);
+            color: rgba(255,255,255,0.8);
+            font-size: 1.5rem;
+            transform: rotate(-2deg);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(15px);
+            border: var(--glass-border);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: 0.4s var(--ease-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--chalk-green);
+            box-shadow: 0 20px 40px rgba(46, 204, 113, 0.1);
+        }
+
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        .stat-label {
+            font-family: var(--font-tech);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           7. PAIN POINTS (The Curriculum of Stress)
+           ========================================= */
+        .stress-curriculum {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .timeline-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 4rem auto;
+        }
+
+        /* Vertical Line */
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background: rgba(255,255,255,0.1);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+        }
+
+        .stress-item {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+            box-sizing: border-box;
+        }
+
+        .stress-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            right: -10px;
+            background-color: var(--bg-deep);
+            border: 4px solid var(--accent);
+            top: 20px;
+            border-radius: 50%;
+            z-index: 1;
+            transition: 0.3s;
+        }
+
+        .left { left: 0; }
+        .right { left: 50%; }
+        .right::after { left: -10px; }
+
+        .content-box {
+            padding: 2rem;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 15px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .content-box:hover {
+            transform: scale(1.02);
+            border-color: var(--secondary);
+        }
+
+        .content-box h3 {
+            font-family: var(--font-display);
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .content-box p {
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           8. THE SOLUTION (AI Integration)
+           ========================================= */
+        .solution-section {
+            padding: 8rem 5%;
+            z-index: 10;
+            position: relative;
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .solution-text h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            line-height: 1.2;
+        }
+
+        .feature-list li {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: #ddd;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 242, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .hologram-screen {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--chalk-green);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scan-grid {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background-image: linear-gradient(rgba(46, 204, 113, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(46, 204, 113, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 0;
+        }
+
+        .ai-brain {
+            font-size: 8rem;
+            color: var(--chalk-green);
+            z-index: 1;
+            animation: pulse 3s infinite;
+        }
+
+        /* =========================================
+           9. START BUTTON SECTION
+           ========================================= */
+        .start-cta {
+            padding: 8rem 5%;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            background: radial-gradient(circle at center, rgba(46, 204, 113, 0.05), transparent 70%);
+        }
+
+        .cta-box {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 4rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-box h2 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-start {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 1.5rem 4rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #000;
+            background: var(--chalk-green);
+            border: none;
+            border-radius: 50px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            background: #fff;
+            color: var(--bg-deep);
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.6);
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-start:hover::before {
+            left: 100%;
+        }
+
+        /* =========================================
+           10. FOOTER
+           ========================================= */
+        footer {
+            border-top: 1px solid #111;
+            padding: 4rem 5%;
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* =========================================
+           11. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(var(--rot)); }
+            50% { transform: translateY(-20px) rotate(var(--rot)); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s var(--ease-smooth);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 968px) {
+            .hero { flex-direction: column; text-align: center; padding-top: 150px; }
+            .hero-visual { display: none; }
+            .solution-grid { grid-template-columns: 1fr; }
+            .timeline-container::after { left: 31px; }
+            .stress-item { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .stress-item::after { left: 21px; }
+            .left::after, .right::after { left: 21px; }
+            .right { left: 0%; }
+            h1 { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background Canvas (Falling Math) -->
+    <canvas id="math-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--chalk-green)">
+                <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/>
+            </svg>
+            NeuroCalm
+        </a>
+        <div class="nav-links">
+            <a href="/index" data-hover>Home</a>
+            <a href="/category" data-hover>Categories</a>
+            <a href="/teacher" style="color: var(--chalk-green); border-bottom: 2px solid var(--chalk-green);" data-hover>Teachers</a>
+            <a href="/login" data-hover>Login</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content reveal">
+                <span class="hero-tag">Module: Educator Protocol</span>
+                <h1>
+                    <span>Beyond the</span>
+                    <span class="highlight">Chalkboard</span>
+                </h1>
+                <p>The teaching profession carries a unique cognitive and emotional load. Our AI is calibrated to detect the specific stressors of classroom management, administrative burden, and student dynamics.</p>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <a href="#start-analysis" class="btn-start" style="padding: 1rem 2rem; font-size: 1rem; margin:0;" data-hover>Quick Scan</a>
+                    <a href="#stressors" class="btn-start" style="background: transparent; border: 1px solid var(--chalk-green); color: var(--chalk-green); padding: 1rem 2rem; font-size: 1rem; margin:0;" data-hover>Learn More</a>
+                </div>
+            </div>
+            
+            <!-- Floating 3D Books -->
+            <div class="hero-visual">
+                <div class="book-3d book-1" style="--rot: -15deg;">
+                    <div style="position:absolute; top:10px; left:10px; font-family: var(--font-tech); color: #555;">MATH 101</div>
+                </div>
+                <div class="book-3d book-2" style="--rot: 10deg;">
+                    <div style="position:absolute; top:10px; left:10px; font-family: var(--font-tech); color: var(--primary);">PHYSICS</div>
+                </div>
+                <div class="chalkboard-dust"></div>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section class="stats-section">
+            <div class="section-header reveal">
+                <div class="chalk-text">"The Silent Struggle is Real."</div>
+                <h2>Educator Wellness Index</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card reveal" data-hover>
+                    <div class="stat-number" data-target="46">0%</div>
+                    <div class="stat-label">Report High Daily Stress</div>
+                </div>
+                <div class="stat-card reveal" style="transition-delay: 0.1s;" data-hover>
+                    <div class="stat-number" data-target="75">0</div>
+                    <div class="stat-label">Avg Hours Worked / Week</div>
+                </div>
+                <div class="stat-card reveal" style="transition-delay: 0.2s;" data-hover>
+                    <div class="stat-number" data-target="50">0%</div>
+                    <div class="stat-label">Burnout Rate (High)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stress Curriculum (Timeline) -->
+        <section id="stressors" class="stress-curriculum">
+            <div class="section-header reveal">
+                <h2 style="color: var(--accent);">The Curriculum of Stress</h2>
+                <p style="color: var(--text-muted);">Key factors impacting cognitive load.</p>
+            </div>
+
+            <div class="timeline-container">
+                <div class="stress-item left reveal">
+                    <div class="content-box" data-hover>
+                        <h3>Administrative Load</h3>
+                        <p>Grading, lesson planning, and compliance paperwork often extend beyond classroom hours, leading to decision fatigue.</p>
+                    </div>
+                </div>
+                <div class="stress-item right reveal">
+                    <div class="content-box" data-hover>
+                        <h3>Classroom Dynamics</h3>
+                        <p>Managing diverse behavioral issues and maintaining authority requires constant high-alert vigilance (amygdala activation).</p>
+                    </div>
+                </div>
+                <div class="stress-item left reveal">
+                    <div class="content-box" data-hover>
+                        <h3>Parental Pressure</h3>
+                        <p>Navigating difficult conversations with guardians and managing external expectations adds significant emotional weight.</p>
+                    </div>
+                </div>
+                <div class="stress-item right reveal">
+                    <div class="content-box" data-hover>
+                        <h3>Resource Scarcity</h3>
+                        <p>Trying to achieve educational outcomes with limited tools or support creates a chronic sense of helplessness.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Solution Section -->
+        <section class="solution-section">
+            <div class="solution-grid">
+                <div class="solution-text reveal">
+                    <h2>AI That Understands the <span style="color:var(--chalk-green)">Classroom</span></h2>
+                    <p style="color:var(--text-muted); margin-bottom: 2rem;">
+                        NeuroCalm for Teachers isn't just a generic tracker. It detects the "After-School Crash," identifies periods of hyper-vigilance during class, and suggests micro-breaks aligned with bell schedules.
+                    </p>
+                    <ul class="feature-list">
+                        <li>
+                            <div class="feature-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                            </div>
+                            Biometric Baseline Calibration
+                        </li>
+                        <li>
+                            <div class="feature-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                            </div>
+                            Automated Mood Logging
+                        </li>
+                        <li>
+                            <div class="feature-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
+                            </div>
+                            Wellness Protocol Alerts
+                        </li>
+                    </ul>
+                </div>
+                <div class="hologram-screen reveal">
+                    <div class="scan-grid"></div>
+                    <div class="ai-brain">
+                        <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/>
+                        </svg>
+                    </div>
+                    <div style="position:absolute; bottom: 20px; left: 20px; font-family: var(--font-mono); color: var(--chalk-green); font-size: 0.8rem;">
+                        STATUS: LISTENING<br>
+                        TARGET: EDUCATOR_V1
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Start Button Section -->
+        <section id="start-analysis" class="start-cta">
+            <div class="cta-box reveal">
+                <h2>Ready to Check Your Vitals?</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">
+                    Our AI will analyze your facial micro-expressions and physiological markers to provide an instant stress assessment tailored to your teaching schedule.
+                </p>
+                <a href="/teacher_ques" class="btn-start" data-hover>START ANALYSIS</a>
+                <p style="margin-top: 1.5rem; font-size: 0.8rem; color: #555;">Takes less than 30 seconds. Data is processed locally.</p>
+            </div>
+        </section>
+
+        <!-- Extended Content (Long Page) -->
+        <section style="padding: 5rem 5%; position: relative; z-index: 10;">
+            <div class="section-header">
+                <h3>Detailed Stress Breakdown</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div style="background: rgba(255,255,255,0.02); padding: 2rem; border-radius: 10px;">
+                    <h4 style="color: var(--chalk-green); margin-bottom: 10px;">Emotional Exhaustion</h4>
+                    <p style="font-size: 0.9rem; color: #888; line-height: 1.6;">
+                        Feeling emotionally drained by the demands of the job. This is often the first stage of burnout, characterized by a lack of energy to deal with students and colleagues. AI detection looks for fatigue markers in the eyes and posture.
+                    </p>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); padding: 2rem; border-radius: 10px;">
+                    <h4 style="color: var(--primary); margin-bottom: 10px;">Depersonalization</h4>
+                    <p style="font-size: 0.9rem; color: #888; line-height: 1.6;">
+                        Developing a cynical or detached attitude toward students or the education system. NeuroCalm monitors for changes in vocal tone and facial expressions that indicate disengagement.
+                    </p>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); padding: 2rem; border-radius: 10px;">
+                    <h4 style="color: var(--accent); margin-bottom: 10px;">Reduced Accomplishment</h4>
+                    <p style="font-size: 0.9rem; color: #888; line-height: 1.6;">
+                        Feeling ineffective as a teacher, regardless of actual performance. Our system benchmarks your biometric state against a "calm baseline" to remind you of your capability.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2023 NeuroCalm AI. Dedicated to those who teach.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, div[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. MATH BACKGROUND (The Digital Chalkboard)
+        // =========================================
+        const canvas = document.getElementById('math-canvas');
+        const ctx = canvas.getContext('2d');
+        const symbols = "Σπ∫√≠±÷×∞θαβΩλ";
+        const drops = [];
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const fontSize = 20;
+        const columns = canvas.width / fontSize;
+
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.05)'; // Trail effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#2ecc71'; // Chalk Green
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = symbols.charAt(Math.floor(Math.random() * symbols.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // =========================================
+        // 3. NUMBER COUNTER ANIMATION
+        // =========================================
+        const counters = document.querySelectorAll('.stat-number');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    const counter = entry.target;
+                    const target = +counter.getAttribute('data-target');
+                    const suffix = counter.innerText.includes('%') ? '%' : '';
+                    let count = 0;
+                    
+                    const updateCount = () => {
+                        const increment = target / 100;
+                        if(count < target) {
+                            count += increment;
+                            counter.innerText = Math.ceil(count) + suffix;
+                            setTimeout(updateCount, 20);
+                        } else {
+                            counter.innerText = target + suffix;
+                        }
+                    };
+                    updateCount();
+                    observer.unobserve(counter);
+                }
+            });
+        });
+
+        counters.forEach(counter => observer.observe(counter));
+
+        // =========================================
+        // 4. SCROLL REVEAL
+        // =========================================
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+    </script>
+</body>
+</html>

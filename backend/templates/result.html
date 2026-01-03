@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Complete | NeuroCalm AI</title>
+    <meta name="description" content="Your personalized neural stress analysis report.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & THEME
+           ========================================= */
+        :root {
+            --bg-deep: #020203;
+            --bg-panel: rgba(15, 20, 35, 0.6);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Red - Danger */
+            --success: #00ff88; /* Green - Safe */
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            
+            /* Dynamic Stress Color (Will change via JS) */
+            --stress-color: var(--primary); 
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 1s ease;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--stress-color);
+            box-shadow: 0 0 10px var(--stress-color);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--stress-color);
+            transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: #fff;
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND
+           ========================================= */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT & CONTAINERS
+           ========================================= */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 2rem 6rem;
+        }
+
+        /* Hero Section */
+        .result-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-bottom: 6rem;
+        }
+
+        .hero-text h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .hero-text span {
+            color: var(--stress-color);
+            text-shadow: 0 0 20px var(--stress-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--stress-color);
+            color: var(--stress-color);
+            border-radius: 50px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 15px var(--stress-color);
+            animation: pulse 2s infinite;
+        }
+
+        .hero-desc {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        /* =========================================
+           5. VISUALIZATIONS (Score & Radar)
+           ========================================= */
+        .viz-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Circular Progress Gauge */
+        .gauge-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.05);
+            stroke-width: 15;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke: var(--stress-color);
+            stroke-width: 15;
+            stroke-dasharray: 880; /* 2 * PI * 140 */
+            stroke-dashoffset: 880; /* Start empty */
+            stroke-linecap: round;
+            transition: stroke-dashoffset 2s ease-out, stroke 1s ease;
+            filter: drop-shadow(0 0 10px var(--stress-color));
+        }
+
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .score-number {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+        }
+
+        /* Radar Chart Canvas */
+        .radar-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 2rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* =========================================
+           6. METRICS GRID (Stats)
+           ========================================= */
+        .metrics-section {
+            background: rgba(255,255,255,0.02);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            margin-bottom: 6rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--stress-color);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .metric-value {
+            font-family: var(--font-mono);
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* =========================================
+           7. RECOMMENDATIONS (Long Content)
+           ========================================= */
+        .rec-section {
+            margin-bottom: 6rem;
+        }
+
+        .rec-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .rec-card {
+            display: flex;
+            align-items: center;
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rec-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--secondary);
+        }
+
+        .rec-card:hover {
+            background: rgba(255,255,255,0.05);
+            transform: translateX(10px);
+        }
+
+        .rec-icon {
+            font-size: 2rem;
+            margin-right: 2rem;
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 242, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .rec-content h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rec-content p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            max-width: 600px;
+        }
+
+        .rec-action {
+            margin-left: auto;
+        }
+
+        .btn-outline {
+            padding: 0.8rem 2rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: #fff;
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-outline:hover {
+            border-color: #fff;
+            background: #fff;
+            color: #000;
+        }
+
+        /* =========================================
+           8. FOOTER & EXPORT
+           ========================================= */
+        .footer-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--primary);
+            color: #000;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.6);
+            background: #fff;
+        }
+
+        /* Animation Keyframes */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .result-hero { grid-template-columns: 1fr; text-align: center; }
+            .hero-text { display: flex; flex-direction: column; align-items: center; }
+            .hero-desc { margin: 0 auto 2rem; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="grid-overlay"></div>
+
+    <main class="main-container">
+        
+        <!-- Hero Section: Score -->
+        <section class="result-hero">
+            <div class="hero-text">
+                <div class="badge" id="status-badge">Analysis Complete</div>
+                <h1>Stress Level: <br><span id="hero-score-text">Loading...</span></h1>
+                <p class="hero-desc">
+                    Neural scan indicates specific anomalies in your cognitive rhythm. The AI has processed 50,000+ data points derived from your input parameters.
+                </p>
+                <a href="#" class="btn-outline" style="border-color: var(--primary); color: var(--primary);" data-hover>View Raw Data</a>
+            </div>
+
+            <div class="viz-container">
+                <!-- Circular Gauge -->
+                <div class="gauge-wrapper">
+                    <svg class="gauge-svg" viewBox="0 0 300 300">
+                        <circle class="gauge-bg" cx="150" cy="150" r="140"></circle>
+                        <circle class="gauge-fill" id="score-ring" cx="150" cy="150" r="140"></circle>
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="score-number" id="score-display">0</div>
+                        <div class="score-label">Stress Index</div>
+                    </div>
+                </div>
+                
+                <!-- Radar Chart -->
+                <canvas id="radar-canvas" width="300" height="300"></canvas>
+            </div>
+        </section>
+
+        <!-- Biometric Breakdown -->
+        <section class="metrics-section">
+            <div class="section-header">
+                <h2>Biometric Breakdown</h2>
+                <span style="font-family: var(--font-mono); color: var(--text-muted);">SOURCE: ASSESSMENT_ID_9942</span>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card reveal">
+                    <div class="metric-value" id="metric-hrv">--</div>
+                    <div class="metric-label">HRV (ms)</div>
+                </div>
+                <div class="metric-card reveal" style="transition-delay: 0.1s;">
+                    <div class="metric-value" id="metric-bpm">--</div>
+                    <div class="metric-label">Avg BPM</div>
+                </div>
+                <div class="metric-card reveal" style="transition-delay: 0.2s;">
+                    <div class="metric-value" id="metric-cortisol">--</div>
+                    <div class="metric-label">Cortisol (nmol/L)</div>
+                </div>
+                <div class="metric-card reveal" style="transition-delay: 0.3s;">
+                    <div class="metric-value" id="metric-sleep">--</div>
+                    <div class="metric-label">Sleep Quality</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Recommendations -->
+        <section class="rec-section">
+            <div class="section-header">
+                <h2>AI Suggested Protocol</h2>
+            </div>
+            <div class="rec-list" id="rec-list-container">
+                <!-- Injected via JS based on score -->
+            </div>
+        </section>
+
+        <!-- Footer / Export -->
+        <section class="footer-section">
+            <h2 style="font-family: var(--font-display); margin-bottom: 1rem;">Report Ready</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Export your full neural diagnostics to your local device.</p>
+            <a href="#" class="download-btn" onclick="downloadReport()" data-hover>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                DOWNLOAD PDF REPORT
+            </a>
+            <p style="color: #444; font-size: 0.8rem;">&copy; 2023 NeuroCalm AI Systems. All rights reserved.</p>
+        </section>
+
+    </main>
+
+    <script>
+        // =========================================
+        // 1. CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. DATA HANDLING & SIMULATION
+        // =========================================
+        
+        // Helper to get data or generate random "Demo" data
+        function getAssessmentData() {
+            const stored = sessionStorage.getItem('neuroCalmData');
+            if (stored) {
+                return JSON.parse(stored);
+            } else {
+                // DEMO MODE: Generate realistic random data
+                // Since we don't have the user's previous page, we simulate a specific scenario
+                console.log("No session data found. Running Simulation Mode.");
+                return {
+                    category: "IT Professional",
+                    score: Math.floor(Math.random() * 40) + 30, // Random score 30-70
+                    intensity: 65,
+                    reactionTime: 280,
+                    sleep: false,
+                    caffeine: true,
+                    symptoms: ["Headache", "Fatigue"]
+                };
+            }
+        }
+
+        const data = getAssessmentData();
+
+        // =========================================
+        // 3. THEME & COLOR LOGIC
+        // =========================================
+        const root = document.documentElement;
+        let stressColor = 'var(--success)';
+        let stressLevelText = 'Low';
+
+        if (data.score < 40) {
+            stressColor = '#00ff88'; // Green
+            stressLevelText = 'LOW STRESS';
+        } else if (data.score < 70) {
+            stressColor = '#ffcc00'; // Yellow
+            stressLevelText = 'MODERATE STRESS';
+        } else {
+            stressColor = '#ff0055'; // Red
+            stressLevelText = 'HIGH STRESS';
+        }
+
+        // Apply theme colors
+        root.style.setProperty('--stress-color', stressColor);
+        document.getElementById('hero-score-text').innerText = stressLevelText;
+        document.getElementById('status-badge').innerText = data.category.toUpperCase();
+        document.getElementById('status-badge').style.color = stressColor;
+        document.getElementById('status-badge').style.borderColor = stressColor;
+
+        // =========================================
+        // 4. ANIMATE SCORE GAUGE
+        // =========================================
+        const scoreDisplay = document.getElementById('score-display');
+        const ring = document.getElementById('score-ring');
+        const totalDash = 880;
+        const targetScore = data.score;
+        
+        // Animate Number
+        let currentScore = 0;
+        const interval = setInterval(() => {
+            if (currentScore >= targetScore) clearInterval(interval);
+            else currentScore++;
+            scoreDisplay.innerText = currentScore;
+        }, 20);
+
+        // Animate Ring Stroke
+        // offset = total - (score / 100 * total)
+        const offset = totalDash - ((targetScore / 100) * totalDash);
+        setTimeout(() => {
+            ring.style.strokeDashoffset = offset;
+        }, 500);
+
+        // =========================================
+        // 5. RADAR CHART (Spider Chart)
+        // =========================================
+        const radarCanvas = document.getElementById('radar-canvas');
+        const rCtx = radarCanvas.getContext('2d');
+        
+        // Randomized stats based on score
+        const stats = [
+            { label: 'Physical', val: Math.min(100, data.score + Math.random()*20) },
+            { label: 'Mental', val: Math.min(100, data.score + Math.random()*20) },
+            { label: 'Sleep', val: data.sleep ? 20 : 80 },
+            { label: 'Cognitive', val: Math.min(100, (400 - data.reactionTime) / 3) },
+            { label: 'Social', val: 50 }
+        ];
+
+        function drawRadar() {
+            const w = radarCanvas.width;
+            const h = radarCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = 100;
+            const total = stats.length;
+            const angleStep = (Math.PI * 2) / total;
+
+            rCtx.clearRect(0, 0, w, h);
+
+            // Draw Web
+            rCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            rCtx.lineWidth = 1;
+            for (let r = 20; r <= radius; r += 20) {
+                rCtx.beginPath();
+                for (let i = 0; i < total; i++) {
+                    const angle = i * angleStep - Math.PI/2;
+                    const x = cx + Math.cos(angle) * r;
+                    const y = cy + Math.sin(angle) * r;
+                    if (i === 0) rCtx.moveTo(x, y);
+                    else rCtx.lineTo(x, y);
+                }
+                rCtx.closePath();
+                rCtx.stroke();
+            }
+
+            // Draw Data Shape
+            rCtx.beginPath();
+            for (let i = 0; i < total; i++) {
+                const angle = i * angleStep - Math.PI/2;
+                const val = stats[i].val / 100 * radius;
+                const x = cx + Math.cos(angle) * val;
+                const y = cy + Math.sin(angle) * val;
+                if (i === 0) rCtx.moveTo(x, y);
+                else rCtx.lineTo(x, y);
+            }
+            rCtx.closePath();
+            rCtx.fillStyle = stressColor + '44'; // Transparent hex
+            rCtx.fill();
+            rCtx.strokeStyle = stressColor;
+            rCtx.lineWidth = 2;
+            rCtx.stroke();
+
+            // Draw Labels
+            rCtx.fillStyle = '#fff';
+            rCtx.font = '12px Share Tech Mono';
+            rCtx.textAlign = 'center';
+            rCtx.textBaseline = 'middle';
+            for (let i = 0; i < total; i++) {
+                const angle = i * angleStep - Math.PI/2;
+                const x = cx + Math.cos(angle) * (radius + 20);
+                const y = cy + Math.sin(angle) * (radius + 20);
+                rCtx.fillText(stats[i].label, x, y);
+            }
+        }
+
+        drawRadar();
+
+        // =========================================
+        // 6. POPULATE METRICS
+        // =========================================
+        document.getElementById('metric-hrv').innerText = (65 - (data.score/100)*20).toFixed(1) + ' ms';
+        document.getElementById('metric-bpm').innerText = (60 + (data.score/100)*40) + ' BPM';
+        document.getElementById('metric-cortisol').innerText = (data.score/10).toFixed(1) + ' nmol/L';
+        document.getElementById('metric-sleep').innerText = data.sleep ? 'Poor' : 'Optimal';
+        document.getElementById('metric-sleep').style.color = data.sleep ? 'var(--accent)' : 'var(--success)';
+
+        // =========================================
+        // 7. GENERATE RECOMMENDATIONS
+        // =========================================
+        const recContainer = document.getElementById('rec-list-container');
+        const recs = [
+            { icon: '🎧', title: 'Binaural Beats', desc: 'Listen to 432Hz frequency for 15 mins to stabilize heart rate variability.', cond: true },
+            { icon: '💤', title: 'Sleep Hygiene', desc: 'Avoid blue light 2 hours before bed to boost REM cycles.', cond: !data.sleep },
+            { icon: '☕', title: 'Caffeine Detox', desc: 'Replace coffee with chamomile tea for the next 24 hours.', cond: data.caffeine },
+            { icon: '🧘', title: 'Box Breathing', desc: 'Inhale 4s, Hold 4s, Exhale 4s, Hold 4s. Repeat 5 times.', cond: true },
+            { icon: '💊', title: 'Magnesium Supplement', desc: 'Consult a doctor about increasing magnesium intake.', cond: data.score > 60 }
+        ];
+
+        recs.forEach(rec => {
+            if (rec.cond) {
+                const div = document.createElement('div');
+                div.className = 'rec-card';
+                div.innerHTML = `
+                    <div class="rec-icon">${rec.icon}</div>
+                    <div class="rec-content">
+                        <h3>${rec.title}</h3>
+                        <p>${rec.desc}</p>
+                    </div>
+                    <div class="rec-action">
+                        <a href="#" class="btn-outline">Start</a>
+                    </div>
+                `;
+                recContainer.appendChild(div);
+            }
+        });
+
+        // Add hover listeners to new elements
+        document.querySelectorAll('.btn-outline, .rec-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 8. BACKGROUND PARTICLES (Interactive)
+        // =========================================
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.color = stressColor;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if(this.x > bgCanvas.width) this.x = 0;
+                if(this.x < 0) this.x = bgCanvas.width;
+                if(this.y > bgCanvas.height) this.y = 0;
+                if(this.y < 0) this.y = bgCanvas.height;
+                
+                bgCtx.fillStyle = this.color;
+                bgCtx.beginPath();
+                bgCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        }
+
+        for(let i=0; i<100; i++) particles.push(new Particle());
+
+        function animateBg() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            particles.forEach(p => p.update());
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // =========================================
+        // 9. SCROLL REVEAL & EXPORT
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            el.style.opacity = 0;
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = '1s var(--ease-smooth)';
+            observer.observe(el);
+        });
+
+        function downloadReport() {
+            const btn = document.querySelector('.download-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'GENERATING PDF...';
+            btn.style.background = '#fff';
+            btn.style.color = '#000';
+            
+            setTimeout(() => {
+                alert("PDF Download Simulation Started!");
+                btn.innerHTML = originalText;
+                btn.style.background = 'var(--primary)';
+                btn.style.color = '#000';
+            }, 2000);
+        }
+
+        /* 
+         * INTEGRATION NOTE:
+         * To make this fully functional from Assessment.html, add this to the submit function in assessment.html:
+         * 
+         * const assessmentData = {
+         *    category: selectedCategory,
+         *    score: calculatedScore,
+         *    intensity: sliderValue,
+         *    reactionTime: reactionMs,
+         *    sleep: sleepHabit,
+         *    caffeine: caffeineHabit,
+         *    symptoms: activeSymptoms
+         * };
+         * sessionStorage.setItem('neuroCalmData', JSON.stringify(assessmentData));
+         * window.location.href = 'result.html';
+         */
+
+    </script>
+</body>
+</html>

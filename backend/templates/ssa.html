@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Analytics | NeuroCalm AI</title>
+    <meta name="description" content="Visualize stress by subject to optimize your learning schedule. Discover cognitive load patterns.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050508;
+            --bg-panel: rgba(15, 20, 30, 0.6);
+            --bg-panel-hover: rgba(25, 30, 45, 0.8);
+            --primary: #00f2ff; /* Cyan - Neutral/Focus */
+            --secondary: #bd00ff; /* Purple - Creativity */
+            --accent: #ff0055; /* Red - High Stress */
+            --warning: #ffcc00; /* Yellow - Medium Stress */
+            --success: #00ff88; /* Green - Low Stress */
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & UTILITIES
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND
+           ========================================= */
+        #synapse-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .grid-floor {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40vh;
+            background: 
+                linear-gradient(transparent, var(--bg-deep)),
+                repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0, 242, 255, 0.03) 1px, rgba(0, 242, 255, 0.03) 2px);
+            background-size: 100% 100%, 100% 40px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: bottom;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. LAYOUT
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            padding-top: 100px;
+        }
+
+        .hero-content h1 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 3rem;
+            border-left: 4px solid var(--secondary);
+            padding-left: 20px;
+        }
+
+        .metric-summary {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .summary-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            min-width: 180px;
+        }
+
+        .summary-val {
+            font-size: 2.5rem;
+            font-family: var(--font-display);
+            color: var(--primary);
+        }
+
+        /* =========================================
+           6. SUBJECT GRID (INTERACTIVE)
+           ========================================= */
+        .section-header {
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+        }
+
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .subject-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s var(--ease-smooth);
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .subject-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+            background: var(--bg-panel-hover);
+        }
+
+        .subject-card.active {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+        }
+
+        .subject-card.active::before {
+            background: var(--primary);
+            width: 100%;
+            opacity: 0.1;
+        }
+
+        .subject-card.low-stress::before { background: var(--success); }
+        .subject-card.med-stress::before { background: var(--warning); }
+        .subject-card.high-stress::before { background: var(--accent); }
+
+        .sub-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .sub-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub-stress-badge {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            display: inline-block;
+        }
+
+        /* =========================================
+           7. ANALYTICS DASHBOARD (VISUALS)
+           ========================================= */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .chart-container {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .chart-title {
+            align-self: flex-start;
+            font-family: var(--font-display);
+            margin-bottom: 2rem;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        /* Custom SVG Radar Chart Styles */
+        svg.radar-chart {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            overflow: visible;
+        }
+
+        .radar-grid {
+            fill: none;
+            stroke: rgba(255,255,255,0.1);
+            stroke-width: 1;
+        }
+
+        .radar-area {
+            fill: rgba(0, 242, 255, 0.2);
+            stroke: var(--primary);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 10px var(--primary));
+            transition: all 0.5s var(--ease-elastic);
+        }
+
+        .radar-point {
+            fill: #fff;
+            stroke: var(--primary);
+            stroke-width: 2;
+            transition: all 0.3s;
+        }
+        
+        .radar-label {
+            fill: var(--text-muted);
+            font-family: var(--font-tech);
+            font-size: 12px;
+        }
+
+        /* Stress Bar Chart (Side Panel) */
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bar-label {
+            width: 100px;
+            font-family: var(--font-mono);
+            text-align: right;
+            color: var(--text-muted);
+        }
+
+        .bar-track {
+            flex-grow: 1;
+            height: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            width: 0%;
+            transition: width 1s var(--ease-elastic);
+            position: relative;
+        }
+
+        .bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .bar-fill.high { background: var(--accent); box-shadow: 0 0 15px rgba(255,0,85,0.3); }
+        .bar-fill.med { background: var(--warning); box-shadow: 0 0 15px rgba(255,204,0,0.3); }
+        .bar-fill.low { background: var(--success); box-shadow: 0 0 15px rgba(0,255,136,0.3); }
+
+        /* =========================================
+           8. SCHEDULE SIMULATOR
+           ========================================= */
+        .schedule-wrapper {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            margin-top: 4rem;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr); /* Time + 7 Days */
+            gap: 10px;
+            margin-top: 2rem;
+        }
+
+        .time-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .time-slot {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .day-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-family: var(--font-display);
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .slot {
+            height: 60px;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slot:hover {
+            border-style: solid;
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.05);
+        }
+
+        .slot.filled {
+            border-style: solid;
+            font-family: var(--font-tech);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .slot.filled::after {
+            content: 'x';
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            font-size: 0.6rem;
+            opacity: 0.5;
+        }
+
+        .slot.filled:hover::after {
+            content: 'remove';
+            opacity: 1;
+        }
+
+        .prediction-panel {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-suggestion {
+            font-size: 1.2rem;
+        }
+
+        .ai-suggestion strong {
+            color: var(--secondary);
+            font-family: var(--font-display);
+        }
+
+        /* =========================================
+           9. FOOTER
+           ========================================= */
+        footer {
+            text-align: center;
+            padding: 4rem 0;
+            border-top: 1px solid #111;
+            color: #444;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 10;
+            background: #020203;
+        }
+
+        /* =========================================
+           10. ANIMATIONS
+           ========================================= */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(0, 242, 255, 0.5); }
+        }
+
+        .glowing {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .week-grid { overflow-x: auto; min-width: 800px; }
+            .hero-content h1 { font-size: 2.5rem; }
+            .nav-links { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="synapse-canvas"></canvas>
+    <div class="grid-floor"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            NeuroCalm
+        </a>
+        <div class="nav-links">
+            <a href="/dashboard" data-hover style="color:var(--text-muted); text-decoration:none; margin-right:20px;">Dashboard</a>
+            <a href="/category" data-hover style="color:var(--text-muted); text-decoration:none; margin-right:20px;">Categories</a>
+            <a href="/analytics" data-hover style="color:var(--primary); text-decoration:none; font-weight:700;">Analytics</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Subject-Specific <br><span style="color:var(--secondary)">Neural Analytics</span></h1>
+                <p>Visualize cognitive load by subject. Discover that Math stresses you out more than Art. Optimize your weekly schedule based on real-time biometric feedback.</p>
+                
+                <div class="metric-summary">
+                    <div class="summary-card">
+                        <div class="summary-val">Math</div>
+                        <div style="color:var(--accent); font-family:var(--font-mono);">High Stress</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-val">Art</div>
+                        <div style="color:var(--success); font-family:var(--font-mono);">Low Stress</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Subject Selection -->
+        <section>
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Subject Database</h2>
+                    <p style="color:var(--text-muted)">Select subjects to analyze comparison data.</p>
+                </div>
+                <button class="btn-primary" style="padding:10px 20px; background:var(--primary); border:none; border-radius:5px; color:#000; font-family:var(--font-display); cursor:none;" data-hover onclick="resetSelection()">Reset View</button>
+            </div>
+
+            <div class="subject-grid" id="subject-container">
+                <!-- JS will inject cards here -->
+            </div>
+        </section>
+
+        <!-- Section 2: Visualizations -->
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">Comparative Visualization</h2>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Left: Radar Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">Cognitive Load Radar</div>
+                    <svg class="radar-chart" viewBox="0 0 400 400" id="radar-svg">
+                        <!-- Grid Lines -->
+                        <polygon points="" class="radar-grid" id="radar-grid-3"></polygon>
+                        <polygon points="" class="radar-grid" id="radar-grid-2"></polygon>
+                        <polygon points="" class="radar-grid" id="radar-grid-1"></polygon>
+                        <!-- Data Area -->
+                        <polygon points="" class="radar-area" id="radar-data"></polygon>
+                        <!-- Labels -->
+                        <text x="200" y="40" text-anchor="middle" class="radar-label">Math</text>
+                        <text x="340" y="110" text-anchor="middle" class="radar-label">Physics</text>
+                        <text x="340" y="290" text-anchor="middle" class="radar-label">Art</text>
+                        <text x="200" y="360" text-anchor="middle" class="radar-label">History</text>
+                        <text x="60" y="290" text-anchor="middle" class="radar-label">Language</text>
+                        <text x="60" y="110" text-anchor="middle" class="radar-label">PE</text>
+                        <!-- Dots -->
+                        <circle cx="200" cy="200" r="4" fill="#fff" />
+                    </svg>
+                    <p style="margin-top:1rem; color:var(--text-muted); font-size:0.9rem;">Radius: 0 (Relaxed) to 100 (Critical)</p>
+                </div>
+
+                <!-- Right: Bar Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">Stress Breakdown</div>
+                    <div class="bar-chart" id="bar-chart-container">
+                        <!-- Bars injected via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Schedule Simulator -->
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">Schedule Simulator</h2>
+                <p style="color:var(--text-muted)">Drag subjects into slots (Click to toggle) to predict daily stress.</p>
+            </div>
+
+            <div class="schedule-wrapper">
+                <div class="week-grid">
+                    <!-- Time Column -->
+                    <div class="time-col">
+                        <div class="day-header"></div>
+                        <div class="time-slot">09:00</div>
+                        <div class="time-slot">10:00</div>
+                        <div class="time-slot">11:00</div>
+                        <div class="time-slot">12:00</div>
+                    </div>
+                    <!-- Days (Generated by JS for brevity) -->
+                    <div id="days-container"></div>
+                </div>
+
+                <div class="prediction-panel">
+                    <div class="ai-suggestion">
+                        AI Prediction: <strong id="daily-prediction">Optimal</strong> Load.
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="color:var(--text-muted); font-size:0.8rem;">Total Stress Index:</span>
+                        <span id="total-stress-val" style="font-family:var(--font-display); font-size:1.5rem; color:#fff;">0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2023 NeuroCalm AI. Optimizing Cognitive Performance.</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA MODEL
+        // =========================================
+        const subjects = [
+            { id: 'math', name: 'Mathematics', icon: '∑', stress: 85, load: 90, interest: 40, color: '#ff0055' }, // High Stress
+            { id: 'art', name: 'Art & Design', icon: '🎨', stress: 15, load: 30, interest: 95, color: '#00ff88' }, // Low Stress
+            { id: 'phys', name: 'Physics', icon: '⚛', stress: 70, load: 80, interest: 60, color: '#ffcc00' }, // Med Stress
+            { id: 'hist', name: 'History', icon: '📜', stress: 40, load: 50, interest: 75, color: '#00f2ff' }, // Neutral
+            { id: 'lang', name: 'Languages', icon: '🗣', stress: 30, load: 45, interest: 80, color: '#00f2ff' }, // Neutral
+            { id: 'pe', name: 'Physical Ed', icon: '🏃', stress: 25, load: 85, interest: 90, color: '#00ff88' } // Physical load
+        ];
+
+        let activeSubjects = new Set(['math', 'art', 'phys']); // Default selection
+        let scheduleData = {}; // Stores subject ID per day/slot
+
+        // =========================================
+        // 2. CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('[data-hover], .subject-card, .slot').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 3. SUBJECT GRID RENDERING
+        // =========================================
+        const gridContainer = document.getElementById('subject-container');
+
+        function renderSubjects() {
+            gridContainer.innerHTML = '';
+            subjects.forEach(sub => {
+                const card = document.createElement('div');
+                const isActive = activeSubjects.has(sub.id);
+                let stressClass = sub.stress > 60 ? 'high-stress' : (sub.stress > 30 ? 'med-stress' : 'low-stress');
+                
+                card.className = `subject-card ${isActive ? 'active' : ''} ${stressClass}`;
+                card.innerHTML = `
+                    <div class="sub-icon">${sub.icon}</div>
+                    <div class="sub-name">${sub.name}</div>
+                    <div class="sub-stress-badge">STRESS: ${sub.stress}%</div>
+                `;
+
+                card.onclick = () => toggleSubject(sub.id);
+                gridContainer.appendChild(card);
+            });
+        }
+
+        function toggleSubject(id) {
+            if (activeSubjects.has(id)) {
+                if(activeSubjects.size > 2) activeSubjects.delete(id);
+            } else {
+                activeSubjects.add(id);
+            }
+            renderSubjects();
+            updateCharts();
+        }
+
+        function resetSelection() {
+            activeSubjects = new Set(['math', 'art']);
+            renderSubjects();
+            updateCharts();
+        }
+
+        // =========================================
+        // 4. RADAR CHART LOGIC (SVG)
+        // =========================================
+        const centerX = 200;
+        const centerY = 200;
+        const maxRadius = 140; // Max distance from center
+        const totalAxes = 6; // Fixed to 6 for aesthetic balance even if we have 7 subjects (we can just map or use top 6)
+        
+        function getPointOnCircle(index, total, value, maxVal) {
+            const angle = (Math.PI * 2 * index) / total - (Math.PI / 2); // Start at top
+            const r = (value / maxVal) * maxRadius;
+            const x = centerX + r * Math.cos(angle);
+            const y = centerY + r * Math.sin(angle);
+            return [x, y];
+        }
+
+        function initRadarGrid() {
+            // Draw concentric polygons (Grid)
+            [0.25, 0.5, 0.75, 1].forEach(scale => {
+                const points = [];
+                for(let i=0; i<totalAxes; i++) {
+                    const [x, y] = getPointOnCircle(i, totalAxes, 100, 100);
+                    // Scale points
+                    const dx = (x - centerX) * scale + centerX;
+                    const dy = (y - centerY) * scale + centerY;
+                    points.push(`${dx},${dy}`);
+                }
+                document.getElementById(`radar-grid-${Math.floor(scale*4)}`).setAttribute('points', points.join(' '));
+            });
+        }
+
+        function updateCharts() {
+            // --- Update Radar Chart ---
+            // We only map the first 6 active subjects (or fill with zeros)
+            const activeList = Array.from(activeSubjects);
+            const dataPoints = [];
+
+            for(let i=0; i<totalAxes; i++) {
+                const sub = activeList[i];
+                const val = sub ? sub.stress : 0; // Use stress as the metric
+                const [x, y] = getPointOnCircle(i, totalAxes, val, 100);
+                dataPoints.push(`${x},${y}`);
+            }
+
+            document.getElementById('radar-data').setAttribute('points', dataPoints.join(' '));
+
+            // --- Update Bar Chart ---
+            const barContainer = document.getElementById('bar-chart-container');
+            barContainer.innerHTML = '';
+            
+            // Sort by stress descending
+            const sorted = [...subjects].sort((a,b) => b.stress - a.stress);
+            
+            sorted.forEach(sub => {
+                if(activeSubjects.has(sub.id)) {
+                    const row = document.createElement('div');
+                    row.className = 'bar-row';
+                    let stressClass = sub.stress > 60 ? 'high' : (sub.stress > 30 ? 'med' : 'low');
+                    
+                    row.innerHTML = `
+                        <div class="bar-label">${sub.name}</div>
+                        <div class="bar-track">
+                            <div class="bar-fill ${stressClass}" style="width: ${sub.stress}%"></div>
+                        </div>
+                        <div class="bar-label" style="text-align:left; width:40px;">${sub.stress}</div>
+                    `;
+                    barContainer.appendChild(row);
+                }
+            });
+        }
+
+        // =========================================
+        // 5. SCHEDULE SIMULATOR
+        // =========================================
+        const daysContainer = document.getElementById('days-container');
+        const days = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+        const timeSlots = 4;
+        let currentFillSubject = null; // "Paint" mode
+
+        function initSchedule() {
+            days.forEach(day => {
+                const col = document.createElement('div');
+                col.className = 'day-col';
+                
+                col.innerHTML = `<div class="day-header">${day}</div>`;
+                
+                for(let t=0; t<timeSlots; t++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.dataset.day = day;
+                    slot.dataset.time = t;
+                    
+                    slot.onclick = function() {
+                        handleSlotClick(this, day, t);
+                    }
+                    
+                    col.appendChild(slot);
+                }
+                daysContainer.appendChild(col);
+            });
+        }
+
+        function handleSlotClick(el, day, time) {
+            // If empty, prompt for subject (simplified: toggle through subjects or use last clicked from grid)
+            // For this UI, let's just toggle empty <-> Math <-> Art <-> Clear for demo purposes
+            const currentVal = el.innerText;
+            
+            if(!currentVal) {
+                // Fill with current high stress subject for demo
+                el.classList.add('filled');
+                el.innerText = 'Math';
+                el.style.borderColor = subjects[0].color;
+                el.style.color = subjects[0].color;
+                scheduleData[`${day}-${time}`] = 'math';
+            } else {
+                // Clear
+                el.classList.remove('filled');
+                el.innerText = '';
+                el.style.borderColor = '';
+                el.style.color = '';
+                delete scheduleData[`${day}-${time}`];
+            }
+            calculatePrediction();
+        }
+
+        function calculatePrediction() {
+            const vals = Object.values(scheduleData);
+            if(vals.length === 0) {
+                document.getElementById('total-stress-val').innerText = '0';
+                document.getElementById('daily-prediction').innerText = 'Optimal';
+                document.getElementById('daily-prediction').style.color = 'var(--text-main)';
+                return;
+            }
+
+            let totalStress = 0;
+            vals.forEach(subId => {
+                const sub = subjects.find(s => s.id === subId);
+                if(sub) totalStress += sub.stress;
+            });
+
+            const avg = Math.floor(totalStress / vals.length);
+            document.getElementById('total-stress-val').innerText = avg;
+            
+            const predEl = document.getElementById('daily-prediction');
+            if(avg > 70) {
+                predEl.innerText = 'CRITICAL';
+                predEl.style.color = 'var(--accent)';
+            } else if (avg > 40) {
+                predEl.innerText = 'Manageable';
+                predEl.style.color = 'var(--warning)';
+            } else {
+                predEl.innerText = 'Optimal';
+                predEl.style.color = 'var(--success)';
+            }
+        }
+
+        // =========================================
+        // 6. BACKGROUND ANIMATION (SYNAPSE)
+        // =========================================
+        const canvas = document.getElementById('synapse-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        for(let i=0; i<60; i++) particles.push(new Particle());
+
+        function animateBg() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.update();
+                // Connections
+                particles.forEach(p2 => {
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = `rgba(100, 100, 255, ${1 - dist/150})`;
+                        ctx.stroke();
+                    }
+                });
+            });
+            requestAnimationFrame(animateBg);
+        }
+
+        // =========================================
+        // INITIALIZATION
+        // =========================================
+        initRadarGrid();
+        renderSubjects();
+        updateCharts();
+        initSchedule();
+        animateBg();
+
+    </script>
+</body>
+</html>

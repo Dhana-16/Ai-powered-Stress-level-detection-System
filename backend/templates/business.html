@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business & Enterprise | NeuroCalm AI</title>
+    <meta name="description" content="AI-driven stress detection for business professionals and executives managing high-stakes financial environments.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050505;
+            --bg-card: rgba(20, 20, 30, 0.6);
+            --primary: #00f2ff; /* Cyan Neon */
+            --secondary: #bd00ff; /* Purple Neon */
+            --accent: #ff0055; /* Pink Neon */
+            --profit: #00ff88; /* Green for profit */
+            --loss: #ff3333; /* Red for loss */
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #market-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 0, 85, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 85, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 95%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.4s;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .cta-btn {
+            background: var(--secondary);
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            text-decoration: none;
+            border-radius: 4px;
+            font-family: var(--font-tech);
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .cta-btn:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            padding: 120px 5%;
+        }
+
+        .hero-content {
+            max-width: 700px;
+        }
+
+        .hero-tag {
+            background: rgba(255, 51, 51, 0.1);
+            color: var(--loss);
+            padding: 5px 15px;
+            border: 1px solid var(--loss);
+            border-radius: 50px;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            animation: pulseRed 2s infinite;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .gradient-text-loss {
+            background: linear-gradient(90deg, #ff3333, #ffcc00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 51, 51, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); }
+        }
+
+        /* =========================================
+           6. INTERACTIVE SIMULATOR
+           ========================================= */
+        .sim-section {
+            padding: 4rem 5%;
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .sim-container {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+            width: 100%;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        #stress-chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sim-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .range-wrap {
+            position: relative;
+        }
+
+        .range-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-tech);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #222;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+            transition: 0.2s;
+        }
+
+        .sim-stat-box {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* =========================================
+           7. PROBLEM / SOLUTION SECTIONS
+           ========================================= */
+        .section-padding {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .pain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .pain-card {
+            background: rgba(255, 51, 51, 0.05);
+            border: 1px solid rgba(255, 51, 51, 0.2);
+            padding: 2.5rem;
+            border-radius: 16px;
+            transition: 0.3s;
+        }
+
+        .pain-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 51, 51, 0.1);
+            box-shadow: 0 10px 30px rgba(255, 51, 51, 0.1);
+        }
+
+        .pain-icon {
+            font-size: 2.5rem;
+            color: var(--loss);
+            margin-bottom: 1.5rem;
+        }
+
+        .pain-card h3 {
+            font-family: var(--font-tech);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .pain-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Solutions Bento Grid */
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 300px);
+            gap: 20px;
+        }
+
+        .sol-card {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .sol-card:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+
+        .sol-card.large {
+            grid-column: span 2;
+            grid-row: span 2;
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), transparent);
+        }
+
+        .sol-card.tall {
+            grid-row: span 2;
+            background: linear-gradient(to bottom, rgba(189, 0, 255, 0.1), transparent);
+        }
+
+        .sol-bg-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-display);
+            font-size: 8rem;
+            color: rgba(255,255,255,0.03);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .sol-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sol-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* =========================================
+           8. TESTIMONIAL / QUOTE
+           ========================================= */
+        .quote-section {
+            padding: 8rem 5%;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            background: radial-gradient(circle at center, rgba(0, 242, 255, 0.05), transparent);
+        }
+
+        .quote-mark {
+            font-size: 6rem;
+            color: var(--primary);
+            opacity: 0.2;
+            font-family: serif;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .quote-text {
+            font-family: var(--font-tech);
+            font-size: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        .quote-author {
+            margin-top: 2rem;
+            color: var(--secondary);
+            font-family: var(--font-display);
+        }
+
+        /* =========================================
+           9. FOOTER
+           ========================================= */
+        footer {
+            border-top: 1px solid #111;
+            padding: 4rem 5% 2rem;
+            background: #020203;
+            z-index: 10;
+            position: relative;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .socials {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .social-icon:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .solution-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+            .sol-card.large, .sol-card.tall { grid-column: span 1; grid-row: span 1; }
+        }
+
+        @media (max-width: 768px) {
+            .sim-section, .hero { grid-template-columns: 1fr; padding-top: 100px; }
+            .nav-links { display: none; }
+            h1 { font-size: 2.5rem; }
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 0.8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="market-canvas"></canvas>
+    <div class="grid-overlay"></div>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NeuroCalm
+        </a>
+        <div class="nav-links">
+            <a href="/index" data-hover>Home</a>
+            <a href="/category" data-hover>Category</a>
+            <a href="/business" style="color: var(--primary);" data-hover>Business</a>
+            <a href="/register" data-hover>Join</a>
+        </div>
+        <a href="/business_ques" class="cta-btn" data-hover>Detect Stress Level</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content reveal">
+            <span class="hero-tag">Executive Health</span>
+            <h1>Managing the <br><span class="gradient-text-loss">Profit & Panic</span> Equation</h1>
+            <p>
+                For business owners, the market isn't just numbers—it's biology. Fluctuations in ROI directly correlate with spikes in cortisol levels. NeuroCalm AI monitors your physiological response to financial volatility in real-time.
+            </p>
+            <a href="#simulator" class="cta-btn" style="padding: 1rem 2.5rem; font-size: 1.1rem;" data-hover>
+                Run Simulation
+            </a>
+        </div>
+    </section>
+
+    <!-- Interactive Simulator -->
+    <section class="sim-section" id="simulator">
+        <div class="sim-content reveal">
+            <h2 style="font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 1rem;">Market vs. Stress Correlation</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">
+                Use the slider to simulate market changes. Observe how financial loss instantly triggers acute stress biomarkers, even before you consciously realize it.
+            </p>
+
+            <div class="sim-controls">
+                <div class="range-wrap">
+                    <div class="range-label">
+                        <span>Portfolio Value</span>
+                        <span id="market-val" style="color: var(--profit);">+12% (Profit)</span>
+                    </div>
+                    <input type="range" id="market-slider" min="-50" max="50" value="12">
+                </div>
+
+                <div class="sim-stat-box">
+                    <div>
+                        <span style="font-family: var(--font-tech); color: var(--text-muted); display: block; font-size: 0.9rem;">ESTIMATED CORTISOL</span>
+                        <span class="stat-value" id="cort-val" style="color: var(--success);">Low</span>
+                    </div>
+                    <div>
+                        <span style="font-family: var(--font-tech); color: var(--text-muted); display: block; font-size: 0.9rem;">HEART RATE</span>
+                        <span class="stat-value" id="hr-val">72 BPM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sim-container reveal">
+            <div class="chart-wrapper">
+                <canvas id="stress-chart"></canvas>
+            </div>
+            <div style="font-family: var(--font-tech); color: #555; font-size: 0.8rem; text-align: center;">
+                LIVE BIOMETRIC FEED // ID: BIZ_OWNER_01
+            </div>
+        </div>
+    </section>
+
+    <!-- Pain Points -->
+    <section class="section-padding">
+        <div class="section-title reveal">The Silent Cost of Business</div>
+        <div class="pain-grid">
+            <div class="pain-card reveal">
+                <div class="pain-icon">📉</div>
+                <h3>Uncertainty Anxiety</h3>
+                <p>The fear of quarterly losses keeps the nervous system in a constant "fight or flight" mode, reducing cognitive ability for decision making.</p>
+            </div>
+            <div class="pain-card reveal" style="transition-delay: 0.1s;">
+                <div class="pain-icon">🏢</div>
+                <h3>Responsibility Weight</h3>
+                <p>The burden of payroll and employee welfare creates a unique type of chronic stress that standard wearables fail to detect.</p>
+            </div>
+            <div class="pain-card reveal" style="transition-delay: 0.2s;">
+                <div class="pain-icon">⏰</div>
+                <h3>24/7 Availability</h3>
+                <p>Global markets never sleep. Disrupted circadian rhythms lead to burnout, irritability, and long-term cardiovascular risk.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solutions Bento Grid -->
+    <section class="section-padding" style="background: rgba(255,255,255,0.02);">
+        <div class="section-title reveal">Precision Executive Care</div>
+        
+        <div class="solution-grid">
+            <!-- Feature 1 (Large) -->
+            <div class="sol-card large reveal" data-hover>
+                <div class="sol-bg-text">AI</div>
+                <h3>Pre-Meeting Calibration</h3>
+                <p>Before high-stakes negotiations, get a 30-second analysis of your stress baseline. Our AI suggests breathing exercises to lower your voice frequency and project confidence.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="sol-card reveal" data-hover>
+                <div class="sol-bg-text">24H</div>
+                <h3>Global Sync</h3>
+                <p>Adapt stress baselines automatically based on timezone changes to mitigate jet lag effects.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="sol-card reveal" data-hover>
+                <div class="sol-bg-text">VOC</div>
+                <h3>Voice Analysis</h3>
+                <p>Detect micro-tremors in your voice during calls that signal hidden fatigue.</p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="sol-card reveal" data-hover>
+                <div class="sol-bg-text">DATA</div>
+                <h3>Quarterly Health Report</h3>
+                <p>Correlate your business performance graphs with your physiological health graphs for the board.</p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="sol-card reveal" data-hover>
+                <div class="sol-bg-text">ZEN</div>
+                <h3>Emergency Protocol</h3>
+                <p>Detects panic attack precursors instantly and triggers grounding audio cues.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote Section -->
+    <section class="quote-section reveal">
+        <span class="quote-mark">“</span>
+        <p class="quote-text">
+            I realized my biggest asset wasn't my stock options, but my sanity. NeuroCalm helped me decouple my self-worth from the NASDAQ.
+        </p>
+        <div class="quote-author">— CEO, Tech Unicorn</div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div>
+                <a href="#" class="footer-logo">NeuroCalm</a>
+                <p style="color: #666; max-width: 300px; margin-top: 1rem;">
+                    Advanced AI systems for the modern executive. Balancing the books and the mind.
+                </p>
+                <div class="socials">
+                    <a href="#" class="social-icon">IN</a>
+                    <a href="#" class="social-icon">X</a>
+                    <a href="#" class="social-icon">IG</a>
+                </div>
+            </div>
+            <div>
+                <h4 style="color: #fff; margin-bottom: 1.5rem; font-family: var(--font-tech);">Platform</h4>
+                <ul style="list-style: none; color: #666; line-height: 2;">
+                    <li><a href="#" style="color: inherit; text-decoration: none;">Technology</a></li>
+                    <li><a href="#" style="color: inherit; text-decoration: none;">Enterprise</a></li>
+                    <li><a href="#" style="color: inherit; text-decoration: none;">API</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color: #fff; margin-bottom: 1.5rem; font-family: var(--font-tech);">Legal</h4>
+                <ul style="list-style: none; color: #666; line-height: 2;">
+                    <li><a href="#" style="color: inherit; text-decoration: none;">Privacy</a></li>
+                    <li><a href="#" style="color: inherit; text-decoration: none;">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div style="border-top: 1px solid #111; padding-top: 2rem; text-align: center; color: #444; font-size: 0.9rem;">
+            &copy; 2023 NeuroCalm AI. Business Solutions Division.
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, input, .sol-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. BACKGROUND ANIMATION (Market Rain)
+        // =========================================
+        const canvas = document.getElementById('market-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class RainDrop {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.length = Math.random() * 20 + 10;
+                this.speed = Math.random() * 5 + 2;
+                this.color = Math.random() > 0.5 ? 'rgba(255, 51, 51, 0.2)' : 'rgba(0, 242, 255, 0.1)'; // Red or Cyan
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, this.y + this.length);
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) {
+                    this.y = -this.length;
+                    this.x = Math.random() * canvas.width;
+                }
+                this.draw();
+            }
+        }
+
+        const drops = [];
+        for (let i = 0; i < 100; i++) {
+            drops.push(new RainDrop());
+        }
+
+        function animateRain() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drops.forEach(drop => drop.update());
+            requestAnimationFrame(animateRain);
+        }
+        animateRain();
+
+        // =========================================
+        // 3. INTERACTIVE SIMULATOR LOGIC
+        // =========================================
+        const slider = document.getElementById('market-slider');
+        const marketVal = document.getElementById('market-val');
+        const cortVal = document.getElementById('cort-val');
+        const hrVal = document.getElementById('hr-val');
+
+        const chartCanvas = document.getElementById('stress-chart');
+        const cCtx = chartCanvas.getContext('2d');
+
+        // Set Chart Canvas Resolution
+        function resizeChart() {
+            chartCanvas.width = chartCanvas.offsetWidth;
+            chartCanvas.height = chartCanvas.offsetHeight;
+        }
+        resizeChart();
+        window.addEventListener('resize', resizeChart);
+
+        // Chart Data
+        let chartData = [];
+        const maxDataPoints = 100;
+        let stressLevel = 0; // 0 to 1
+        let volatility = 0.5;
+
+        function updateSimulation() {
+            const val = parseInt(slider.value);
+            
+            // Calculate Stress Level based on negative market value
+            // If value is positive (0 to 50), stress is low. If negative (-50 to 0), stress is high.
+            if (val > 0) {
+                stressLevel = 0.1 + (Math.random() * 0.1); // Low base stress
+                marketVal.innerHTML = `+${val}% (Profit)`;
+                marketVal.style.color = 'var(--profit)';
+                cortVal.innerText = "Normal";
+                cortVal.style.color = 'var(--success)';
+            } else {
+                // Map -50 to 0 into 0.5 to 1.0 stress
+                stressLevel = 0.5 + (Math.abs(val) / 50) * 0.5; 
+                marketVal.innerHTML = `${val}% (Loss)`;
+                marketVal.style.color = 'var(--loss)';
+                cortVal.innerText = "CRITICAL";
+                cortVal.style.color = 'var(--loss)';
+            }
+
+            // HR calculation
+            const baseHR = 70;
+            const stressHR = stressLevel * 60; // Up to +60 bpm
+            const currentHR = Math.floor(baseHR + stressHR + (Math.random() * 5));
+            hrVal.innerText = `${currentHR} BPM`;
+            hrVal.style.color = currentHR > 100 ? 'var(--loss)' : 'var(--text-main)';
+
+            // Add new point to chart
+            chartData.push(stressLevel);
+            if (chartData.length > maxDataPoints) {
+                chartData.shift();
+            }
+
+            drawChart();
+        }
+
+        function drawChart() {
+            cCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            
+            // Draw Grid
+            cCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+            cCtx.lineWidth = 1;
+            cCtx.beginPath();
+            for(let i=0; i<chartCanvas.width; i+=40) { cCtx.moveTo(i,0); cCtx.lineTo(i, chartCanvas.height); }
+            for(let i=0; i<chartCanvas.height; i+=40) { cCtx.moveTo(0,i); cCtx.lineTo(chartCanvas.width, i); }
+            cCtx.stroke();
+
+            // Draw Line
+            cCtx.beginPath();
+            const step = chartCanvas.width / (maxDataPoints - 1);
+            
+            // Gradient Stroke
+            const gradient = cCtx.createLinearGradient(0, 0, chartCanvas.width, 0);
+            gradient.addColorStop(0, 'rgba(0, 242, 255, 0)');
+            gradient.addColorStop(1, stressLevel > 0.6 ? 'rgba(255, 51, 51, 1)' : 'rgba(0, 255, 136, 1)');
+            
+            cCtx.strokeStyle = gradient;
+            cCtx.lineWidth = 3;
+            cCtx.lineCap = 'round';
+            cCtx.lineJoin = 'round';
+
+            chartData.forEach((point, index) => {
+                const x = index * step;
+                const y = chartCanvas.height - (point * chartCanvas.height); // Invert Y
+                if(index === 0) cCtx.moveTo(x, y);
+                else cCtx.lineTo(x, y);
+            });
+            cCtx.stroke();
+
+            // Draw Area under line
+            cCtx.lineTo(chartCanvas.width, chartCanvas.height);
+            cCtx.lineTo(0, chartCanvas.height);
+            cCtx.fillStyle = stressLevel > 0.6 ? 'rgba(255, 51, 51, 0.1)' : 'rgba(0, 255, 136, 0.1)';
+            cCtx.fill();
+        }
+
+        slider.addEventListener('input', updateSimulation);
+        
+        // Animation Loop for chart "heartbeat" jitter
+        setInterval(() => {
+            updateSimulation();
+        }, 100);
+
+        // =========================================
+        // 4. SCROLL REVEAL
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physician Stress Protocol | NeuroCalm AI</title>
+    <meta name="description" content="AI-driven stress analysis for medical professionals. Monitor burnout and vitals in real-time.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #05070a;
+            --bg-medical: #0b101a;
+            --primary: #00f2ff; /* Medical Cyan */
+            --primary-dim: rgba(0, 242, 255, 0.1);
+            --secondary: #00ffaa; /* Recovery Green */
+            --alert: #ff0040; /* Critical Red */
+            --text-main: #eef2f5;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-med: 'Share Tech Mono', monospace; /* Hospital Monitor Font */
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(0, 242, 255, 0.15);
+            --glass-bg: rgba(11, 16, 26, 0.75);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom Cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM MEDICAL CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-crosshair {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--alert);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--alert);
+        }
+
+        .cursor-crosshair {
+            width: 40px;
+            height: 40px;
+            border: 1px dashed var(--primary);
+            border-radius: 50%;
+            transition: 0.1s;
+        }
+
+        body:hover .cursor-crosshair.hovered {
+            width: 60px;
+            height: 60px;
+            border-color: var(--secondary);
+            background: rgba(0, 255, 170, 0.1);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS (ECG & DNA)
+           ========================================= */
+        #ecg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .grid-medical {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 20px var(--primary);
+            animation: scanMove 8s linear infinite;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(5, 7, 10, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--alert);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(255, 0, 64, 0.3);
+            animation: pulse-medical 2s infinite;
+        }
+
+        .logo-text {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-med);
+            margin-left: 3rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            padding: 120px 20px;
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: rgba(255, 0, 64, 0.1);
+            border: 1px solid var(--alert);
+            color: var(--alert);
+            padding: 0.5rem 1.5rem;
+            font-family: var(--font-med);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            animation: flashBadge 3s infinite;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .vitals-box {
+            background: var(--glass-bg);
+            border: var(--glass-border);
+            backdrop-filter: blur(15px);
+            padding: 1.5rem 3rem;
+            border-radius: 15px;
+            display: inline-flex;
+            gap: 3rem;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .vital-item {
+            text-align: left;
+        }
+
+        .vital-label {
+            font-family: var(--font-med);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .vital-value {
+            font-family: var(--font-med);
+            font-size: 2rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .vital-value span {
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        /* =========================================
+           6. STATISTICS & STRESSORS (BENTO GRID)
+           ========================================= */
+        .section-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            margin-bottom: 5rem;
+            text-align: left;
+            border-left: 5px solid var(--primary);
+            padding-left: 20px;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: #fff;
+        }
+
+        .grid-stress {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 10rem;
+        }
+
+        .card-stress {
+            background: rgba(20, 25, 35, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-stress:hover {
+            border-color: var(--primary);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 242, 255, 0.05);
+        }
+
+        .card-stress::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .card-stress:hover::before { opacity: 1; }
+
+        .stress-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 242, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .stress-stat {
+            font-family: var(--font-med);
+            font-size: 2.5rem;
+            color: var(--alert);
+            margin: 1rem 0;
+        }
+
+        /* =========================================
+           7. INTERACTIVE MONITOR SECTION
+           ========================================= */
+        .monitor-section {
+            padding: 8rem 0;
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.8), transparent);
+            position: relative;
+            z-index: 10;
+        }
+
+        .monitor-interface {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            background: #080c14;
+            border: 1px solid #333;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .monitor-left {
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .monitor-right {
+            background: #000;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid #333;
+        }
+
+        .doctor-avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 4px solid var(--primary);
+            position: relative;
+            background: url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80') center/cover;
+            filter: grayscale(100%);
+            transition: 0.5s;
+        }
+
+        .monitor-right:hover .doctor-avatar {
+            filter: grayscale(0%);
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(0, 242, 255, 0.2), transparent);
+            transform: translateY(-100%);
+            animation: scanFace 3s infinite linear;
+        }
+
+        .waveform-graph {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 100px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .bar {
+            flex: 1;
+            background: var(--primary);
+            animation: waveBar 1s infinite ease-in-out;
+        }
+
+        /* =========================================
+           8. START BUTTON & CTA
+           ========================================= */
+        .cta-section {
+            padding: 8rem 20px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .start-btn-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .start-btn {
+            position: relative;
+            padding: 1.5rem 4rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #fff;
+            background: transparent;
+            border: 2px solid var(--alert);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            cursor: none;
+            overflow: hidden;
+            transition: 0.3s;
+            z-index: 2;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--alert);
+            transition: 0.4s;
+            z-index: -1;
+        }
+
+        .start-btn:hover::before {
+            left: 0;
+        }
+
+        .start-btn:hover {
+            box-shadow: 0 0 50px rgba(255, 0, 64, 0.5);
+            letter-spacing: 5px;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%; height: 100%;
+            border: 2px solid var(--alert);
+            border-radius: 10px;
+            animation: ringPulse 2s infinite;
+            z-index: 1;
+        }
+
+        /* =========================================
+           9. ANIMATIONS
+           ========================================= */
+        @keyframes pulse-medical {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 64, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 0, 64, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 64, 0); }
+        }
+
+        @keyframes scanMove {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        @keyframes scanFace {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        @keyframes flashBadge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes waveBar {
+            0%, 100% { height: 20%; opacity: 0.5; }
+            50% { height: 100%; opacity: 1; background: var(--alert); }
+        }
+
+        @keyframes ringPulse {
+            0% { width: 100%; height: 100%; opacity: 1; }
+            100% { width: 120%; height: 120%; opacity: 0; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 968px) {
+            .hero h1 { font-size: 3rem; }
+            .grid-stress { grid-template-columns: 1fr; }
+            .monitor-interface { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Medical Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-crosshair"></div>
+
+    <!-- Backgrounds -->
+    <div class="grid-medical"></div>
+    <canvas id="ecg-canvas"></canvas> <!-- EKG Line -->
+    <canvas id="particle-canvas"></canvas> <!-- Floating Cells/DNA -->
+    <div class="scan-line"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo" data-hover>
+            <div class="logo-icon">+</div>
+            <div class="logo-text">NEURO<span style="color:var(--primary)">MED</span></div>
+        </a>
+        <div class="nav-links">
+            <a href="/index">Home</a>
+            <a href="/category">Categories</a>
+            <a href="#" style="color: var(--primary);">Doctor Portal</a>
+            <a href="/login">Login</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div>
+            <div class="status-badge">SYS: PHYSICIAN_BURNOUT_DETECTED</div>
+            <h1>Physician <span style="color:var(--primary)">Stress</span><br>Analysis</h1>
+            <p>High-pressure environments require high-precision monitoring. Our AI specifically tuned for medical professionals analyzes micro-expressions, vocal tonality, and physiological markers to prevent burnout before it affects patient care.</p>
+            
+            <div class="vitals-box">
+                <div class="vital-item">
+                    <div class="vital-label">AVG. SHIFT STRESS</div>
+                    <div class="vital-value">82% <span style="color:var(--alert);">HIGH</span></div>
+                </div>
+                <div class="vital-item">
+                    <div class="vital-label">DOCTORS MONITORED</div>
+                    <div class="vital-value">45.2K <span style="color:var(--secondary);">ACTIVE</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stress Manifestation Grid -->
+    <section class="section-container">
+        <div class="section-header reveal">
+            <h2>Critical Indicators</h2>
+        </div>
+
+        <div class="grid-stress">
+            <!-- Card 1 -->
+            <div class="card-stress reveal" data-hover>
+                <div class="stress-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                </div>
+                <h3>Extended Shifts</h3>
+                <div class="stress-stat">24+ HRS</div>
+                <p style="color:var(--text-muted);">Cognitive fatigue peaks after the 12th hour, increasing diagnostic error rates by 300%.</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card-stress reveal" style="transition-delay: 0.1s;" data-hover>
+                <div class="stress-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                </div>
+                <h3>Life or Death</h3>
+                <div class="stress-stat">CRITICAL</div>
+                <p style="color:var(--text-muted);">Continuous cortisol spikes from immediate decision making under high stakes.</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card-stress reveal" style="transition-delay: 0.2s;" data-hover>
+                <div class="stress-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                </div>
+                <h3>Admin Load</h3>
+                <div class="stress-stat">65% TIME</div>
+                <p style="color:var(--text-muted);">Excessive documentation requirements causing "Pajama Time" stress after shifts.</p>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card-stress reveal" style="transition-delay: 0.3s;" data-hover>
+                <div class="stress-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <h3>Empathy Fatigue</h3>
+                <div class="stress-stat">HIGH RISK</div>
+                <p style="color:var(--text-muted);">Emotional depletion from constant patient interaction and tragedy exposure.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Monitor Interface -->
+    <section class="monitor-section">
+        <div class="section-container">
+            <div class="monitor-interface reveal">
+                <!-- Left: Data -->
+                <div class="monitor-left">
+                    <h2 style="font-family:var(--font-display); font-size:2.5rem; margin-bottom:1rem;">Bio-Metric <span style="color:var(--primary)">Sync</span></h2>
+                    <p style="color:var(--text-muted); margin-bottom:2rem;">Real-time simulation of AI analysis on a physician during a high-stress surgical procedure.</p>
+                    
+                    <div style="margin-bottom:2rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-family:var(--font-med); color:var(--primary);">
+                            <span>CORTISOL LEVEL</span>
+                            <span id="cort-val">14.2 nmol/L</span>
+                        </div>
+                        <div style="width:100%; height:10px; background:#111; border-radius:5px;">
+                            <div id="cort-bar" style="width:45%; height:100%; background:var(--primary); border-radius:5px; transition:0.2s;"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:2rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-family:var(--font-med); color:var(--alert);">
+                            <span>HEART RATE</span>
+                            <span id="hr-val">95 BPM</span>
+                        </div>
+                        <div style="width:100%; height:10px; background:#111; border-radius:5px;">
+                            <div id="hr-bar" style="width:65%; height:100%; background:var(--alert); border-radius:5px; transition:0.2s;"></div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:20px;">
+                        <div style="flex:1; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; text-align:center;">
+                            <div style="font-size:0.8rem; color:var(--text-muted);">FOCUS</div>
+                            <div style="font-size:1.5rem; color:var(--secondary); font-family:var(--font-med);">88%</div>
+                        </div>
+                        <div style="flex:1; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; text-align:center;">
+                            <div style="font-size:0.8rem; color:var(--text-muted);">TREMOR</div>
+                            <div style="font-size:1.5rem; color:var(--warning); font-family:var(--font-med);">LOW</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Visual -->
+                <div class="monitor-right">
+                    <div class="doctor-avatar"></div>
+                    <div class="scan-overlay"></div>
+                    
+                    <!-- Fake data bars at bottom -->
+                    <div class="waveform-graph">
+                        <div class="bar" style="animation-delay:0s"></div>
+                        <div class="bar" style="animation-delay:0.1s"></div>
+                        <div class="bar" style="animation-delay:0.2s"></div>
+                        <div class="bar" style="animation-delay:0.3s"></div>
+                        <div class="bar" style="animation-delay:0.4s"></div>
+                        <div class="bar" style="animation-delay:0.5s"></div>
+                        <div class="bar" style="animation-delay:0.6s"></div>
+                        <div class="bar" style="animation-delay:0.7s"></div>
+                        <div class="bar" style="animation-delay:0.8s"></div>
+                        <div class="bar" style="animation-delay:0.9s"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-section">
+        <div class="reveal">
+            <h2 style="font-family:var(--font-display); font-size:3rem; margin-bottom:1rem;">Initiate Self-Diagnosis</h2>
+            <p style="color:var(--text-muted); margin-bottom:3rem;">AI-Assisted burnout prevention starts with a single scan.</p>
+            
+            <div class="start-btn-wrapper" data-hover>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring" style="animation-delay: 0.5s;"></div>
+                <button class="start-btn" onclick="startScan()">START SCAN</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="border-top:1px solid #111; padding:2rem; text-align:center; color:#555; font-size:0.9rem;">
+        <p>&copy; 2023 NeuroMed AI. Certified Medical Data Processor.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. MEDICAL CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorCrosshair = document.querySelector('.cursor-crosshair');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorCrosshair.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .card-stress').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorCrosshair.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorCrosshair.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. EKG BACKGROUND ANIMATION
+        // =========================================
+        const ecgCanvas = document.getElementById('ecg-canvas');
+        const eCtx = ecgCanvas.getContext('2d');
+        let ecgData = [];
+        let ecgX = 0;
+        
+        ecgCanvas.width = window.innerWidth;
+        ecgCanvas.height = window.innerHeight;
+
+        // Mouse speed affects ECG Amplitude (Stress metaphor)
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let mouseSpeed = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            const speed = Math.sqrt(Math.pow(e.clientX - lastMouseX, 2) + Math.pow(e.clientY - lastMouseY, 2));
+            mouseSpeed = Math.min(speed * 2, 50); // Cap max amplitude
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        function drawECG() {
+            // Fade out old lines slightly for trail effect
+            eCtx.fillStyle = 'rgba(5, 7, 10, 0.1)';
+            eCtx.fillRect(0, 0, ecgCanvas.width, ecgCanvas.height);
+
+            eCtx.beginPath();
+            eCtx.lineWidth = 2;
+            eCtx.strokeStyle = '#00f2ff'; // Cyan
+            
+            // Create heartbeat pattern
+            if (ecgX > ecgCanvas.width) {
+                ecgX = 0;
+                eCtx.clearRect(0, 0, ecgCanvas.width, ecgCanvas.height); // Clear fully on loop
+            }
+
+            const centerY = ecgCanvas.height / 2;
+            
+            // Complex EKG math
+            let y = centerY;
+            const cycle = ecgX % 200; // Wave cycle length
+
+            if (cycle < 20) y = centerY;
+            else if (cycle < 30) y = centerY - (20 * (cycle - 20)); // P wave
+            else if (cycle < 50) y = centerY;
+            else if (cycle < 55) y = centerY - (5 * (cycle - 50)); // Q
+            else if (cycle < 65) y = centerY - (150 * (cycle - 55)) - 5; // R (High Spike)
+            else if (cycle < 75) y = centerY + (30 * (cycle - 65)) - 155; // S
+            else if (cycle < 120) y = centerY;
+            else if (cycle < 140) y = centerY - (40 * (cycle - 120)); // T wave
+            else y = centerY;
+
+            // Add mouse stress jitter
+            y += (Math.random() - 0.5) * mouseSpeed;
+            
+            // Add noise
+            y += (Math.random() - 0.5) * 5;
+
+            eCtx.lineTo(ecgX, y);
+            eCtx.stroke();
+            ecgX += 5;
+
+            requestAnimationFrame(drawECG);
+        }
+        drawECG();
+
+        // =========================================
+        // 3. FLOATING DNA/PARTICLES
+        // =========================================
+        const partCanvas = document.getElementById('particle-canvas');
+        const pCtx = partCanvas.getContext('2d');
+        let particles = [];
+
+        partCanvas.width = window.innerWidth;
+        partCanvas.height = window.innerHeight;
+
+        class DnaParticle {
+            constructor() {
+                this.x = Math.random() * partCanvas.width;
+                this.y = Math.random() * partCanvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#00ffaa'; // Cyan or Green
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > partCanvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > partCanvas.height) this.speedY *= -1;
+
+                pCtx.fillStyle = this.color;
+                pCtx.beginPath();
+                pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                pCtx.fill();
+            }
+        }
+
+        for (let i = 0; i < 50; i++) particles.push(new DnaParticle());
+
+        function animateParticles() {
+            pCtx.clearRect(0, 0, partCanvas.width, partCanvas.height);
+            particles.forEach(p => p.update());
+            
+            // Draw connections (DNA strands)
+            pCtx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
+            for(let i=0; i<particles.length; i++){
+                for(let j=i; j<particles.length; j++){
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 100) {
+                        pCtx.beginPath();
+                        pCtx.moveTo(particles[i].x, particles[i].y);
+                        pCtx.lineTo(particles[j].x, particles[j].y);
+                        pCtx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // =========================================
+        // 4. SIMULATION LOGIC (The Monitor)
+        // =========================================
+        const hrVal = document.getElementById('hr-val');
+        const hrBar = document.getElementById('hr-bar');
+        const cortVal = document.getElementById('cort-val');
+        const cortBar = document.getElementById('cort-bar');
+
+        setInterval(() => {
+            // Randomize vitals to simulate live data
+            const hr = 85 + Math.floor(Math.random() * 20);
+            const cort = 12 + Math.random() * 5;
+            
+            hrVal.innerText = hr + " BPM";
+            hrBar.style.width = hr + "%";
+            
+            cortVal.innerText = cort.toFixed(1) + " nmol/L";
+            cortBar.style.width = (cort * 4) + "%";
+
+            // Change color based on stress
+            if(hr > 100) {
+                hrBar.style.background = 'var(--alert)';
+                hrVal.style.color = 'var(--alert)';
+            } else {
+                hrBar.style.background = 'var(--primary)';
+                hrVal.style.color = '#fff';
+            }
+
+        }, 2000);
+
+        // =========================================
+        // 5. SCROLL REVEAL
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // =========================================
+        // 6. START BUTTON ACTION
+        // =========================================
+        function startScan() {
+            const btn = document.querySelector('.start-btn');
+            btn.innerHTML = "INITIALIZING...";
+            btn.style.color = "#000";
+            
+            setTimeout(() => {
+                // Simulate redirect or modal
+                alert("NeuroMed AI Link Established. Redirecting to Analysis Suite...");
+                window.location.href = "/doctor_ques"; // Or a specific doctor analysis page
+            }, 1500);
+        }
+
+        // Resize handlers
+        window.addEventListener('resize', () => {
+            ecgCanvas.width = window.innerWidth;
+            ecgCanvas.height = window.innerHeight;
+            partCanvas.width = window.innerWidth;
+            partCanvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>

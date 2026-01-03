@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Assessment Network | NeuroCalm AI</title>
+    <meta name="description" content="Upload, view, and share stress assessment reports with the NeuroCalm AI community.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-deep: #050507;
+            --bg-panel: rgba(15, 20, 35, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff0055; /* Red */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR SYSTEM
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND
+           ========================================= */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 95%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(5, 5, 7, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: var(--glass-border);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        /* =========================================
+           5. HERO SECTION (Start Button)
+           ========================================= */
+        .hero-section {
+            padding: 160px 5% 80px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-start {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 1.5rem 4rem;
+            font-size: 1.5rem;
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: var(--bg-deep);
+            background: var(--primary);
+            border: none;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: none;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px var(--primary);
+        }
+
+        /* =========================================
+           6. UPLOAD & CONTROL BAR
+           ========================================= */
+        .controls-section {
+            padding: 2rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .upload-area {
+            background: rgba(255,255,255,0.03);
+            border: 2px dashed var(--text-muted);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            transition: 0.3s;
+            margin-bottom: 4rem;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.05);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-label {
+            cursor: none;
+            font-family: var(--font-tech);
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .filter-bar::-webkit-scrollbar { display: none; }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-family: var(--font-tech);
+            font-weight: 600;
+            cursor: none;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--secondary);
+            color: #fff;
+            border-color: var(--secondary);
+            box-shadow: 0 0 15px rgba(189, 0, 255, 0.4);
+        }
+
+        /* =========================================
+           7. SOCIAL FEED (Grid)
+           ========================================= */
+        .feed-section {
+            padding: 2rem 5% 6rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .feed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .report-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: 0.4s var(--ease-elastic);
+            position: relative;
+            backdrop-filter: blur(15px);
+        }
+
+        .report-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            object-fit: cover;
+        }
+
+        .user-info h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .user-location {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .category-badge {
+            margin-left: auto;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--primary);
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .card-body {
+            position: relative;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .report-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.5s;
+        }
+
+        .report-card:hover .report-img {
+            transform: scale(1.1);
+        }
+
+        .card-footer {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .card-actions button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            margin-right: 15px;
+            cursor: none;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-actions button:hover {
+            color: var(--accent);
+        }
+
+        .btn-export {
+            padding: 8px 15px;
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--font-tech);
+            font-weight: 700;
+            cursor: none;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .btn-export:hover {
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* =========================================
+           8. CHAT SYSTEM
+           ========================================= */
+        .chat-section {
+            padding: 4rem 5%;
+            background: linear-gradient(to bottom, transparent, #080810);
+            position: relative;
+            z-index: 10;
+        }
+
+        .chat-interface {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: 600px;
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.05);
+        }
+
+        .chat-sidebar {
+            background: rgba(0,0,0,0.4);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .chat-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .chat-user:hover, .chat-user.active {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .chat-user.active {
+            border-left: 3px solid var(--primary);
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header h3 {
+            font-family: var(--font-display);
+        }
+
+        .chat-window {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            position: relative;
+            font-family: var(--font-body);
+            line-height: 1.4;
+        }
+
+        .message.received {
+            background: rgba(255,255,255,0.1);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.sent {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            color: #fff;
+        }
+
+        .chat-input-area {
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 1rem 1.5rem;
+            color: #fff;
+            font-family: var(--font-body);
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-send {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        .btn-send:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* =========================================
+           9. PRINT STYLES (Hidden Export Logic)
+           ========================================= */
+        #print-container {
+            display: none;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-container, #print-container * {
+                visibility: visible;
+            }
+            #print-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: #fff;
+                color: #000;
+                padding: 40px;
+                display: block;
+            }
+            .print-header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px; }
+            .print-logo { font-size: 24px; font-weight: bold; color: #000; }
+        }
+
+        /* =========================================
+           10. RESPONSIVE
+           ========================================= */
+        @media (max-width: 900px) {
+            .chat-interface { grid-template-columns: 1fr; height: 80vh; }
+            .chat-sidebar { display: none; } /* Simplified for mobile */
+            .hero-title { font-size: 2.5rem; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s ease;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Print Container (Hidden) -->
+    <div id="print-container">
+        <!-- Content injected via JS -->
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NeuroCalm
+        </a>
+        <div class="nav-links">
+            <a href="/index">Home</a>
+            <a href="/category">Category</a>
+            <a href="/signup">Sign Up</a>
+            <a href="/login">Login</a>
+            <a href="#" style="color: var(--primary);">Reports</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title reveal">Global Assessment <br><span style="color: var(--primary)">Data Feed</span></h1>
+            <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin: 0 auto;">
+                Visualize stress patterns across demographics. Upload your results, analyze others, and connect with the NeuroCalm network.
+            </p>
+            
+            <a href="#start-section" class="btn-start reveal" style="transition-delay: 0.2s;" data-hover>
+                Start Assessment
+            </a>
+        </section>
+
+        <!-- Controls Section -->
+        <section class="controls-section" id="start-section">
+            <div class="upload-area reveal">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="var(--primary)" style="margin-bottom: 1rem;">
+                    <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                </svg>
+                <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 0.5rem;">Upload Your Result</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Drag and drop your screenshot or click to browse</p>
+                <input type="file" id="file-upload" class="file-input" accept="image/*" onchange="handleUpload(event)">
+                <label for="file-upload" class="upload-label" data-hover>Select File</label>
+                
+                <!-- Category Select for Upload -->
+                <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 10px;">
+                    <select id="upload-category" style="padding: 10px; background: #000; color: #fff; border: 1px solid var(--secondary); border-radius: 5px; font-family: var(--font-tech);">
+                        <option value="student">Student</option>
+                        <option value="working">Working Professional</option>
+                        <option value="athlete">Athlete</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Filter Categories -->
+            <div class="filter-bar reveal" id="filter-container">
+                <button class="filter-btn active" onclick="filterFeed('all')" data-hover>All</button>
+                <!-- Categories injected via JS -->
+            </div>
+        </section>
+
+        <!-- Feed Section -->
+        <section class="feed-section">
+            <div class="feed-grid" id="feed-grid">
+                <!-- Reports injected via JS -->
+            </div>
+        </section>
+
+        <!-- Chat Section -->
+        <section class="chat-section">
+            <div class="section-header" style="text-align: center; margin-bottom: 3rem;">
+                <h2 class="gradient-text" style="font-family: var(--font-display); font-size: 2.5rem;">Neural Network Chat</h2>
+                <p style="color: var(--text-muted);">Connect with others anonymously or share advice.</p>
+            </div>
+
+            <div class="chat-interface reveal">
+                <div class="chat-sidebar">
+                    <h4 style="color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; margin-bottom: 1rem; padding: 0 10px;">Online Users</h4>
+                    <div class="chat-user active" data-hover>
+                        <div class="user-avatar" style="width: 40px; height: 40px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold;">A</div>
+                        <div>
+                            <div style="color: #fff; font-size: 0.9rem;">Anonymous User</div>
+                            <div style="color: var(--text-muted); font-size: 0.7rem;">Online</div>
+                        </div>
+                    </div>
+                    <div class="chat-user" data-hover>
+                        <div class="user-avatar" style="width: 40px; height: 40px; background: var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: bold;">D</div>
+                        <div>
+                            <div style="color: #fff; font-size: 0.9rem;">Dr. Sarah</div>
+                            <div style="color: var(--text-muted); font-size: 0.7rem;">Online</div>
+                        </div>
+                    </div>
+                    <div class="chat-user" data-hover>
+                        <div class="user-avatar" style="width: 40px; height: 40px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold;">M</div>
+                        <div>
+                            <div style="color: #fff; font-size: 0.9rem;">Mike_IT</div>
+                            <div style="color: var(--text-muted); font-size: 0.7rem;">Away</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-main">
+                    <div class="chat-header">
+                        <h3>Global Public Room</h3>
+                        <div style="color: var(--success); font-size: 0.8rem;">● Live</div>
+                    </div>
+                    <div class="chat-window" id="chat-window">
+                        <div class="message received">
+                            <strong style="color: var(--primary); display:block; margin-bottom: 5px;">System</strong>
+                            Welcome to the NeuroCalm Public Channel. Be kind and supportive.
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="message-input" placeholder="Type a message...">
+                        <button class="btn-send" onclick="sendMessage()" data-hover>
+                            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 2rem; color: #444; position: relative; z-index: 10;">
+        <p>&copy; 2023 NeuroCalm AI. Public Assessment Network.</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // =========================================
+        // 1. DATA CONFIGURATION
+        // =========================================
+        const categories = [
+            { id: 'student', name: 'School Student', icon: '<path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/>', desc: 'Academic pressure' },
+            { id: 'college', name: 'College Student', icon: '<path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>', desc: 'Higher education' },
+            { id: 'working', name: 'Working Pro', icon: '<path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>', desc: 'Corporate deadlines' },
+            { id: 'kids', name: 'Kids', icon: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>', desc: 'Early schooling' },
+            { id: 'housewife', name: 'Housewife', icon: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>', desc: 'Household management' },
+            { id: 'athlete', name: 'Athlete', icon: '<path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86l-1.43-1.43L22 16.29z"/>', desc: 'Performance pressure' },
+            { id: 'senior', name: 'Senior Citizen', icon: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>', desc: 'Health concerns' },
+            { id: 'teacher', name: 'Teacher', icon: '<path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>', desc: 'Classroom load' },
+            { id: 'doctor', name: 'Doctor', icon: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8.5 12h-3v-3h3v3zm0-4.5h-3v-3h3v3zm4.5 4.5h-3v-3h3v3zm0-4.5h-3v-3h3v3z"/>', desc: 'Emergency response' },
+            { id: 'it', name: 'IT Employee', icon: '<path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>', desc: 'Screen fatigue' },
+            { id: 'farmer', name: 'Farmer', icon: '<path d="M17 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zM5 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>', desc: 'Weather dependency' },
+            { id: 'artist', name: 'Artist', icon: '<path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>', desc: 'Creative blocks' },
+            { id: 'business', name: 'Business Owner', icon: '<path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>', desc: 'Market risks' },
+            { id: 'unemployed', name: 'Unemployed', icon: '<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>', desc: 'Job search anxiety' },
+            { id: 'engineer', name: 'Engineer', icon: '<path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>', desc: 'Precision & deadlines' },
+            { id: 'designer', name: 'Designer', icon: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>', desc: 'Client revisions' },
+            { id: 'musician', name: 'Musician', icon: '<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>', desc: 'Performance anxiety' },
+            { id: 'familyisssues', name: 'Family Issues', icon: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>', desc: 'Unclassified stressors' }
+        ];
+
+        // Mock Data Generator
+        const names = ["Alex Chen", "Maria Garcia", "James Smith", "Priya Patel", "Kenji Sato", "Elena Ross", "David Kim", "Sarah Jones"];
+        const locations = ["Tokyo, Japan", "New York, USA", "London, UK", "Berlin, Germany", "Toronto, Canada", "Sydney, Australia"];
+        
+        let feedData = [];
+
+        function generateFeed() {
+            for(let i=0; i<15; i++) {
+                const catIndex = Math.floor(Math.random() * categories.length);
+                const cat = categories[catIndex];
+                feedData.push({
+                    id: i,
+                    user: names[Math.floor(Math.random() * names.length)],
+                    location: locations[Math.floor(Math.random() * locations.length)],
+                    category: cat.id,
+                    categoryName: cat.name,
+                    img: `https://picsum.photos/seed/${i}stress/400/300`,
+                    timestamp: `${Math.floor(Math.random()*12)}h ago`,
+                    score: Math.floor(Math.random() * 40) + 10
+                });
+            }
+        }
+        fetch("/api/reports")
+    .then(res => res.json())
+    .then(data => {
+        feedData = data;
+        renderFeed();
+    });
+
+
+        // =========================================
+        // 2. INITIALIZATION & RENDERING
+        // =========================================
+        const filterContainer = document.getElementById('filter-container');
+        const feedGrid = document.getElementById('feed-grid');
+
+        // Render Filter Buttons
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn';
+            btn.innerText = cat.name;
+            btn.onclick = () => filterFeed(cat.id);
+            filterContainer.appendChild(btn);
+        });
+
+        // Render Feed
+        function renderFeed(filter = 'all') {
+            feedGrid.innerHTML = '';
+            const filteredData = filter === 'all' ? feedData : feedData.filter(item => item.category === filter);
+
+            filteredData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'report-card reveal';
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <img src="https://ui-avatars.com/api/?name=${item.user}&background=00f2ff&color=fff" class="user-avatar">
+                        <div class="user-info">
+                            <h4>${item.user}</h4>
+                            <div class="user-location">
+                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                ${item.location}
+                            </div>
+                        </div>
+                        <span class="category-badge">${item.categoryName}</span>
+                    </div>
+                    <div class="card-body">
+                        <img src="${item.img}" class="report-img">
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-actions">
+                            <button><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${Math.floor(Math.random()*50)}</button>
+                            <button><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></button>
+                        </div>
+                        <button class="btn-export" onclick="exportPDF(${item.id})">Export PDF</button>
+                    </div>
+                `;
+                feedGrid.appendChild(card);
+            });
+            triggerReveal();
+        }
+
+        function filterFeed(category) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderFeed(category);
+        }
+
+        function triggerReveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(el => el.classList.add('active'));
+        }
+
+        // Initial Render
+        renderFeed();
+
+        // =========================================
+        // 3. UPLOAD FUNCTIONALITY
+        // =========================================
+        function handleUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                image: reader.result,
+                category: document.getElementById("upload-category").value,
+                location: "Unknown",
+                score: Math.floor(Math.random() * 60) + 20
+            })
+        })
+        .then(res => res.json())
+        .then(() => location.reload());
+    };
+    reader.readAsDataURL(file);
+}
+
+
+        // =========================================
+        // 4. EXPORT PDF FUNCTIONALITY
+        // =========================================
+        function exportPDF(id) {
+            const item = feedData.find(i => i.id === id);
+            if(!item) return;
+
+            const printContainer = document.getElementById('print-container');
+            printContainer.innerHTML = `
+                <div class="print-header">
+                    <div class="print-logo">NEUROCALM AI REPORT</div>
+                    <div style="margin-top:10px; color:#555;">Generated on: ${new Date().toLocaleString()}</div>
+                </div>
+                <div style="display:flex; gap:20px; margin-bottom:20px;">
+                    <div style="flex:1;">
+                        <strong>User:</strong> ${item.user}<br>
+                        <strong>Location:</strong> ${item.location}<br>
+                        <strong>Category:</strong> ${item.categoryName}
+                    </div>
+                    <div style="flex:1;">
+                        <img src="${item.img}" style="width:100%; max-width:400px; border:1px solid #ccc;">
+                    </div>
+                </div>
+                <div style="padding:20px; background:#f9f9f9; border:1px solid #ddd;">
+                    <h3>Analysis Summary</h3>
+                    <p>This report was generated based on the AI analysis of the provided screenshot. The user falls under the <strong>${item.categoryName}</strong> category.</p>
+                    <p>Stress Factor: ${item.score === 0 ? 'Pending Analysis' : item.score + '/100'}</p>
+                    <p style="margin-top:20px; font-size:0.8rem; color:#999;">This document is certified by NeuroCalm AI Systems.</p>
+                </div>
+            `;
+
+            window.print();
+        }
+
+        // =========================================
+        // 5. CHAT FUNCTIONALITY
+        // =========================================
+        const chatWindow = document.getElementById('chat-window');
+        const messageInput = document.getElementById('message-input');
+
+        function sendMessage() {
+            const text = messageInput.value;
+            if(!text) return;
+
+            // Add User Message
+            addMessage(text, 'sent');
+            messageInput.value = '';
+
+            // Simulate Reply
+            setTimeout(() => {
+                const replies = [
+                    "I totally understand that stress.",
+                    "Have you tried the breathing exercises?",
+                    "That assessment result looks familiar.",
+                    "Stay strong, the community is here for you.",
+                    "I found meditation helpful for that category."
+                ];
+                const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                addMessage(randomReply, 'received');
+            }, 1500);
+        }
+
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            
+            const sender = type === 'sent' ? 'You' : 'Other User';
+            div.innerHTML = `<strong style="display:block; margin-bottom:5px; color: ${type==='sent'?'#fff':'var(--primary)'}">${sender}</strong>${text}`;
+            
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Handle Enter key in chat
+        messageInput.addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') sendMessage();
+        });
+
+        // =========================================
+        // 6. VISUALS (Cursor, Canvas, Scroll)
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            cursorDot.style.left = `${e.clientX}px`;
+            cursorDot.style.top = `${e.clientY}px`;
+            cursorOutline.animate({
+                left: `${e.clientX}px`,
+                top: `${e.clientY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .upload-area, .chat-user').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // Simple Canvas Background (Network)
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        for(let i=0; i<60; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5
+            });
+        }
+
+        function animateBg() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            ctx.fillStyle = '#00f2ff';
+            
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x<0 || p.x>canvas.width) p.vx *= -1;
+                if(p.y<0 || p.y>canvas.height) p.vy *= -1;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx.fill();
+
+                for(let j=i; j<particles.length; j++){
+                    const dx = p.x - particles[j].x;
+                    const dy = p.y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx.strokeStyle = `rgba(0, 242, 255, ${0.1 - dist/1500})`;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+    </script>
+</body>
+</html>

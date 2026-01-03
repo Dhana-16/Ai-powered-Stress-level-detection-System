@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Solutions | NeuroCalm AI</title>
+    <meta name="description" content="Scalable AI stress detection for enterprise workforce management and employee wellness optimization.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #020204;
+            --bg-panel: rgba(10, 15, 25, 0.6);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #7000ff; /* Deep Purple */
+            --accent: #ff0055; /* Red/Pink */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #e0e6ed;
+            --text-muted: #64748b;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR SYSTEM
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: width 0.2s, height 0.2s, border-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--primary);
+            border-style: dashed;
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #network-globe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hex-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(var(--secondary) 1px, transparent 1px),
+                radial-gradient(var(--secondary) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            opacity: 0.1;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 95%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(2,2,4,0.9), transparent);
+            transition: 0.3s;
+        }
+
+        nav.scrolled {
+            background: rgba(2, 2, 4, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .btn-cta {
+            padding: 0.8rem 2rem;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: 0.3s;
+            z-index: -1;
+        }
+
+        .btn-cta:hover {
+            color: #000;
+        }
+        
+        .btn-cta:hover::before {
+            left: 0;
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            padding: 0 5%;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .tagline {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--secondary);
+            border-radius: 50px;
+            color: var(--secondary);
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            background: rgba(112, 0, 255, 0.1);
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, #a0a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 4rem;
+        }
+
+        .stat-item h3 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        .stat-item span {
+            color: var(--text-muted);
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* =========================================
+           6. FEATURES (Bento Grid)
+           ========================================= */
+        .section {
+            padding: 8rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            margin-bottom: 5rem;
+            border-left: 4px solid var(--accent);
+            padding-left: 2rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .feature-box {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 3rem;
+            border-radius: 20px;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 242, 255, 0.1);
+        }
+
+        .feature-box.wide {
+            grid-column: span 2;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-box h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-box p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           7. MOCK DASHBOARD (Visual)
+           ========================================= */
+        .dashboard-mockup {
+            background: #0a0a0f;
+            border: 1px solid #222;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: 600px;
+        }
+
+        .dash-sidebar {
+            background: #0f0f16;
+            border-right: 1px solid #222;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .dash-item {
+            padding: 1rem;
+            color: #666;
+            border-radius: 8px;
+            font-family: var(--font-tech);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dash-item.active {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .dash-content {
+            padding: 2rem;
+            position: relative;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #222;
+            padding-bottom: 1rem;
+        }
+
+        .dash-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dash-graph {
+            height: 150px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 10px;
+            padding-top: 20px;
+        }
+
+        .bar {
+            width: 100%;
+            background: #222;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: var(--primary);
+            height: 0%;
+            transition: height 1s ease-out;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* =========================================
+           8. PRICING & CONTACT
+           ========================================= */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .price-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .price-card.featured {
+            border-color: var(--primary);
+            background: linear-gradient(to bottom, rgba(0,242,255,0.05), var(--bg-panel));
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .price-amount {
+            font-size: 3rem;
+            font-family: var(--font-display);
+            margin: 1.5rem 0;
+        }
+
+        .contact-terminal {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 2rem;
+            font-family: var(--font-mono);
+            color: #0f0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: #0f0;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+            border-bottom: 1px solid #333;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid #111;
+            padding: 4rem 5%;
+            background: #010102;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            color: #555;
+        }
+
+        /* =========================================
+           9. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s var(--ease-smooth);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 3rem; }
+            .feature-grid, .pricing-grid, .dashboard-mockup { grid-template-columns: 1fr; }
+            .dashboard-mockup { height: auto; }
+            .dash-sidebar { display: none; }
+            .feature-box.wide { grid-column: auto; }
+            .price-card.featured { transform: scale(1); }
+        }
+
+        .glitch-effect:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: var(--primary);
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="network-globe"></canvas>
+    <div class="hex-grid"></div>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NeuroCalm <span style="color:var(--text-muted); font-weight:400;">B2B</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features" data-hover>Solutions</a>
+            <a href="#technology" data-hover>Technology</a>
+            <a href="#pricing" data-hover>Pricing</a>
+            <a href="login.html" data-hover>Login</a>
+        </div>
+        <a href="#contact" class="btn-cta" data-hover>Book Demo</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content reveal">
+            <span class="tagline">Enterprise Workforce Optimization</span>
+            <h1>AI-Powered <br><span class="glitch-effect">Stress Management</span> <br>at Scale</h1>
+            <p>Deploy our neural detection algorithms across your organization. Reduce burnout, improve retention, and quantify employee wellness with military-grade precision.</p>
+            
+            <div style="display: flex; justify-content: center; gap: 20px;">
+                <a href="#features" class="btn-cta" style="padding: 1rem 3rem; background: var(--primary); color:#000; border:none;" data-hover>Explore Solutions</a>
+                <a href="#contact" class="btn-cta" data-hover>Contact Sales</a>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-item">
+                    <h3 class="counter" data-target="500">0</h3>
+                    <span>Enterprise Clients</span>
+                </div>
+                <div class="stat-item">
+                    <h3 class="counter" data-target="98">0</h3>
+                    <span>% Accuracy</span>
+                </div>
+                <div class="stat-item">
+                    <h3 class="counter" data-target="12">0</h3>
+                    <span>Regions Covered</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <div class="section-header reveal">
+            <h2>Enterprise Capabilities</h2>
+            <p style="color: var(--text-muted); font-size: 1.2rem;">Built for security, scale, and seamless integration.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-box reveal" data-hover>
+                <div class="feature-icon">🔗</div>
+                <h3>API Integration</h3>
+                <p>Seamlessly connect NeuroCalm with your existing HRIS, Slack, or Microsoft Teams ecosystems via our robust RESTful API.</p>
+            </div>
+
+            <div class="feature-box reveal" style="transition-delay: 0.1s;" data-hover>
+                <div class="feature-icon">🛡️</div>
+                <h3>GDPR & HIPAA Compliant</h3>
+                <p>We treat employee data with the highest level of encryption and privacy standards required by global regulations.</p>
+            </div>
+
+            <div class="feature-box reveal" style="transition-delay: 0.2s;" data-hover>
+                <div class="feature-icon">🌍</div>
+                <h3>Global Analytics</h3>
+                <p>Monitor stress levels across different geographies and departments to identify organizational hotspots.</p>
+            </div>
+
+            <div class="feature-box wide reveal" data-hover>
+                <div class="feature-icon">📊</div>
+                <h3>Executive Dashboard</h3>
+                <p>Gain macro insights into your workforce's mental health. Track aggregate stress trends over time, correlate with KPIs, and make data-driven decisions about culture and workload distribution.</p>
+            </div>
+
+            <div class="feature-box wide reveal" data-hover>
+                <div class="feature-icon">🚨</div>
+                <h3>Proactive Alert System</h3>
+                <p>Configurable alerts notify HR representatives when aggregate team stress exceeds predefined thresholds, allowing for intervention before burnout occurs.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Visualization Section -->
+    <section class="section">
+        <div class="section-header reveal">
+            <h2>Command Center</h2>
+            <p style="color: var(--text-muted);">A glimpse into the NeuroCalm Executive Dashboard.</p>
+        </div>
+
+        <div class="dashboard-mockup reveal">
+            <div class="dash-sidebar">
+                <div style="font-family:var(--font-display); color:#fff; margin-bottom:2rem;">NEURO<span style="color:var(--primary)">OS</span></div>
+                <div class="dash-item active">Overview</div>
+                <div class="dash-item">Departments</div>
+                <div class="dash-item">Risk Assessment</div>
+                <div class="dash-item">API Logs</div>
+                <div class="dash-item">Settings</div>
+            </div>
+            <div class="dash-content">
+                <div class="dash-header">
+                    <h3 style="font-family:var(--font-display);">Global Stress Index</h3>
+                    <span style="color:var(--success);">SYSTEM: OPERATIONAL</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="dash-card">
+                        <h4 style="color:var(--text-muted); margin-bottom:10px;">Avg. Cortisol Levels</h4>
+                        <div class="dash-graph">
+                            <div class="bar"><div class="bar-fill" style="height: 40%"></div></div>
+                            <div class="bar"><div class="bar-fill" style="height: 55%"></div></div>
+                            <div class="bar"><div class="bar-fill" style="height: 35%"></div></div>
+                            <div class="bar"><div class="bar-fill" style="height: 70%; background:var(--warning)"></div></div>
+                            <div class="bar"><div class="bar-fill" style="height: 50%"></div></div>
+                        </div>
+                    </div>
+                    <div class="dash-card">
+                        <h4 style="color:var(--text-muted); margin-bottom:10px;">Department Analysis</h4>
+                        <ul style="list-style:none; color:#aaa; font-family:var(--font-tech);">
+                            <li style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <span>Engineering</span> <span style="color:var(--primary)">Low Risk</span>
+                            </li>
+                            <li style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <span>Sales</span> <span style="color:var(--warning)">Moderate</span>
+                            </li>
+                            <li style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <span>Customer Support</span> <span style="color:var(--accent)">Critical</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="dash-card">
+                    <h4 style="color:var(--text-muted); margin-bottom:10px;">Recent Interventions</h4>
+                    <div style="display:flex; gap:10px;">
+                        <span style="background:rgba(255,0,85,0.2); color:var(--accent); padding:2px 8px; border-radius:4px; font-size:0.8rem;">Alert</span>
+                        <span style="color:#ccc;">Shift rotation modified for Support Team A to reduce fatigue.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="section">
+        <div class="section-header reveal" style="border-color: var(--success);">
+            <h2>Scalable Pricing</h2>
+            <p style="color: var(--text-muted);">Solutions for startups to Fortune 500s.</p>
+        </div>
+
+        <div class="pricing-grid">
+            <div class="price-card reveal">
+                <h3>Startup</h3>
+                <div class="price-amount">$499<span style="font-size:1rem; color:#666;">/mo</span></div>
+                <ul style="list-style:none; text-align:left; margin-bottom:2rem; color:#ccc;">
+                    <li>✓ Up to 50 Employees</li>
+                    <li>✓ Basic Analytics</li>
+                    <li>✓ Email Support</li>
+                    <li>✓ Standard API Access</li>
+                </ul>
+                <a href="#contact" class="btn-cta" style="display:block;" data-hover>Get Started</a>
+            </div>
+
+            <div class="price-card featured reveal" style="transition-delay:0.1s;">
+                <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--primary); color:#000; padding:5px 15px; font-size:0.8rem; font-weight:bold; border-radius:20px;">MOST POPULAR</div>
+                <h3>Enterprise</h3>
+                <div class="price-amount">$1,999<span style="font-size:1rem; color:#666;">/mo</span></div>
+                <ul style="list-style:none; text-align:left; margin-bottom:2rem; color:#ccc;">
+                    <li>✓ Up to 500 Employees</li>
+                    <li>✓ Advanced Biometrics</li>
+                    <li>✓ Dedicated Account Manager</li>
+                    <li>✓ SSO & Custom Integration</li>
+                </ul>
+                <a href="#contact" class="btn-cta" style="display:block; background:var(--primary); color:#000; border:none;" data-hover>Contact Sales</a>
+            </div>
+
+            <div class="price-card reveal" style="transition-delay:0.2s;">
+                <h3>Global</h3>
+                <div class="price-amount">Custom</div>
+                <ul style="list-style:none; text-align:left; margin-bottom:2rem; color:#ccc;">
+                    <li>✓ Unlimited Employees</li>
+                    <li>✓ White-label Solution</li>
+                    <li>✓ On-premise Deployment</li>
+                    <li>✓ 24/7 Priority Support</li>
+                </ul>
+                <a href="#contact" class="btn-cta" style="display:block;" data-hover>Request Quote</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section" style="text-align:center;">
+        <div class="section-header reveal" style="border:none; padding:0; text-align:center;">
+            <h2>Initialize Partnership</h2>
+            <p style="color: var(--text-muted);">Send a secure transmission to our sales team.</p>
+        </div>
+
+        <div class="contact-terminal reveal">
+            <div style="margin-bottom:1.5rem; color:#555;">root@neurocalm:~$ connect_sales</div>
+            <form onsubmit="event.preventDefault(); alert('Transmission Sent. Expect a secure reply within 24 hours.');">
+                <input type="text" class="terminal-input" placeholder="ENTER CORPORATE ID / NAME" required>
+                <input type="email" class="terminal-input" placeholder="ENTER WORK EMAIL" required>
+                <input type="text" class="terminal-input" placeholder="MESSAGE PAYLOAD" style="height:100px;">
+                <button type="submit" class="btn-cta" style="margin-top:1rem; background:transparent; border-color:#0f0; color:#0f0;" data-hover>EXECUTE SEND_CMD</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div style="font-family:var(--font-display); font-size:1.5rem; color:#fff; margin-bottom:1rem;">NeuroCalm AI</div>
+        <p>Enterprise Stress Intelligence Systems</p>
+        <p style="margin-top:2rem; font-size:0.8rem;">&copy; 2023 NeuroCalm B2B Solutions. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, input, .feature-box').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. NETWORK GLOBE ANIMATION
+        // =========================================
+        const canvas = document.getElementById('network-globe');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let points = [];
+        const numPoints = 300;
+        const globeRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+        
+        // Resize handler
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initPoints();
+        }
+        window.addEventListener('resize', resize);
+
+        class Point3D {
+            constructor(lat, lon) {
+                this.lat = lat;
+                this.lon = lon;
+                this.x = 0;
+                this.y = 0;
+                this.z = 0;
+            }
+
+            rotate(rotX, rotY) {
+                // Convert spherical to cartesian
+                const phi = (90 - this.lat) * (Math.PI / 180);
+                const theta = (this.lon + rotY) * (Math.PI / 180);
+
+                const x = globeRadius * Math.sin(phi) * Math.cos(theta);
+                const y = globeRadius * Math.cos(phi);
+                const z = globeRadius * Math.sin(phi) * Math.sin(theta);
+
+                // Apply rotation X (tilt)
+                const y2 = y * Math.cos(rotX) - z * Math.sin(rotX);
+                const z2 = y * Math.sin(rotX) + z * Math.cos(rotX);
+
+                this.x = x;
+                this.y = y2;
+                this.z = z2;
+            }
+
+            project() {
+                const scale = 1000 / (1000 + this.z);
+                this.screenX = (this.x * scale) + width / 2;
+                this.screenY = (this.y * scale) + height / 2;
+                this.scale = scale;
+            }
+        }
+
+        function initPoints() {
+            points = [];
+            for (let i = 0; i < numPoints; i++) {
+                const lat = (Math.random() * 180) - 90;
+                const lon = (Math.random() * 360) - 180;
+                points.push(new Point3D(lat, lon));
+            }
+        }
+
+        let rotY = 0;
+        let mouseX = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - width / 2) * 0.0005;
+        });
+
+        function animateGlobe() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Rotate based on auto-rotation + mouse influence
+            rotY += 0.002 + mouseX;
+
+            points.forEach(p => {
+                p.rotate(0.3, rotY); // 0.3 is static tilt
+                p.project();
+            });
+
+            // Draw connections
+            ctx.strokeStyle = 'rgba(0, 242, 255, 0.15)';
+            ctx.lineWidth = 0.5;
+            
+            // Simple distance check for lines (optimization: check fewer points)
+            for (let i = 0; i < points.length; i+=2) {
+                for (let j = i + 1; j < points.length; j+=5) {
+                    const dx = points[i].x - points[j].x;
+                    const dy = points[i].y - points[j].y;
+                    const dz = points[i].z - points[j].z;
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    if (dist < 80) {
+                        ctx.beginPath();
+                        ctx.moveTo(points[i].screenX, points[i].screenY);
+                        ctx.lineTo(points[j].screenX, points[j].screenY);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Draw points
+            points.forEach(p => {
+                if (p.z > 0) { // Only draw front facing
+                    ctx.fillStyle = `rgba(189, 0, 255, ${p.scale})`;
+                    ctx.beginPath();
+                    ctx.arc(p.screenX, p.screenY, 2 * p.scale, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            requestAnimationFrame(animateGlobe);
+        }
+
+        resize();
+        animateGlobe();
+
+        // =========================================
+        // 3. SCROLL REVEAL & COUNTERS
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    
+                    // Counters
+                    const counter = entry.target.querySelector('.counter');
+                    if(counter) {
+                        const target = +counter.getAttribute('data-target');
+                        let count = 0;
+                        const inc = target / 100;
+                        const interval = setInterval(() => {
+                            count += inc;
+                            if(count >= target) {
+                                counter.innerText = target + "+";
+                                clearInterval(interval);
+                            } else {
+                                counter.innerText = Math.ceil(count);
+                            }
+                        }, 20);
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Navbar Scroll
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if(window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // Trigger bar animations in dashboard
+        setTimeout(() => {
+            document.querySelectorAll('.bar-fill').forEach(bar => {
+                bar.style.height = bar.style.height; // Re-trigger transition
+            });
+        }, 1000);
+
+    </script>
+</body>
+</html>

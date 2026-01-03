@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senior Stress Analysis | NeuroCalm AI</title>
+    <meta name="description" content="Advanced AI stress detection tailored for senior citizens.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Outfit:wght@300;400;500;600;700&family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050508;
+            --bg-panel: rgba(15, 15, 25, 0.7);
+            --primary: #00f2ff; /* Cyan Neon */
+            --secondary: #bd00ff; /* Purple Neon */
+            --accent: #ffcc00; /* Warm Gold for Seniors */
+            --success: #00ff88;
+            --danger: #ff0055;
+            --text-main: #ffffff;
+            --text-muted: #a0aab5;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --font-hand: 'Amatic SC', cursive; /* For warm notes */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            font-size: 18px; /* Larger base font for seniors */
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent);
+        }
+
+        .cursor-outline {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--accent);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            mix-blend-mode: difference;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(255, 204, 0, 0.1);
+            border-color: #fff;
+        }
+
+        /* =========================================
+           3. BACKGROUND ANIMATION
+           ========================================= */
+        #neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .overlay-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 85%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo svg { fill: var(--accent); }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-display);
+            margin-left: 2rem;
+            transition: 0.3s;
+        }
+        .nav-link:hover { color: var(--accent); }
+
+        /* =========================================
+           5. MAIN LAYOUT
+           ========================================= */
+        main {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 2rem;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* =========================================
+           6. STATE MANAGEMENT (Views)
+           ========================================= */
+        .view-section {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- VIEW 1: INTRO / HERO --- */
+        .hero-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-content span.highlight {
+            color: var(--accent);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .hero-content span.highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 204, 0, 0.2);
+            z-index: -1;
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 600px;
+        }
+
+        .btn-start {
+            display: inline-block;
+            padding: 1.2rem 3rem;
+            background: var(--accent);
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);
+            transition: 0.3s var(--ease-bounce);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 204, 0, 0.6);
+            color: #fff;
+        }
+
+        /* --- VIEW 2: QUIZ INTERFACE --- */
+        .quiz-container {
+            max-width: 900px;
+            margin: 120px auto 50px;
+            position: relative;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 3rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 15px var(--secondary);
+        }
+
+        .question-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 30px;
+            padding: 4rem;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .question-counter {
+            font-family: var(--font-display);
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .question-text {
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 3rem;
+            color: #fff;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: var(--font-body);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover, .option-btn.selected {
+            background: rgba(255, 204, 0, 0.1);
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+        
+        .option-btn.selected {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 10px 20px rgba(255, 204, 0, 0.3);
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+        }
+
+        .btn-nav {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-nav:hover { border-color: #fff; color: #fff; }
+        .btn-next {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+        }
+        .btn-next:hover { background: #fff; border-color: #fff; }
+
+        /* --- VIEW 3: RESULTS --- */
+        .result-dashboard {
+            padding: 8rem 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .score-circle-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+        }
+
+        .score-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent) var(--percentage, 0%), rgba(255,255,255,0.1) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: spinIn 1.5s var(--ease-smooth);
+        }
+
+        .score-inner {
+            width: 85%;
+            height: 85%;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .score-val { font-size: 5rem; font-family: var(--font-display); font-weight: 900; line-height: 1; }
+        .score-label { color: var(--text-muted); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        .recommendation-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 3rem;
+            border-radius: 20px;
+        }
+
+        .rec-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .rec-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* =========================================
+           7. ANIMATED CHARACTERS (Side Panel)
+           ========================================= */
+           /* --- ADD THIS TO YOUR CSS --- */
+
+        .character-stage {
+    /* Keep existing styles... */
+            transition: transform 0.5s ease, opacity 0.5s ease; /* Add transition for smooth exit */
+        }
+
+        .character-stage.hidden {
+            opacity: 0;
+            transform: translateX(50px); /* Slides them slightly to the right as they fade */
+            pointer-events: none; /* Ensures they can't be clicked when hidden */
+        }
+        .character-stage {
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 400px;
+            height: 600px;
+            z-index: 5;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .char-box {
+            background: rgba(0,0,0,0.3);
+            border: var(--glass-border);
+            padding: 1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            backdrop-filter: blur(5px);
+            transition: 0.5s;
+        }
+
+        .char-box:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--accent);
+        }
+
+        /* --- SVG Character Styles --- */
+        .char-svg { width: 80px; height: 80px; fill: #fff; }
+        
+        /* Gardener Animation */
+        .gardener-arm { transform-origin: 40px 40px; animation: waterPlant 3s infinite ease-in-out; }
+        @keyframes waterPlant {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-20deg); }
+        }
+
+        /* Reader Animation */
+        .reader-page { animation: turnPage 4s infinite linear; }
+        @keyframes turnPage {
+            0%, 45% { transform: scaleX(1); }
+            50% { transform: scaleX(0.1); }
+            55% { transform: scaleX(1); }
+            100% { transform: scaleX(1); }
+        }
+
+        /* Musician Animation */
+        .musician-hand { animation: playMusic 1s infinite alternate; }
+        @keyframes playMusic {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(5px, -5px); }
+        }
+        
+        .music-notes path { opacity: 0; animation: floatNote 3s infinite; }
+        .music-notes path:nth-child(1) { animation-delay: 0s; }
+        .music-notes path:nth-child(2) { animation-delay: 1s; }
+        .music-notes path:nth-child(3) { animation-delay: 2s; }
+        @keyframes floatNote {
+            0% { opacity: 0; transform: translateY(10px); }
+            50% { opacity: 1; transform: translateY(-10px); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* =========================================
+           8. FOOTER
+           ========================================= */
+        footer {
+            background: #020203;
+            padding: 4rem 2rem;
+            text-align: center;
+            color: #555;
+            border-top: 1px solid #111;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .hero-layout, .dashboard-grid { grid-template-columns: 1fr; text-align: center; }
+            .character-stage { position: relative; width: 100%; height: auto; right: auto; top: auto; transform: none; flex-direction: row; justify-content: center; margin-top: 3rem; }
+            .hero-content h1 { font-size: 2.5rem; }
+            .quiz-container { padding: 1rem; }
+        }
+        @media (max-width: 768px) {
+            .cursor-dot, .cursor-outline { display: none; }
+            * { cursor: auto; }
+            .character-stage { display: none; } /* Hide on small mobile for space */
+            .question-text { font-size: 1.5rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="neural-canvas"></canvas>
+    <div class="overlay-gradient"></div>
+
+    <!-- Navigation -->
+    <header>
+        <div class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            Senior<span style="color:var(--accent)">Care</span> AI
+        </div>
+        <nav>
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="#" class="nav-link">Categories</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            
+            <!-- Character Stage (Animated) -->
+            <div class="character-stage">
+                <!-- Character 1: The Gardener -->
+                <div class="char-box">
+                    <svg class="char-svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="40" r="20" fill="#FFCC00" />
+                        <path d="M30 70 Q50 60 70 70 L70 100 L30 100 Z" fill="#FFCC00" />
+                        <g class="gardener-arm">
+                            <path d="M70 75 L80 90 L90 85" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round"/>
+                            <rect x="85" y="80" width="15" height="15" fill="#00f2ff" transform="rotate(-20 85 80)"/>
+                        </g>
+                    </svg>
+                    <div>
+                        <h4 style="font-family:var(--font-display)">Gardening</h4>
+                        <p style="font-size:0.8rem; color:var(--text-muted)">Therapeutic hobby</p>
+                    </div>
+                </div>
+
+                <!-- Character 2: The Reader -->
+                <div class="char-box">
+                    <svg class="char-svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="40" r="20" fill="#bd00ff" />
+                        <path d="M30 70 Q50 60 70 70 L70 100 L30 100 Z" fill="#bd00ff" />
+                        <rect class="reader-page" x="40" y="70" width="20" height="25" fill="#fff" />
+                    </svg>
+                    <div>
+                        <h4 style="font-family:var(--font-display)">Reading</h4>
+                        <p style="font-size:0.8rem; color:var(--text-muted)">Cognitive health</p>
+                    </div>
+                </div>
+
+                <!-- Character 3: The Musician -->
+                <div class="char-box">
+                    <svg class="char-svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="40" r="20" fill="#00ff88" />
+                        <path d="M30 70 Q50 60 70 70 L70 100 L30 100 Z" fill="#00ff88" />
+                        <path d="M40 60 L40 90 M60 60 L60 90" stroke="#fff" stroke-width="5" />
+                        <g class="musician-hand">
+                            <rect x="35" y="50" width="30" height="10" fill="#fff" />
+                        </g>
+                        <g class="music-notes" transform="translate(10,10)">
+                            <path d="M10 10 L10 20" stroke="#ffcc00" stroke-width="2" />
+                            <circle cx="10" cy="20" r="3" fill="#ffcc00" />
+                        </g>
+                    </svg>
+                    <div>
+                        <h4 style="font-family:var(--font-display)">Music</h4>
+                        <p style="font-size:0.8rem; color:var(--text-muted)">Emotional balance</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 1: START SCREEN -->
+            <div id="view-start" class="view-section active">
+                <div class="hero-layout">
+                    <div class="hero-content">
+                        <span style="color:var(--primary); font-family:var(--font-display); letter-spacing:2px; display:block; margin-bottom:1rem;">AI POWERED WELLNESS</span>
+                        <h1>Understanding Your <br><span class="highlight">Golden Years</span></h1>
+                        <p>
+                            Aging brings unique challenges and joys. Our AI is trained to detect stress markers specific to senior lifestyles—covering health, social connection, and cognitive load.
+                        </p>
+                        <p style="font-size: 1.1rem; margin-bottom: 2rem; font-style: italic; color: #fff;">
+                            "A calm mind is the greatest weapon against aging."
+                        </p>
+                        <button class="btn-start" onclick="startAssessment()" data-hover>
+                            Begin Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: QUIZ -->
+            <div id="view-quiz" class="view-section">
+                <div class="quiz-container">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progress-bar"></div>
+                    </div>
+
+                    <div class="question-card">
+                        <div class="question-counter">Question <span id="current-q-num">1</span> / 20</div>
+                        <h2 class="question-text" id="question-text">How have you been sleeping lately?</h2>
+
+                        <div class="options-grid" id="options-container">
+                            <!-- Options injected via JS -->
+                        </div>
+
+                        <div class="quiz-nav">
+                            <button class="btn-nav" id="btn-prev" onclick="prevQuestion()">Previous</button>
+                            <button class="btn-nav btn-next" id="btn-next" onclick="nextQuestion()" data-hover>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: PROCESSING -->
+            <div id="view-process" class="view-section" style="text-align: center; padding-top: 100px;">
+                <h2 style="font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 2rem;">Analyzing Neural Patterns</h2>
+                <div style="width: 100px; height: 100px; border: 5px solid #333; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto;"></div>
+                <p style="color: var(--text-muted); margin-top: 2rem;">Cross-referencing with 50,000+ senior case studies...</p>
+            </div>
+
+            <!-- VIEW 4: RESULTS -->
+            <div id="view-result" class="view-section">
+                <div class="result-dashboard">
+                    <div class="dashboard-grid">
+                        <!-- Left: Score -->
+                        <div>
+                            <div class="score-circle-container">
+                                <div class="score-circle" id="score-circle-anim">
+                                    <div class="score-inner">
+                                        <div class="score-val" id="final-score">0</div>
+                                        <div class="score-label">Stress Index</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin-top: 2rem;">
+                                <h3 id="result-title" style="font-family: var(--font-display); font-size: 2rem; color: var(--accent);">Moderate Stress</h3>
+                                <p id="result-desc" style="color: var(--text-muted); max-width: 400px; margin: 1rem auto;">Your levels are elevated. This is common during retirement transitions.</p>
+                            </div>
+                        </div>
+
+                        <!-- Right: Recommendations -->
+                        <div class="recommendation-card">
+                            <h3 style="font-family: var(--font-display); margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">AI Recommended Actions</h3>
+                            
+                            <div class="rec-item">
+                                <div class="rec-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                </div>
+                                <div>
+                                    <h4 style="color: #fff;">Cognitive Engagement</h4>
+                                    <p style="font-size: 0.9rem; color: var(--text-muted);">Try the daily crossword puzzles or learn a new musical instrument to keep neural pathways active.</p>
+                                </div>
+                            </div>
+
+                            <div class="rec-item">
+                                <div class="rec-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                                </div>
+                                <div>
+                                    <h4 style="color: #fff;">Light Physical Activity</h4>
+                                    <p style="font-size: 0.9rem; color: var(--text-muted);">A 15-minute walk in the garden significantly lowers cortisol levels.</p>
+                                </div>
+                            </div>
+
+                            <div class="rec-item">
+                                <div class="rec-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
+                                </div>
+                                <div>
+                                    <h4 style="color: #fff;">Social Interaction</h4>
+                                    <p style="font-size: 0.9rem; color: var(--text-muted);">Schedule a weekly video call with family or join a local club.</p>
+                                </div>
+                            </div>
+
+                            <button class="btn-start" style="width: 100%; font-size: 1.2rem; padding: 1rem;" onclick="location.reload()" data-hover>Restart Assessment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 NeuroCalm Senior Care AI. Dedicated to improving quality of life.</p>
+    </footer>
+
+    <!-- Logic -->
+    <script>
+        // =========================================
+        // 1. DATA: 20 QUESTIONS
+        // =========================================
+        const questions = [
+            { text: "How would you rate the quality of your sleep recently?", options: ["Excellent", "Good", "Fair", "Poor"] },
+            { text: "Do you often feel lonely or isolated?", options: ["Never", "Rarely", "Sometimes", "Often"] },
+            { text: "How easy is it for you to manage your daily finances?", options: ["Very Easy", "Manageable", "Difficult", "Very Difficult"] },
+            { text: "Do you experience chronic pain or physical discomfort?", options: ["No Pain", "Mild", "Moderate", "Severe"] },
+            { text: "How often do you forget important appointments or names?", options: ["Never", "Rarely", "Sometimes", "Frequently"] },
+            { text: "Are you satisfied with your current living arrangements?", options: ["Very Satisfied", "Satisfied", "Unsure", "Dissatisfied"] },
+            { text: "How frequently do you interact with friends or family?", options: ["Daily", "Weekly", "Monthly", "Rarely"] },
+            { text: "Do you feel anxious about your health?", options: ["Not at all", "A little", "Moderately", "Constantly"] },
+            { text: "Do you have hobbies or activities that you enjoy regularly?", options: ["Many", "A few", "One", "None"] },
+            { text: "How would you describe your energy levels throughout the day?", options: ["High", "Moderate", "Low", "Exhausted"] },
+            { text: "Do you feel confident performing daily tasks (cooking, cleaning)?", options: ["Fully Confident", "Mostly", "Struggle a bit", "Need Help"] },
+            { text: "Are you worried about becoming a burden to others?", options: ["Never", "Rarely", "Sometimes", "Often"] },
+            { text: "How well do you adapt to changes in routine?", options: ["Very well", "Okay", "With difficulty", "Poorly"] },
+            { text: "Do you feel your life has purpose and meaning?", options: ["Absolutely", "Mostly", "Unsure", "Not really"] },
+            { text: "How often do you experience feelings of sadness?", options: ["Never", "Rarely", "Sometimes", "Daily"] },
+            { text: "Is your vision or hearing affecting your daily life?", options: ["Not at all", "Slightly", "Significantly", "Severely"] },
+            { text: "Do you feel safe in your home and neighborhood?", options: ["Very Safe", "Safe", "Unsure", "Unsafe"] },
+            { text: "How often do you get outside for fresh air?", options: ["Every day", "Few times a week", "Rarely", "Never"] },
+            { text: "Do you feel overwhelmed by modern technology?", options: ["Not at all", "A little", "Somewhat", "Very overwhelmed"] },
+            { text: "Overall, how stressed do you feel right now?", options: ["Very Low", "Low", "Moderate", "High"] }
+        ];
+
+        let currentQuestionIndex = 0;
+        let answers = new Array(questions.length).fill(null);
+
+        // =========================================
+        // 2. APP NAVIGATION
+        // =========================================
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        
+        function startAssessment() {
+    // 1. Hide the character stage
+            const charStage = document.querySelector('.character-stage');
+            if(charStage) {
+                charStage.classList.add('hidden');
+            }
+
+    // 2. Switch to the Quiz View
+            showView('view-quiz');
+            renderQuestion();
+        }
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            
+            // Update Text
+            document.getElementById('question-text').innerText = q.text;
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Render Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('div');
+                btn.className = `option-btn ${answers[currentQuestionIndex] === index ? 'selected' : ''}`;
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(index);
+                container.appendChild(btn);
+            });
+
+            // Update Nav Buttons
+            document.getElementById('btn-prev').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+            document.getElementById('btn-next').innerText = currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next';
+        }
+
+        function selectOption(index) {
+            answers[currentQuestionIndex] = index;
+            renderQuestion(); // Re-render to show selection style
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestionIndex] === null) {
+                alert("Please select an option to continue.");
+                return;
+            }
+
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                calculateResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function calculateResults() {
+            showView('view-process');
+            
+            // Simulate processing time
+            setTimeout(() => {
+                // Simple Scoring Logic: 0=Low Stress, 3=High Stress
+                // Sum all answers (0-60 scale), then map to 0-100
+                let totalScore = answers.reduce((a, b) => a + b, 0);
+                let maxPossible = questions.length * 3;
+                let percentage = Math.round((totalScore / maxPossible) * 100);
+
+                showResults(percentage);
+            }, 3000);
+        }
+
+        function showResults(percentage) {
+            showView('view-result');
+
+            // Animate Circle
+            const circle = document.getElementById('score-circle-anim');
+            const scoreVal = document.getElementById('final-score');
+            const title = document.getElementById('result-title');
+            const desc = document.getElementById('result-desc');
+
+            circle.style.setProperty('--percentage', `${percentage * 3.6}deg`);
+            
+            // Animate Number Counting
+            let start = 0;
+            const duration = 2000;
+            const stepTime = Math.abs(Math.floor(duration / percentage));
+            
+            const timer = setInterval(() => {
+                start += 1;
+                scoreVal.innerText = start;
+                if (start >= percentage) clearInterval(timer);
+            }, stepTime);
+
+            // Determine Text
+            if(percentage < 30) {
+                title.innerText = "Low Stress Level";
+                title.style.color = "var(--success)";
+                desc.innerText = "You are managing your golden years with grace and calm. Keep up your positive routines.";
+            } else if (percentage < 60) {
+                title.innerText = "Moderate Stress Level";
+                title.style.color = "var(--accent)";
+                desc.innerText = "You are experiencing some pressure common with aging. Focus on social connection and hobbies.";
+            } else {
+                title.innerText = "High Stress Level";
+                title.style.color = "var(--danger)";
+                desc.innerText = "Your stress levels are elevated. We recommend consulting a healthcare provider or a counselor.";
+            }
+        }
+
+        // =========================================
+        // 3. BACKGROUND ANIMATION (Neural)
+        // =========================================
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        const mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+
+                if (distance < mouse.radius + this.size) {
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 2;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 2;
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 2;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 2;
+                }
+
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 12000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 3) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 0.5) - 0.25;
+                let directionY = (Math.random() * 0.5) - 0.25;
+                let color = Math.random() > 0.5 ? '#ffcc00' : '#00f2ff'; // Gold & Cyan theme
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+        }
+
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
+                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(255, 204, 0,' + opacityValue * 0.15 + ')'; // Gold connections
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        initParticles();
+        animateParticles();
+
+        // =========================================
+        // 4. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .option-btn').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // CSS Keyframe injection for spin
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `@keyframes spin { 100% { transform: rotate(360deg); } }`;
+        document.head.appendChild(styleSheet);
+
+    </script>
+</body>
+</html>

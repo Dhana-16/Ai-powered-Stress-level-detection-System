@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Stress Protocol | NeuroCalm AI</title>
+    <meta name="description" content="AI-powered stress management for college students: Survive exams, ace placements, and balance campus life.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050508;
+            --bg-panel: rgba(15, 23, 42, 0.6);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #7000ff; /* Deep Purple */
+            --accent: #ff0055; /* Red */
+            --warning: #ff9900; /* Exam Orange */
+            --success: #00ff88;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--warning);
+            transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 153, 0, 0.1);
+            border-color: var(--warning);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUNDS
+           ========================================= */
+        #bg-canvas-flow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(112, 0, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, transparent 0%, var(--bg-dark) 95%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.4s;
+        }
+
+        nav.scrolled {
+            background: rgba(5, 5, 8, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 1rem 4rem;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo span { color: var(--warning); }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+        .nav-links a.active { color: var(--warning); }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            padding: 120px 5% 80px;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .campus-tag {
+            display: inline-block;
+            padding: 8px 24px;
+            background: rgba(255, 153, 0, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .hero h1 span {
+            color: transparent;
+            -webkit-text-stroke: 1px var(--primary);
+            position: relative;
+        }
+        
+        .hero h1 span::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            color: var(--primary);
+            overflow: hidden;
+            border-right: 2px solid var(--primary);
+            animation: glitchFill 3s linear infinite;
+        }
+
+        @keyframes glitchFill {
+            0%, 90%, 100% { width: 0; }
+            95% { width: 100%; }
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.7;
+        }
+
+        /* Floating Elements */
+        .floating-book {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--bg-panel), #2a2a40);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: float 6s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        .fb-1 { top: 20%; left: 10%; animation-delay: 0s; border-radius: 10px; }
+        .fb-2 { bottom: 20%; right: 10%; animation-delay: 2s; border-radius: 50%; color: var(--warning); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* =========================================
+           6. SEMESTER STRESS GRAPH (Interactive)
+           ========================================= */
+        .stress-graph-section {
+            padding: 8rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .graph-container {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .graph-canvas {
+            width: 100%;
+            height: 400px;
+        }
+
+        .graph-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            font-family: var(--font-tech);
+            color: var(--text-muted);
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 10px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.low { background: var(--success); }
+        .dot.med { background: var(--warning); }
+        .dot.high { background: var(--accent); }
+
+        /* =========================================
+           7. STRESSOR CARDS (Grid)
+           ========================================= */
+        .stressors-section {
+            padding: 8rem 5%;
+            background: linear-gradient(to bottom, transparent, rgba(112, 0, 255, 0.05), transparent);
+        }
+
+        .stress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .stress-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stress-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--secondary);
+            background: rgba(112, 0, 255, 0.05);
+        }
+
+        .stress-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .stress-card:hover .stress-icon {
+            color: var(--secondary);
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .stress-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stress-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .stress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .stress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            width: 0%;
+            transition: width 1s ease 0.5s; /* Delay for effect */
+        }
+
+        .stress-card:hover .stress-fill { width: 85%; }
+
+        /* =========================================
+           8. PLACEMENT SIMULATION (Holographic)
+           ========================================= */
+        .placement-section {
+            padding: 8rem 5%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hologram-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--primary);
+            padding: 3rem;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.1);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+            animation: scan 3s linear infinite;
+            opacity: 0.5;
+            z-index: 2;
+        }
+
+        @keyframes scan {
+            0% { top: -5%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 105%; opacity: 0; }
+        }
+
+        .holo-content {
+            position: relative;
+            z-index: 3;
+            font-family: var(--font-mono);
+        }
+
+        .holo-stat {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.3);
+            padding: 10px 0;
+            color: var(--primary);
+        }
+
+        /* =========================================
+           9. FOCUS MODE (Interactive UI)
+           ========================================= */
+        .focus-section {
+            padding: 8rem 5%;
+            text-align: center;
+        }
+
+        .focus-btn {
+            background: transparent;
+            border: 2px solid var(--success);
+            color: var(--success);
+            padding: 1rem 3rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            cursor: none;
+            border-radius: 50px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .focus-btn:hover {
+            background: var(--success);
+            color: #000;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.6);
+        }
+
+        .focus-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        .focus-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .breath-circle {
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            border: 2px solid var(--success);
+            margin-bottom: 2rem;
+            animation: breathe 8s infinite ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            color: var(--success);
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 50px rgba(0,255,136,0.4); }
+        }
+
+        /* Footer */
+        footer {
+            background: #020203;
+            padding: 4rem 5%;
+            border-top: 1px solid #111;
+            text-align: center;
+            color: #555;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .hero h1 { font-size: 3rem; }
+            .placement-section { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s ease;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="bg-canvas-flow"></canvas>
+    <div class="grid-mesh"></div>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--warning)">
+                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+            </svg>
+            Neuro<span>Campus</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/index" data-hover>Home</a></li>
+            <li><a href="/category" data-hover>Categories</a></li>
+            <li><a href="/college" class="active" data-hover>College</a></li>
+            <li><a href="/register" data-hover>Get Access</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="floating-book fb-1">📚</div>
+        <div class="floating-book fb-2">🎓</div>
+        
+        <div class="hero-content reveal">
+            <div class="campus-tag">University Protocol v2.4</div>
+            <h1>Decode Your <br><span data-text="ACADEMIC BURNOUT">ACADEMIC BURNOUT</span></h1>
+            <p>From Freshman week to Final semester. Our AI monitors the specific stressors of college life: cramming, placement anxiety, and social dynamics. Don't just survive college—master it.</p>
+            <a href="/college_ques" class="focus-btn" style="display:inline-block; padding: 1rem 2rem; font-size:1rem;" data-hover>Analyze My Semester</a>
+        </div>
+    </section>
+
+    <!-- Stress Graph Section -->
+    <section id="graph" class="stress-graph-section">
+        <div class="section-header reveal">
+            <h2>The <span class="gradient-text" style="color:var(--primary)">Semester Curve</span></h2>
+            <p style="color:var(--text-muted); max-width:600px; margin:0 auto;">Visualize how your stress levels fluctuate based on academic calendar events. AI predictions help you prepare for the spikes.</p>
+        </div>
+
+        <div class="graph-container reveal">
+            <canvas id="stressChart" class="graph-canvas"></canvas>
+            <div class="graph-legend">
+                <div class="legend-item"><div class="dot low"></div> Low Stress (Break)</div>
+                <div class="legend-item"><div class="dot med"></div> Moderate (Classes)</div>
+                <div class="legend-item"><div class="dot high"></div> Critical (Exams)</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Specific Stressors -->
+    <section class="stressors-section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Identify The <span style="color:var(--warning)">Threats</span></h2>
+            </div>
+
+            <div class="stress-grid">
+                <!-- Card 1 -->
+                <div class="stress-card reveal" data-hover>
+                    <div class="stress-icon">⏰</div>
+                    <h3>Semester Exams</h3>
+                    <p>The pressure of syllabus completion and the fear of backlog. All-nighters disrupt circadian rhythms, increasing cortisol.</p>
+                    <div class="stress-bar"><div class="stress-fill" style="width: 92%;"></div></div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="stress-card reveal" style="transition-delay:0.1s;" data-hover>
+                    <div class="stress-icon">💼</div>
+                    <h3>Placement Panic</h3>
+                    <p>Interview anxiety, competition with peers, and the uncertainty of the job market trigger high-frequency stress signals.</p>
+                    <div class="stress-bar"><div class="stress-fill" style="width: 88%;"></div></div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="stress-card reveal" style="transition-delay:0.2s;" data-hover>
+                    <div class="stress-icon">👥</div>
+                    <h3>Social & FOMO</h3>
+                    <p>Balancing social life, relationships, and fear of missing out (FOMO) while maintaining GPA is a cognitive load nightmare.</p>
+                    <div class="stress-bar"><div class="stress-fill" style="width: 65%;"></div></div>
+                </div>
+
+                 <!-- Card 4 -->
+                 <div class="stress-card reveal" style="transition-delay:0.3s;" data-hover>
+                    <div class="stress-icon">💸</div>
+                    <h3>Financial Aid</h3>
+                    <p>Student loans, part-time jobs, and managing monthly expenses add a constant background stress layer.</p>
+                    <div class="stress-bar"><div class="stress-fill" style="width: 50%;"></div></div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="stress-card reveal" style="transition-delay:0.4s;" data-hover>
+                    <div class="stress-icon">📝</div>
+                    <h3>Project Deadlines</h3>
+                    <p>Group projects with uncooperative members and strict submission deadlines create acute stress bursts.</p>
+                    <div class="stress-bar"><div class="stress-fill" style="width: 75%;"></div></div>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="stress-card reveal" style="transition-delay:0.5s;" data-hover>
+                    <div class="stress-icon">📱</div>
+                    <h3>Digital Overload</h3>
+                    <p>Constant notifications, online classes, and Zoom fatigue lead to digital burnout and reduced attention span.</p>
+                    <div class="stress-bar"><div class="stress-fill" style="width: 60%;"></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Placement / Interview Section -->
+    <section class="placement-section">
+        <div class="holo-content-text reveal">
+            <h2 style="font-family: var(--font-display); font-size: 3rem; margin-bottom: 1.5rem;">Placement <br><span style="color:var(--primary)">Simulation Mode</span></h2>
+            <p style="color:var(--text-muted); margin-bottom:2rem; line-height:1.8;">
+                NeuroCalm AI uses webcam analysis to detect micro-expressions during mock interviews. 
+                It provides real-time feedback on your confidence levels and anxiety spikes, helping you stay calm under pressure.
+            </p>
+            <ul style="list-style:none; margin-bottom:2rem;">
+                <li style="margin-bottom:1rem; display:flex; align-items:center; gap:10px;">
+                    <span style="color:var(--primary);">✓</span> Real-time Heart Rate Monitoring
+                </li>
+                <li style="margin-bottom:1rem; display:flex; align-items:center; gap:10px;">
+                    <span style="color:var(--primary);">✓</span> Eye Contact & Focus Tracking
+                </li>
+                <li style="margin-bottom:1rem; display:flex; align-items:center; gap:10px;">
+                    <span style="color:var(--primary);">✓</span> Voice Stress Analysis
+                </li>
+            </ul>
+            <a href="signup.html" class="focus-btn" style="font-size:1rem; padding:0.8rem 2rem;" data-hover>Start Mock Interview</a>
+        </div>
+
+        <div class="hologram-card" id="tilt-card">
+            <div class="scan-line"></div>
+            <div style="position:absolute; top:20px; right:20px; color:var(--primary); font-size:0.8rem; border:1px solid var(--primary); padding:2px 8px;">LIVE FEED</div>
+            
+            <div style="height:150px; background:rgba(0,242,255,0.05); margin-bottom:2rem; display:flex; align-items:center; justify-content:center; border:1px dashed var(--primary);">
+                <span style="font-family:var(--font-tech); color:var(--primary);">CAMERA INPUT SIMULATION</span>
+            </div>
+
+            <div class="holo-content">
+                <div class="holo-stat"><span>CONFIDENCE SCORE</span> <span>78%</span></div>
+                <div class="holo-stat"><span>ANXIETY LEVEL</span> <span style="color:var(--accent)">HIGH</span></div>
+                <div class="holo-stat"><span>HEART RATE</span> <span>98 BPM</span></div>
+                <div class="holo-stat" style="border:none;"><span>STATUS</span> <span>ANALYZING...</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Focus Mode Trigger -->
+    <section class="focus-section">
+        <div class="container reveal">
+            <h2 style="font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 1rem;">Overwhelmed?</h2>
+            <p style="color:var(--text-muted); margin-bottom: 3rem;">Trigger the Neural Reset Protocol. Breathe with the AI.</p>
+            <button class="focus-btn" onclick="toggleFocusMode()" data-hover>ACTIVATE FOCUS MODE</button>
+        </div>
+    </section>
+
+    <!-- Focus Overlay -->
+    <div class="focus-overlay" id="focus-overlay">
+        <div class="breath-circle">INHALE</div>
+        <h2 style="color:#fff; font-family:var(--font-display);">CLEAR YOUR MIND</h2>
+        <p style="color:var(--text-muted); margin-top:10px; font-family:var(--font-mono);">Follow the rhythm</p>
+        <button onclick="toggleFocusMode()" style="margin-top:3rem; background:none; border:1px solid #fff; color:#fff; padding:10px 30px; border-radius:30px; cursor:pointer;">EXIT</button>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <h3 style="color:#fff; font-family:var(--font-display); margin-bottom:1rem;">NeuroCampus</h3>
+        <p>Empowering the next generation of leaders.</p>
+        <div style="margin-top:2rem; font-size:0.9rem;">
+            &copy; 2023 NeuroCalm AI. All Rights Reserved.
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .stress-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. BACKGROUND FLOW CANVAS (Waves)
+        // =========================================
+        const canvas = document.getElementById('bg-canvas-flow');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let width = canvas.width;
+        let height = canvas.height;
+        let lines = [];
+        const lineCount = 30;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        class Line {
+            constructor(y, color) {
+                this.y = y;
+                this.color = color;
+                this.offset = Math.random() * 100;
+            }
+
+            draw(time) {
+                ctx.beginPath();
+                ctx.moveTo(0, this.y);
+                
+                for (let x = 0; x < width; x+=10) {
+                    // Complex wave formula
+                    const sine = Math.sin(x * 0.005 + time * 0.001 + this.offset);
+                    const y = this.y + sine * 50;
+                    ctx.lineTo(x, y);
+                }
+                
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        for(let i=0; i<lineCount; i++) {
+            const y = (height / lineCount) * i + (height/lineCount)/2;
+            const color = `rgba(112, 0, 255, ${0.1 - (i * 0.003)})`; // Fade out
+            lines.push(new Line(y, color));
+        }
+
+        let time = 0;
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            time += 2;
+            lines.forEach(line => line.draw(time));
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // =========================================
+        // 3. SEMESTER STRESS GRAPH
+        // =========================================
+        const chartCanvas = document.getElementById('stressChart');
+        const cCtx = chartCanvas.getContext('2d');
+        
+        // Set high resolution
+        const dpr = window.devicePixelRatio || 1;
+        const rect = chartCanvas.getBoundingClientRect();
+        chartCanvas.width = rect.width * dpr;
+        chartCanvas.height = rect.height * dpr;
+        cCtx.scale(dpr, dpr);
+
+        const graphData = [20, 25, 40, 80, 95, 60, 30, 20]; // Start, Mid1, Mid2, Finals, Placement, Break...
+        const labels = ["Start", "Mid-1", "Mid-2", "Finals", "Place", "Break", "Next", "End"];
+        
+        let animationProgress = 0;
+
+        function drawGraph() {
+            const w = rect.width;
+            const h = rect.height;
+            const padding = 40;
+            const graphW = w - (padding * 2);
+            const graphH = h - (padding * 2);
+
+            cCtx.clearRect(0, 0, w, h);
+
+            // Draw Grid
+            cCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            cCtx.lineWidth = 1;
+            for(let i=0; i<5; i++) {
+                const y = padding + (graphH / 4) * i;
+                cCtx.beginPath(); cCtx.moveTo(padding, y); cCtx.lineTo(w-padding, y); cCtx.stroke();
+            }
+
+            // Draw Line
+            cCtx.beginPath();
+            cCtx.strokeStyle = '#00f2ff';
+            cCtx.lineWidth = 3;
+            cCtx.lineCap = 'round';
+            cCtx.lineJoin = 'round';
+
+            const points = graphData.map((val, i) => {
+                const x = padding + (graphW / (graphData.length - 1)) * i;
+                const y = (padding + graphH) - (val / 100) * graphH;
+                return {x, y, val};
+            });
+
+            // Animate Drawing
+            const maxIndex = Math.floor((points.length - 1) * animationProgress);
+            
+            cCtx.moveTo(points[0].x, points[0].y);
+            
+            for(let i=0; i <= maxIndex; i++) {
+                cCtx.lineTo(points[i].x, points[i].y);
+            }
+            
+            // Partial segment for smoothness
+            if(maxIndex < points.length - 1) {
+                const prev = points[maxIndex];
+                const next = points[maxIndex + 1];
+                const partial = (animationProgress * (points.length - 1)) - maxIndex;
+                const curX = prev.x + (next.x - prev.x) * partial;
+                const curY = prev.y + (next.y - prev.y) * partial;
+                cCtx.lineTo(curX, curY);
+            }
+
+            cCtx.stroke();
+
+            // Draw Gradient Area
+            cCtx.lineTo(points[Math.min(maxIndex, points.length-1)].x, padding + graphH);
+            cCtx.lineTo(padding, padding + graphH);
+            cCtx.fillStyle = 'rgba(0, 242, 255, 0.1)';
+            cCtx.fill();
+
+            // Draw Dots & Labels
+            if(animationProgress > 0.9) {
+                points.forEach((p, i) => {
+                    // Dot
+                    cCtx.beginPath();
+                    cCtx.arc(p.x, p.y, 5, 0, Math.PI*2);
+                    cCtx.fillStyle = p.val > 80 ? '#ff0055' : '#00f2ff';
+                    cCtx.fill();
+
+                    // Label
+                    cCtx.fillStyle = '#fff';
+                    cCtx.font = '12px Rajdhani';
+                    cCtx.textAlign = 'center';
+                    cCtx.fillText(labels[i], p.x, padding + graphH + 20);
+                });
+            }
+
+            if(animationProgress < 1) {
+                animationProgress += 0.01;
+                requestAnimationFrame(drawGraph);
+            }
+        }
+
+        // Trigger graph animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    drawGraph();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+        observer.observe(chartCanvas);
+
+        // =========================================
+        // 4. 3D TILT CARD (Placement)
+        // =========================================
+        const tiltCard = document.getElementById('tilt-card');
+        const tiltContainer = document.querySelector('.placement-section');
+
+        tiltContainer.addEventListener('mousemove', (e) => {
+            const rect = tiltCard.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * -10;
+            const rotateY = ((x - centerX) / centerX) * 10;
+
+            tiltCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        tiltContainer.addEventListener('mouseleave', () => {
+            tiltCard.style.transform = `rotateX(0) rotateY(0)`;
+        });
+
+        // =========================================
+        // 5. FOCUS MODE LOGIC
+        // =========================================
+        function toggleFocusMode() {
+            const overlay = document.getElementById('focus-overlay');
+            const btnText = document.querySelector('.breath-circle');
+            overlay.classList.toggle('active');
+            
+            if(overlay.classList.contains('active')) {
+                startBreathingAnimation();
+            } else {
+                stopBreathingAnimation();
+            }
+        }
+
+        let breathingInterval;
+        function startBreathingAnimation() {
+            const text = document.querySelector('.breath-circle');
+            let isInhale = true;
+            
+            text.innerText = "INHALE";
+            
+            breathingInterval = setInterval(() => {
+                isInhale = !isInhale;
+                text.innerText = isInhale ? "INHALE" : "EXHALE";
+            }, 4000); // Syncs with CSS animation (8s total)
+        }
+
+        function stopBreathingAnimation() {
+            clearInterval(breathingInterval);
+        }
+
+        // =========================================
+        // 6. SCROLL REVEAL
+        // =========================================
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) entry.target.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        // Navbar scroll
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if(window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+    </script>
+</body>
+</html>

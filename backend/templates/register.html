@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join the Network | NeuroCalm AI</title>
+    <meta name="description" content="Create your account to unlock personalized AI stress detection and biometric analytics.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #030305;
+            --bg-deep: #0a0a0f;
+            --primary: #00f2ff; /* Cyan Neon */
+            --primary-dim: rgba(0, 242, 255, 0.1);
+            --secondary: #bd00ff; /* Purple Neon */
+            --secondary-dim: rgba(189, 0, 255, 0.1);
+            --accent: #ff0055; /* Pink Neon */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #8892b0;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-bg: rgba(10, 10, 20, 0.65);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND LAYERS
+           ========================================= */
+        #terrain-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-dark) 90%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.3s;
+        }
+
+        nav.scrolled {
+            background: rgba(3, 3, 5, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 3rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            margin-left: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* =========================================
+           5. HERO / SIGNUP SECTION
+           ========================================= */
+        .hero-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            padding: 120px 20px 80px;
+        }
+
+        .signup-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 80px;
+            max-width: 1200px;
+            width: 100%;
+            align-items: center;
+        }
+
+        /* Left Side: Copy */
+        .hero-text h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .hero-text p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+            max-width: 480px;
+        }
+
+        .feature-bullets {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .feature-bullets li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .bullet-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 242, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        /* Right Side: 3D Form Card */
+        .form-card-3d {
+            perspective: 1000px;
+            width: 100%;
+        }
+
+        .form-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out; /* Smooth JS tilt */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(189, 0, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .form-header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .form-header h2 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-header span {
+            color: var(--secondary);
+            font-family: var(--font-tech);
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* Input Groups */
+        .input-group {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #333;
+            padding: 15px 10px;
+            font-size: 1rem;
+            color: #fff;
+            font-family: var(--font-body);
+            transition: 0.3s;
+            outline: none;
+        }
+
+        .input-label {
+            position: absolute;
+            top: 15px;
+            left: 10px;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: 0.3s ease;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 10px;
+            top: 15px;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        /* Input Active State */
+        .input-field:focus ~ .input-label,
+        .input-field:valid ~ .input-label {
+            top: -10px;
+            left: 0;
+            font-size: 0.75rem;
+            color: var(--primary);
+        }
+
+        .input-field:focus {
+            border-bottom-color: var(--primary);
+            box-shadow: 0 10px 20px -10px rgba(0, 242, 255, 0.2);
+        }
+
+        .input-field:focus ~ .input-icon {
+            color: var(--primary);
+        }
+
+        /* Password Strength Visualizer */
+        .password-strength {
+            height: 4px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--warning), var(--success));
+            margin-top: 5px;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Buttons */
+        .btn-main {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: none; /* Custom cursor */
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            margin-top: 1rem;
+        }
+
+        .btn-main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(189, 0, 255, 0.4);
+        }
+
+        .btn-main:hover::before {
+            left: 100%;
+        }
+
+        .form-footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Checkbox Custom */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+            cursor: none;
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-muted);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .checkbox-group input:checked ~ .custom-checkbox {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox-group input {
+            display: none;
+        }
+
+        /* =========================================
+           6. MEMBERSHIP TIERS (Long Page Content)
+           ========================================= */
+        .tiers-section {
+            padding: 8rem 2rem;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(to bottom, transparent, rgba(10,10,15,0.8), transparent);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .tiers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tier-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: 0.4s;
+            position: relative;
+        }
+
+        .tier-card:hover {
+            border-color: var(--secondary);
+            background: rgba(189, 0, 255, 0.05);
+            transform: translateY(-10px);
+        }
+
+        .tier-card.featured {
+            border: 1px solid var(--primary);
+            background: rgba(0, 242, 255, 0.03);
+            transform: scale(1.05);
+            z-index: 2;
+        }
+        
+        .tier-card.featured:hover {
+            transform: scale(1.05) translateY(-10px);
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+        }
+
+        .tier-name {
+            font-family: var(--font-display);
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .tier-price {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2rem;
+        }
+
+        .tier-price span {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .tier-features {
+            list-style: none;
+            margin-bottom: 3rem;
+            text-align: left;
+        }
+
+        .tier-features li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ccc;
+        }
+
+        .tier-features li svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--success);
+        }
+
+        .tier-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: #fff;
+            text-transform: uppercase;
+            font-family: var(--font-display);
+            font-weight: 700;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .tier-card.featured .tier-btn {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+        }
+
+        .tier-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* =========================================
+           7. TECH STACK VISUALS
+           ========================================= */
+        .tech-section {
+            padding: 6rem 2rem;
+            z-index: 10;
+            position: relative;
+            text-align: center;
+        }
+
+        .tech-grid {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            flex-wrap: wrap;
+            margin-top: 4rem;
+        }
+
+        .tech-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+
+        .tech-item:hover {
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+
+        .tech-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 1px dashed var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            color: var(--primary);
+            animation: spin 10s linear infinite;
+        }
+
+        /* =========================================
+           8. FOOTER
+           ========================================= */
+        footer {
+            border-top: 1px solid #111;
+            padding: 4rem 2rem 2rem;
+            background: #020203;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .social-links a {
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .social-links a:hover {
+            color: var(--secondary);
+            transform: scale(1.2);
+        }
+
+        /* =========================================
+           9. ANIMATIONS & RESPONSIVE
+           ========================================= */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: 1s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 968px) {
+            .signup-wrapper {
+                grid-template-columns: 1fr;
+                gap: 4rem;
+            }
+            .hero-text h1 { font-size: 2.5rem; }
+            .hero-text { text-align: center; }
+            .feature-bullets { display: inline-block; text-align: left; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="terrain-canvas"></canvas>
+    <canvas id="particles-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="#" class="logo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NeuroCalm
+        </a>
+        <div class="nav-links">
+            <a href="/index">Home</a>
+            <a href="/category">Categories</a>
+            <a href="/register" style="color: var(--primary);">Sign Up</a>
+            <a href="/login" style="border: 1px solid var(--primary); padding: 5px 15px; border-radius: 20px;">Login</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Signup Section -->
+        <section class="hero-container">
+            <div class="signup-wrapper">
+                
+                <!-- Left Copy -->
+                <div class="hero-text reveal">
+                    <h1>Initialize Your <br><span class="gradient-text">Neural Profile</span></h1>
+                    <p>Join the NeuroCalm network to access advanced AI-driven stress analytics, real-time bio-feedback, and personalized wellness protocols designed for your specific neural patterns.</p>
+                    
+                    <ul class="feature-bullets">
+                        <li>
+                            <div class="bullet-icon">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </div>
+                            24/7 Real-time Monitoring
+                        </li>
+                        <li>
+                            <div class="bullet-icon">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </div>
+                            Encrypted Neural Data
+                        </li>
+                        <li>
+                            <div class="bullet-icon">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </div>
+                            Cross-Platform Sync
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Right Form -->
+                <div class="form-card-3d">
+                    <div class="form-card" id="tilt-card">
+                        <div class="form-header">
+                            <span>Secure Entry</span>
+                            <h2>Create Account</h2>
+                        </div>
+
+                        <form action="/register" method="POST">
+
+                            <div class="input-group">
+                                <input type="text" class="input-field" name="full_name" required autocomplete="off">
+                                <label class="input-label">Full Name</label>
+                                <div class="input-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+                            </div>
+
+                            <div class="input-group">
+                                <input type="email" class="input-field" name="email" required autocomplete="off">
+                                <label class="input-label">Email Address</label>
+                                <div class="input-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+                            </div>
+
+                            <div class="input-group">
+                                <input type="password" class="input-field" id="password-input" name="password" required onkeyup="checkStrength()">
+                                <label class="input-label">Password</label>
+                                <div class="input-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg></div>
+                                <div class="password-strength" id="strength-bar"></div>
+                            </div>
+
+                            <div class="checkbox-group" data-hover>
+                                <input type="checkbox" id="accepted_terms" name="accepted_terms">
+
+                                <div class="custom-checkbox"></div>
+                                <label for="accepted_terms" style="color: var(--text-muted); font-size: 0.9rem;">I agree to the Neural Data Processing Protocol</label>
+                            </div>
+
+                            <button type="submit" class="btn-main" data-hover>
+
+                                Establish Link
+                            </button>
+
+                            <div class="form-footer">
+                                Already part of the network? <a href="/login">Log In</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tiers Section (Long Content) -->
+        <section class="tiers-section">
+            <div class="section-header reveal">
+                <h2>Access Protocols</h2>
+                <p style="color: var(--text-muted);">Choose your level of neural synchronization.</p>
+            </div>
+
+            <div class="tiers-grid">
+                <!-- Tier 1 -->
+                <div class="tier-card reveal">
+                    <div class="tier-name">Observer</div>
+                    <div class="tier-price">Free</div>
+                    <ul class="tier-features">
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Basic Stress Detection</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Weekly Reports</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Standard Encryption</li>
+                    </ul>
+                    <a href="#" class="tier-btn">Initiate</a>
+                </div>
+
+                <!-- Tier 2 -->
+                <div class="tier-card featured reveal" style="transition-delay: 0.1s;">
+                    <div class="tier-name" style="color: var(--primary);">Synchronizer</div>
+                    <div class="tier-price">$19<span>/mo</span></div>
+                    <ul class="tier-features">
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Real-time Biometrics</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> AI Personal Coaching</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 24/7 Priority Support</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> API Access</li>
+                    </ul>
+                    <a href="#" class="tier-btn">Upgrade Now</a>
+                </div>
+
+                <!-- Tier 3 -->
+                <div class="tier-card reveal" style="transition-delay: 0.2s;">
+                    <div class="tier-name">Architect</div>
+                    <div class="tier-price">$49<span>/mo</span></div>
+                    <ul class="tier-features">
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Enterprise Encryption</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Unlimited Devices</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> White-label Reports</li>
+                        <li><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Neuro-Mapping</li>
+                    </ul>
+                    <a href="#" class="tier-btn">Contact Sales</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tech Stack / Trust -->
+        <section class="tech-section">
+            <h3 class="gradient-text">Powered By</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">State-of-the-art neural computation engines</p>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="tech-circle">TF</div>
+                    <span style="font-family: var(--font-tech);">TensorFlow</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-circle">PY</div>
+                    <span style="font-family: var(--font-tech);">PyTorch</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-circle">W3</div>
+                    <span style="font-family: var(--font-tech);">WebGL</span>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-circle">5G</div>
+                    <span style="font-family: var(--font-tech);">IoT Sync</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">NeuroCalm AI</div>
+        <p style="color: #555;">Advanced Biometric Stress Detection Systems</p>
+        <div class="social-links">
+            <a href="#">Twitter</a>
+            <a href="#">LinkedIn</a>
+            <a href="#">GitHub</a>
+        </div>
+        <p style="color: #333; font-size: 0.8rem;">&copy; 2023 NeuroCalm AI. All systems operational.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        const hoverElements = document.querySelectorAll('a, button, input, .checkbox-group');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. TERRAIN CANVAS ANIMATION (Digital Waves)
+        // =========================================
+        const canvas1 = document.getElementById('terrain-canvas');
+        const ctx1 = canvas1.getContext('2d');
+        
+        canvas1.width = window.innerWidth;
+        canvas1.height = window.innerHeight;
+
+        const waves = [];
+        const waveCount = 5;
+
+        class Wave {
+            constructor(y, color, speed, amplitude) {
+                this.y = y;
+                this.color = color;
+                this.speed = speed;
+                this.amplitude = amplitude;
+                this.offset = Math.random() * 100;
+            }
+
+            draw(time) {
+                ctx1.beginPath();
+                ctx1.moveTo(0, canvas1.height);
+                
+                for (let i = 0; i < canvas1.width; i++) {
+                    // Sine wave formula
+                    const sine = Math.sin(i * 0.003 + time * this.speed + this.offset);
+                    ctx1.lineTo(i, this.y + sine * this.amplitude);
+                }
+                
+                ctx1.lineTo(canvas1.width, canvas1.height);
+                ctx1.fillStyle = this.color;
+                ctx1.fill();
+            }
+        }
+
+        // Initialize waves
+        for(let i=0; i<waveCount; i++) {
+            const y = canvas1.height / 2 + (i * 100);
+            const color = `rgba(0, 242, 255, ${0.1 - (i * 0.015)})`;
+            waves.push(new Wave(y, color, 0.001 + (i * 0.0005), 50 + (i * 20)));
+        }
+
+        let time = 0;
+        function animateTerrain() {
+            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+            time += 1;
+            waves.forEach(wave => wave.draw(time));
+            requestAnimationFrame(animateTerrain);
+        }
+        animateTerrain();
+
+        // =========================================
+        // 3. PARTICLE SYSTEM (Floating nodes)
+        // =========================================
+        const canvas2 = document.getElementById('particles-canvas');
+        const ctx2 = canvas2.getContext('2d');
+        let particles = [];
+
+        canvas2.width = window.innerWidth;
+        canvas2.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas1.width = window.innerWidth;
+            canvas1.height = window.innerHeight;
+            canvas2.width = window.innerWidth;
+            canvas2.height = window.innerHeight;
+        });
+
+        class Node {
+            constructor() {
+                this.x = Math.random() * canvas2.width;
+                this.y = Math.random() * canvas2.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+                this.color = Math.random() > 0.5 ? '#bd00ff' : '#00f2ff';
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas2.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas2.height) this.vy *= -1;
+
+                ctx2.beginPath();
+                ctx2.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx2.fillStyle = this.color;
+                ctx2.fill();
+            }
+        }
+
+        for (let i = 0; i < 50; i++) particles.push(new Node());
+
+        function animateParticles() {
+            ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+            particles.forEach(p => p.update());
+            
+            // Connect particles
+            ctx2.strokeStyle = 'rgba(255,255,255,0.03)';
+            for(let i=0; i<particles.length; i++){
+                for(let j=i; j<particles.length; j++){
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx2.beginPath();
+                        ctx2.moveTo(particles[i].x, particles[i].y);
+                        ctx2.lineTo(particles[j].x, particles[j].y);
+                        ctx2.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // =========================================
+        // 4. 3D TILT EFFECT FOR FORM
+        // =========================================
+        const card = document.getElementById('tilt-card');
+        const wrapper = document.querySelector('.form-card-3d');
+
+        wrapper.addEventListener('mousemove', (e) => {
+            const rect = wrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * -5; // Max 5deg
+            const rotateY = ((x - centerX) / centerX) * 5;
+
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        wrapper.addEventListener('mouseleave', () => {
+            card.style.transform = `rotateX(0) rotateY(0)`;
+        });
+
+        // =========================================
+        // 5. PASSWORD STRENGTH CHECKER
+        // =========================================
+        function checkStrength() {
+            const val = document.getElementById('password-input').value;
+            const bar = document.getElementById('strength-bar');
+            let strength = 0;
+
+            if(val.length > 5) strength += 30;
+            if(val.length > 8) strength += 30;
+            if(/[A-Z]/.test(val)) strength += 20;
+            if(/[0-9]/.test(val)) strength += 20;
+
+            bar.style.width = `${strength}%`;
+        }
+
+        // =========================================
+        // 6. SCROLL REVEAL & NAVBAR
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if(window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+    </script>
+</body>
+</html>

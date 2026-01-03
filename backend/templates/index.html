@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroCalm AI | Advanced Stress Detection System</title>
+    <meta name="description" content="AI-powered real-time stress level detection using advanced biometric analysis and neural networks.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #050507;
+            --bg-panel: rgba(20, 20, 35, 0.6);
+            --primary: #00f2ff; /* Cyan Neon */
+            --secondary: #bd00ff; /* Purple Neon */
+            --accent: #ff0055; /* Pink Neon */
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #a0a0b0;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor used */
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR & UTILITIES
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 242, 255, 0.1);
+            border-color: var(--secondary);
+            mix-blend-mode: screen;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2.5rem;
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--bg-dark);
+            background: var(--primary);
+            border: none;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: all 0.3s var(--ease-out);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.3);
+            background: #fff;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 242, 255, 0.1);
+            color: #fff;
+        }
+
+        /* =========================================
+           3. BACKGROUND ANIMATION CANVAS
+           ========================================= */
+        #neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .overlay-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 90%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: all 0.4s var(--ease-out);
+            padding: 1.5rem 0;
+        }
+
+        header.scrolled {
+            background: rgba(5, 5, 7, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: var(--glass-border);
+            padding: 0.8rem 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-main);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo svg {
+            width: 30px;
+            height: 30px;
+            fill: var(--primary);
+            animation: pulse-logo 3s infinite ease-in-out;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: var(--secondary);
+            transition: width 0.3s var(--ease-out);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .bar {
+            width: 25px;
+            height: 2px;
+            background-color: var(--text-main);
+            transition: 0.3s;
+        }
+
+        /* =========================================
+           5. HERO SECTION
+           ========================================= */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-top: 80px;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 700px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--secondary);
+            border-radius: 50px;
+            color: var(--secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            background: rgba(189, 0, 255, 0.1);
+            backdrop-filter: blur(5px);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, #b0b0b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            max-width: 550px;
+            animation: fadeInUp 1s ease-out 0.4s backwards;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 1.5rem;
+            animation: fadeInUp 1s ease-out 0.6s backwards;
+        }
+
+        /* Abstract 3D Graphic Elements */
+        .hero-visual {
+            position: absolute;
+            right: -5%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 600px;
+            height: 600px;
+            z-index: 1;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .brain-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .bc-1 { width: 100%; height: 100%; border-color: rgba(0, 242, 255, 0.1); animation: spin 60s linear infinite; }
+        .bc-2 { width: 80%; height: 80%; top: 10%; left: 10%; border-color: rgba(189, 0, 255, 0.1); animation: spin 40s linear infinite reverse; }
+        .bc-3 { width: 60%; height: 60%; top: 20%; left: 20%; border-color: rgba(255, 0, 85, 0.1); animation: spin 30s linear infinite; }
+
+        .floating-shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(189, 0, 255, 0.2));
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-1 {
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            right: 10%;
+            border-radius: 20px;
+            transform: rotate(45deg);
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 60px;
+            height: 60px;
+            bottom: 30%;
+            right: 25%;
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        /* =========================================
+           6. SCROLL REVEAL SECTIONS
+           ========================================= */
+        section {
+            padding: 8rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-subtitle {
+            color: var(--primary);
+            font-family: var(--font-display);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s var(--ease-out);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* =========================================
+           7. FEATURES GRID
+           ========================================= */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 20px;
+            transition: all 0.4s var(--ease-out);
+            position: relative;
+            overflow: hidden;
+            group: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(0, 242, 255, 0.1), transparent 40%);
+            opacity: 0;
+            transition: 0.4s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+
+        .feature-card:hover .feature-icon {
+            background: var(--secondary);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(189, 0, 255, 0.4);
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* =========================================
+           8. LIVE DEMO INTERACTIVE SECTION
+           ========================================= */
+        .demo-interface {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 2rem;
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            padding: 2rem;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .viewport-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .face-scan-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #555;
+            background: radial-gradient(circle, #1a1a20, #000);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            z-index: 10;
+            display: none; /* Hidden by default */
+        }
+
+        .scanning .scan-line {
+            display: block;
+            animation: scanMove 2s linear infinite;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 242, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .data-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .metric-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--text-main);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+
+        .control-area {
+            margin-top: auto;
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        /* Analysis Result Modal/Overlay */
+        .result-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.5s;
+        }
+
+        .result-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--success);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+            margin-bottom: 1rem;
+            transform: scale(0.8);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .result-overlay.show .score-circle {
+            transform: scale(1);
+        }
+
+        /* =========================================
+           9. SCROLLING ANIMATIONS & TIMELINE
+           ========================================= */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--secondary), transparent);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            margin-bottom: 4rem;
+            position: relative;
+            width: 50%;
+            padding: 0 3rem;
+        }
+
+        .timeline-item:nth-child(odd) { left: 0; text-align: right; }
+        .timeline-item:nth-child(even) { left: 50%; text-align: left; }
+
+        .timeline-dot {
+            position: absolute;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: var(--bg-dark);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            z-index: 2;
+            transition: 0.3s;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-dot { right: -10px; }
+        .timeline-item:nth-child(even) .timeline-dot { left: -10px; }
+
+        .timeline-item:hover .timeline-dot {
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            transform: scale(1.3);
+        }
+
+        .timeline-content h3 {
+            color: var(--text-main);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-content p {
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           10. FOOTER
+           ========================================= */
+        footer {
+            background: #020203;
+            padding: 5rem 0 2rem;
+            border-top: 1px solid #111;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-brand p {
+            color: var(--text-muted);
+            margin-top: 1rem;
+            max-width: 300px;
+        }
+
+        .footer-col h4 {
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-family: var(--font-display);
+        }
+
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 0.8rem; }
+        .footer-col ul li a { color: var(--text-muted); text-decoration: none; transition: 0.3s; }
+        .footer-col ul li a:hover { color: var(--primary); padding-left: 5px; }
+
+        .copyright {
+            text-align: center;
+            color: #555;
+            padding-top: 2rem;
+            border-top: 1px solid #111;
+            font-size: 0.9rem;
+        }
+
+        /* =========================================
+           11. ANIMATIONS KEYFRAMES
+           ========================================= */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(45deg); }
+            50% { transform: translateY(-20px) rotate(45deg); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scanMove {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        @keyframes pulse-logo {
+            0%, 100% { filter: drop-shadow(0 0 5px var(--primary)); }
+            50% { filter: drop-shadow(0 0 15px var(--secondary)); }
+        }
+
+        /* =========================================
+           12. RESPONSIVE DESIGN
+           ========================================= */
+        @media (max-width: 968px) {
+            h1 { font-size: 3rem; }
+            .hero-visual { display: none; }
+            .demo-interface { grid-template-columns: 1fr; }
+            .timeline::before { left: 20px; }
+            .timeline-item { width: 100%; padding-left: 50px; padding-right: 0; text-align: left; }
+            .timeline-item:nth-child(odd), .timeline-item:nth-child(even) { left: 0; text-align: left; }
+            .timeline-item:nth-child(odd) .timeline-dot, 
+            .timeline-item:nth-child(even) .timeline-dot { left: 10px; right: auto; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                right: -100%;
+                top: 0;
+                height: 100vh;
+                width: 70%;
+                background: rgba(5, 5, 7, 0.95);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                transition: 0.4s ease;
+                border-left: 1px solid #333;
+            }
+            .nav-links.active { right: 0; }
+            .hamburger { display: flex; z-index: 1001; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <!-- Background Canvas -->
+    <canvas id="neural-canvas"></canvas>
+    <div class="overlay-gradient"></div>
+
+    <!-- Navigation -->
+    <header id="navbar">
+        <div class="container">
+            <nav>
+                <a href="#" class="logo" data-hover>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    NeuroCalm
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#home" data-hover>Home</a></li>
+                    <li><a href="/assessment" data-hover>Assessment</a></li>
+                    <li><a href="/about" data-hover>About Us</a></li>
+                    <li><a href="/contact" data-hover>Contact</a></li>
+                    <li><a href="/tips" data-hover>Tips</a></li>
+                    <li><a href="/services" data-hover>Services</a></li>
+                    <li><a href="/login" data-hover>Login</a></li>
+                </ul>
+                <div class="hamburger" data-hover>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <span class="hero-tag">Next Gen AI Analysis</span>
+                <h1>Master Your Stress with <br><span class="gradient-text">Neural Intelligence</span></h1>
+                <p>Experience the future of wellness. Our advanced AI analyzes biometric micro-expressions and physiological markers to detect stress levels instantly.</p>
+                <div class="hero-btns">
+                    <a href="#demo" class="btn" data-hover>Try Demo</a>
+                    <a href="#features" class="btn btn-secondary" data-hover>Learn More</a>
+                </div>
+            </div>
+        </div>
+        <!-- Abstract Visuals -->
+        <div class="hero-visual">
+            <div class="brain-circle bc-1"></div>
+            <div class="brain-circle bc-2"></div>
+            <div class="brain-circle bc-3"></div>
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-subtitle">Core Technology</span>
+                <h2 class="section-title">Powered by Deep Learning</h2>
+                <p style="color:var(--text-muted)">Our algorithm processes 50+ data points per second to give you accurate insights.</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card reveal" data-hover>
+                    <div class="feature-icon">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </div>
+                    <h3>Micro-Expression Scan</h3>
+                    <p>Detects subtle facial muscle movements invisible to the naked eye to gauge emotional stress.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card reveal" data-hover>
+                    <div class="feature-icon">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+                    </div>
+                    <h3>Real-time Biometrics</h3>
+                    <p>Monitors heart rate variability and skin response via camera sensors (PPG technology).</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card reveal" data-hover>
+                    <div class="feature-icon">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79s7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58s9.14-3.47 12.65 0L21 3v7.12zM12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z"/></svg>
+                    </div>
+                    <h3>Instant Analysis</h3>
+                    <p>Get comprehensive stress reports in under 3 seconds with our optimized neural engine.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-card reveal" data-hover>
+                    <div class="feature-icon">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                    </div>
+                    <h3>Data Privacy</h3>
+                    <p>All processing happens locally in your browser. Your face data never leaves your device.</p>
+                </div>
+                 <!-- Feature 5 -->
+                 <div class="feature-card reveal" data-hover>
+                    <div class="feature-icon">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H6v-2h4V7h2v4h4v2h-4v4z"/></svg>
+                    </div>
+                    <h3>Wellness Integration</h3>
+                    <p>Syncs automatically with health apps to suggest breathing exercises when stress peaks.</p>
+                </div>
+
+                 <!-- Feature 6 -->
+                 <div class="feature-card reveal" data-hover>
+                    <div class="feature-icon">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
+                    </div>
+                    <h3>High Accuracy</h3>
+                    <p>Tested on 10,000+ subjects with 98.4% correlation to clinically approved devices.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Demo Section -->
+    <section id="demo">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-subtitle">Interactive Experience</span>
+                <h2 class="section-title">Try The AI Scanner</h2>
+            </div>
+
+            <div class="demo-interface reveal">
+                <!-- Left: Visualizer -->
+                <div class="viewport-container" id="demo-camera">
+                    <div class="grid-overlay"></div>
+                    <div class="scan-line"></div>
+                    
+                    <div class="face-scan-placeholder" id="placeholder-text">
+                        <svg width="64" height="64" fill="#333" viewBox="0 0 24 24" style="margin-bottom:1rem;">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        <p>Camera Preview Simulation</p>
+                    </div>
+
+                    <!-- Simulated Face Mesh (Canvas) -->
+                    <canvas id="sim-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+
+                    <!-- Result Overlay -->
+                    <div class="result-overlay" id="result-overlay">
+                        <div class="score-circle" id="score-val">24</div>
+                        <h3 style="color:#fff; font-family: var(--font-display);">Low Stress</h3>
+                        <p style="color:#aaa; font-size: 0.9rem;">Analysis Complete</p>
+                        <button class="btn btn-secondary" style="margin-top:20px; padding: 0.5rem 1.5rem; font-size: 0.8rem;" onclick="resetDemo()">Scan Again</button>
+                    </div>
+                </div>
+
+                <!-- Right: Data Dashboard -->
+                <div class="data-panel">
+                    <div class="metric-box">
+                        <div class="metric-header">
+                            <span>Heart Rate Variability</span>
+                            <span style="color:var(--success)">Normal</span>
+                        </div>
+                        <div class="metric-value" id="hrv-val">65 ms</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-box">
+                        <div class="metric-header">
+                            <span>Stress Hormone Est.</span>
+                            <span style="color:var(--primary)">Low</span>
+                        </div>
+                        <div class="metric-value" id="cort-val">12 nmol/L</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 20%; background: var(--success);"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-box">
+                        <div class="metric-header">
+                            <span>Attention Focus</span>
+                            <span style="color:var(--warning)">Moderate</span>
+                        </div>
+                        <div class="metric-value" id="focus-val">78%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 78%; background: var(--warning);"></div>
+                        </div>
+                    </div>
+
+                    <div class="control-area">
+                        <div class="status-badge" id="scan-status">System Ready</div>
+                        <button class="btn" id="start-btn" onclick="startAnalysis()" data-hover>Initialize Scan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Methodology / Timeline -->
+    <section id="process">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-subtitle">Workflow</span>
+                <h2 class="section-title">How It Works</h2>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>01. Image Acquisition</h3>
+                        <p>The system captures high-frame-rate video streams to analyze blood flow information via skin color changes.</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>02. Landmark Detection</h3>
+                        <p>Our proprietary neural network maps 468 facial landmarks to detect micro-tensions in muscle groups.</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>03. Signal Extraction</h3>
+                        <p>Remote Photoplethysmography (rPPG) extracts cardiac pulse signals from the facial region of interest.</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>04. AI Synthesis</h3>
+                        <p>All data points are synthesized using a transformer model to output a calibrated stress score.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">NeuroCalm</a>
+                    <p>Revolutionizing mental health monitoring through cutting-edge artificial intelligence and biometric analysis.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#">Overview</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">API Access</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2023 NeuroCalm AI. All rights reserved. Designed for the future.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR LOGIC
+        // =========================================
+        const cursorDot = document.querySelector('[data-cursor-dot]');
+        const cursorOutline = document.querySelector('[data-cursor-outline]');
+        
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // Dot follows instantly
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Outline follows with slight delay (animation handled by CSS transition)
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // Hover effects for cursor
+        const hoverElements = document.querySelectorAll('[data-hover]');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorOutline.classList.add('hovered');
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorOutline.classList.remove('hovered');
+            });
+        });
+
+        // =========================================
+        // 2. BACKGROUND CANVAS PARTICLE SYSTEM
+        // =========================================
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        // Resize Canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        // Mouse interaction for canvas
+        const mouse = {
+            x: null,
+            y: null,
+            radius: 150
+        }
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        // Particle Class
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                // Border collision
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+
+                // Mouse interaction (Repel)
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+
+                if (distance < mouse.radius + this.size) {
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 2;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 2;
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 2;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 2;
+                }
+
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        // Initialize Particles
+        function initParticles() {
+            particlesArray = [];
+            // Calculate number of particles based on screen size
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 0.4) - 0.2;
+                let directionY = (Math.random() * 0.4) - 0.2;
+                let color = '#00f2ff'; // Cyan
+
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        // Animation Loop
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+        }
+
+        // Draw lines between close particles (Neural effect)
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
+                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance / 20000);
+                        ctx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue * 0.15 + ')'; // Faint Cyan lines
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        initParticles();
+        animateParticles();
+
+        // =========================================
+        // 3. NAVBAR & SCROLL LOGIC
+        // =========================================
+        const navbar = document.getElementById('navbar');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Reveal on Scroll
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealOnScroll = () => {
+            const windowHeight = window.innerHeight;
+            const elementVisible = 150;
+
+            revealElements.forEach((reveal) => {
+                const elementTop = reveal.getBoundingClientRect().top;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveal.classList.add('active');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', revealOnScroll);
+        // Trigger once on load
+        revealOnScroll();
+
+        // Mobile Menu
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // =========================================
+        // 4. AI DEMO SIMULATION LOGIC
+        // =========================================
+        const startBtn = document.getElementById('start-btn');
+        const scanStatus = document.getElementById('scan-status');
+        const placeholderText = document.getElementById('placeholder-text');
+        const simCanvas = document.getElementById('sim-canvas');
+        const sCtx = simCanvas.getContext('2d');
+        const resultOverlay = document.getElementById('result-overlay');
+        const scoreVal = document.getElementById('score-val');
+        
+        // Data elements
+        const hrvVal = document.getElementById('hrv-val');
+        const cortVal = document.getElementById('cort-val');
+        const focusVal = document.getElementById('focus-val');
+
+        let isScanning = false;
+        let animationFrameId;
+
+        // Resize sim canvas
+        function resizeSimCanvas() {
+            const container = document.querySelector('.viewport-container');
+            simCanvas.width = container.offsetWidth;
+            simCanvas.height = container.offsetHeight;
+        }
+        window.addEventListener('resize', resizeSimCanvas);
+        resizeSimCanvas();
+
+        // Draw a simulated face mesh (dots and lines moving)
+        function drawSimMesh() {
+            if(!isScanning) return;
+            
+            sCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+            sCtx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+            
+            const centerX = simCanvas.width / 2;
+            const centerY = simCanvas.height / 2;
+            const time = Date.now() * 0.002;
+
+            // Draw random "tracking" dots
+            for(let i=0; i<30; i++) {
+                const x = centerX + Math.sin(time + i) * (100 + i*2);
+                const y = centerY + Math.cos(time * 0.8 + i) * (120 - i*3);
+                
+                sCtx.beginPath();
+                sCtx.arc(x, y, 2, 0, Math.PI*2);
+                sCtx.fill();
+            }
+
+            // Draw bounding box
+            sCtx.strokeStyle = 'rgba(0, 242, 255, 0.8)';
+            sCtx.lineWidth = 2;
+            sCtx.strokeRect(centerX - 100, centerY - 130, 200, 260);
+            
+            // Label
+            sCtx.font = '12px Orbitron';
+            sCtx.fillStyle = '#fff';
+            sCtx.fillText('FACE_ID_DETECTED: 98%', centerX - 80, centerY - 140);
+
+            // Randomize data values slightly
+            if (Math.random() > 0.8) {
+                hrvVal.innerText = (60 + Math.floor(Math.random() * 15)) + " ms";
+                cortVal.innerText = (10 + Math.floor(Math.random() * 5)) + " nmol/L";
+                focusVal.innerText = (70 + Math.floor(Math.random() * 10)) + "%";
+            }
+
+            animationFrameId = requestAnimationFrame(drawSimMesh);
+        }
+
+        function startAnalysis() {
+            if(isScanning) return;
+            isScanning = true;
+            
+            // UI Updates
+            startBtn.style.display = 'none';
+            placeholderText.style.display = 'none';
+            document.querySelector('.viewport-container').classList.add('scanning');
+            scanStatus.innerText = "Analyzing Micro-Expressions...";
+            scanStatus.style.color = "var(--primary)";
+
+            // Start Canvas Animation
+            drawSimMesh();
+
+            // Simulate process steps
+            setTimeout(() => {
+                scanStatus.innerText = "Extracting Biometric Data...";
+            }, 1500);
+
+            setTimeout(() => {
+                scanStatus.innerText = "Calculating Stress Score...";
+            }, 3000);
+
+            setTimeout(() => {
+                finishAnalysis();
+            }, 4500);
+        }
+
+        function finishAnalysis() {
+            isScanning = false;
+            cancelAnimationFrame(animationFrameId);
+            document.querySelector('.viewport-container').classList.remove('scanning');
+            sCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+            
+            // Show result
+            resultOverlay.classList.add('show');
+            
+            // Generate random score between 10 and 40 (Low Stress for demo)
+            const score = Math.floor(Math.random() * 30) + 10;
+            scoreVal.innerText = score;
+            
+            scanStatus.innerText = "Analysis Complete";
+            scanStatus.style.color = "var(--success)";
+        }
+
+        function resetDemo() {
+            resultOverlay.classList.remove('show');
+            startBtn.style.display = 'inline-flex';
+            placeholderText.style.display = 'flex';
+            scanStatus.innerText = "System Ready";
+            scanStatus.style.color = "var(--text-muted)";
+            
+            // Reset values
+            hrvVal.innerText = "65 ms";
+            cortVal.innerText = "12 nmol/L";
+            focusVal.innerText = "78%";
+        }
+
+    </script>
+</body>
+</html>

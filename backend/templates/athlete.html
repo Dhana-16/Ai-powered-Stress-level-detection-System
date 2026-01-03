@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Mode | NeuroCalm AI</title>
+    <meta name="description" content="Advanced stress detection and recovery optimization for elite athletes using AI biometrics.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Teko:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --bg-dark: #030406;
+            --bg-panel: rgba(10, 15, 20, 0.7);
+            --primary: #00f2ff; /* Cyan */
+            --secondary: #bd00ff; /* Purple */
+            --accent: #ff4d00; /* Athletic Orange - High Energy */
+            --accent-dim: rgba(255, 77, 0, 0.2);
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-sport: 'Teko', sans-serif;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --neon-glow: 0 0 10px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
+            --accent-glow: 0 0 15px rgba(255, 77, 0, 0.6);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Custom cursor */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR (Athletic Theme)
+           ========================================= */
+        .cursor-dot,
+        .cursor-trail {
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            z-index: 10000;
+        }
+
+        .cursor-trail {
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--accent);
+            transition: width 0.1s, height 0.1s, background-color 0.2s;
+        }
+
+        body:hover .cursor-trail.hovered {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 77, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           3. BACKGROUND ANIMATION (Pulse Wave)
+           ========================================= */
+        #pulse-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .grid-floor {
+            position: fixed;
+            bottom: -50%;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: 
+                linear-gradient(to right, rgba(255,77,0,0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,77,0,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            z-index: 0;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-dark) 85%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. NAVIGATION
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(3,4,6,0.9), transparent);
+            transition: 0.3s;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo span { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-sport);
+            font-size: 1.4rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(255, 77, 0, 0.5);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: var(--accent);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after { width: 100%; }
+
+        /* =========================================
+           5. HERO SECTION & START BUTTON
+           ========================================= */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            line-height: 0.9;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 77, 0, 0.2);
+        }
+
+        .hero h2 {
+            font-family: var(--font-sport);
+            font-size: 3rem;
+            color: var(--accent);
+            letter-spacing: 5px;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        /* THE START BUTTON */
+        .start-btn-wrapper {
+            position: relative;
+            margin-top: 3rem;
+        }
+
+        .btn-start {
+            position: relative;
+            display: inline-block;
+            padding: 2rem 6rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #000;
+            background: var(--accent);
+            border: none;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            transition: 0.3s;
+            overflow: hidden;
+            animation: pulse-btn 2s infinite;
+            text-decoration: none;
+            z-index: 2;
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px var(--accent);
+            background: #fff;
+        }
+
+        .btn-start:hover::before {
+            left: 100%;
+        }
+
+        /* Button Backing/Shadow Effect */
+        .btn-start::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100%;
+            height: 100%;
+            background: var(--secondary);
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            z-index: -1;
+            transition: 0.3s;
+            opacity: 0.5;
+        }
+
+        .btn-start:hover::after {
+            top: 5px;
+            left: 5px;
+            opacity: 0.8;
+        }
+
+        @keyframes pulse-btn {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 0, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 77, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 77, 0, 0); }
+        }
+
+        .scroll-down {
+            position: absolute;
+            bottom: 50px;
+            color: var(--text-muted);
+            font-family: var(--font-sport);
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            animation: bounce 2s infinite;
+        }
+
+        /* =========================================
+           6. PERFORMANCE STATS SECTION
+           ========================================= */
+        .section {
+            padding: 8rem 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-header {
+            margin-bottom: 4rem;
+            border-left: 5px solid var(--accent);
+            padding-left: 20px;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: #fff;
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            padding: 2rem;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, transparent 50%, var(--accent) 50%);
+            opacity: 0.3;
+        }
+
+        .stat-value {
+            font-family: var(--font-sport);
+            font-size: 4rem;
+            line-height: 1;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: #111;
+            margin-top: 15px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            width: 0; /* JS will animate this */
+            transition: width 1.5s ease-out;
+        }
+
+        /* =========================================
+           7. RECOVERY OPTIMIZATION (CARDS)
+           ========================================= */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(20, 20, 25, 0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: 0.3s;
+            border-radius: 20px;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.05);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-display);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           8. DIAGNOSTIC MODE (Long Page Target)
+           ========================================= */
+        .diagnostic-mode {
+            background: linear-gradient(to bottom, transparent, rgba(255, 77, 0, 0.05), transparent);
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+            padding: 6rem 5%;
+            text-align: center;
+        }
+
+        .mock-interface {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 20px;
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .mock-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            font-family: var(--font-mono);
+            color: var(--accent);
+        }
+
+        .mock-graph {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .graph-bar {
+            flex: 1;
+            background: var(--primary);
+            opacity: 0.7;
+            animation: barPulse 1s infinite alternate;
+        }
+
+        .graph-bar:nth-child(even) {
+            background: var(--secondary);
+            animation-delay: 0.2s;
+        }
+
+        @keyframes barPulse {
+            0% { transform: scaleY(0.3); }
+            100% { transform: scaleY(1); }
+        }
+
+        /* =========================================
+           9. FOOTER
+           ========================================= */
+        footer {
+            background: #010102;
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid #111;
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .socials a {
+            color: var(--text-muted);
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+
+        .socials a:hover { color: var(--accent); }
+
+        /* =========================================
+           10. ANIMATIONS & UTILS
+           ========================================= */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: 1s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3rem; }
+            .hero h2 { font-size: 2rem; }
+            .btn-start { padding: 1.5rem 4rem; font-size: 1.2rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .cursor-dot, .cursor-trail { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-trail"></div>
+
+    <!-- Backgrounds -->
+    <canvas id="pulse-canvas"></canvas>
+    <div class="grid-floor"></div>
+    <div class="vignette"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            NEURO<span>CALM</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/index">Home</a></li>
+            <li><a href="/category">Category</a></li>
+            <li><a href="#" style="color: var(--accent);">Athlete</a></li>
+            <li><a href="/register">Join</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h2>System Status: <span style="color:var(--success)">Ready</span></h2>
+        <h1>Unlock Your <br><span style="color: var(--primary)">Peak Performance</span></h1>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 2rem; font-size: 1.2rem;">
+            Athletes operate at the limit. Stress is the difference between a Gold Medal and a burnout. Monitor your biometric stress response in real-time.
+        </p>
+        
+        <!-- START BUTTON -->
+        <div class="start-btn-wrapper">
+            <a href="/athlete_ques" class="btn-start" data-hover>
+                START DIAGNOSTIC
+            </a>
+        </div>
+
+        <div class="scroll-down">
+            SCROLL TO ANALYZE <br> ▼
+        </div>
+    </section>
+
+    <!-- Performance Metrics -->
+    <section class="section">
+        <div class="section-header reveal">
+            <h2>Bio-Metric Calibration</h2>
+            <p>Understanding the limits of your engine.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card reveal">
+                <div class="stat-value">128</div>
+                <div class="stat-label">Avg. BPM (Rest)</div>
+                <div class="progress-container">
+                    <div class="progress-bar" data-width="45%"></div>
+                </div>
+            </div>
+            <div class="stat-card reveal" style="transition-delay: 0.1s;">
+                <div class="stat-value">98%</div>
+                <div class="stat-label">VO2 Max Efficiency</div>
+                <div class="progress-container">
+                    <div class="progress-bar" data-width="98%"></div>
+                </div>
+            </div>
+            <div class="stat-card reveal" style="transition-delay: 0.2s;">
+                <div class="stat-value">Low</div>
+                <div class="stat-label">Current Cortisol</div>
+                <div class="progress-container">
+                    <div class="progress-bar" data-width="20%"></div>
+                </div>
+            </div>
+            <div class="stat-card reveal" style="transition-delay: 0.3s;">
+                <div class="stat-value">14</div>
+                <div class="stat-label">Hours Recovery</div>
+                <div class="progress-container">
+                    <div class="progress-bar" data-width="60%"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" style="background: rgba(0,0,0,0.3);">
+        <div class="section-header reveal">
+            <h2>Recovery Protocols</h2>
+            <p>AI-driven interventions based on your stress signature.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">⚡</div>
+                <h3>Zone Optimization</h3>
+                <p>Receive alerts when your heart rate variability drops, indicating the need for rest before injury occurs.</p>
+            </div>
+            <div class="feature-card reveal" style="transition-delay: 0.1s;">
+                <div class="feature-icon">🧬</div>
+                <h3>Genetic Matching</h3>
+                <p>Our AI matches your stress profile with successful recovery protocols used by athletes with similar biometrics.</p>
+            </div>
+            <div class="feature-card reveal" style="transition-delay: 0.2s;">
+                <div class="feature-icon">🛡️</div>
+                <h3>Burnout Shield</h3>
+                <p>Predictive modeling identifies early signs of overtraining syndrome based on micro-expression and vocal stress.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Diagnostic Interface (Target of Start Button) -->
+    <section id="diagnostic" class="diagnostic-mode">
+        <div class="section-header reveal">
+            <h2>Live Diagnostic Interface</h2>
+            <p>Real-time simulation of athlete stress tracking.</p>
+        </div>
+
+        <div class="mock-interface reveal">
+            <div class="mock-header">
+                <span>SENSOR: ACTIVE</span>
+                <span>SIGNAL: STRONG</span>
+            </div>
+            <!-- Simulated Graph -->
+            <div class="mock-graph">
+                <div class="graph-bar" style="height: 40%"></div>
+                <div class="graph-bar" style="height: 70%"></div>
+                <div class="graph-bar" style="height: 50%"></div>
+                <div class="graph-bar" style="height: 90%"></div>
+                <div class="graph-bar" style="height: 60%"></div>
+                <div class="graph-bar" style="height: 30%"></div>
+                <div class="graph-bar" style="height: 80%"></div>
+                <div class="graph-bar" style="height: 45%"></div>
+                <div class="graph-bar" style="height: 100%"></div>
+                <div class="graph-bar" style="height: 55%"></div>
+            </div>
+            <div style="margin-top: 2rem; font-family: var(--font-mono); color: var(--text-muted);">
+                ANALYZING: HRV, SPO2, SKIN TEMP...
+            </div>
+        </div>
+
+        <div style="margin-top: 3rem;">
+            <a href="/athlete_ques" class="btn-start" style="padding: 1.5rem 4rem; font-size: 1.2rem;" data-hover>
+                BEGIN SESSION
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">NeuroCalm AI</div>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">The Official Biometric Partner of Champions.</p>
+        <div class="socials">
+            <a href="#">Instagram</a>
+            <a href="#">Twitter</a>
+            <a href="#">Strava</a>
+        </div>
+        <p style="margin-top: 3rem; color: #333; font-size: 0.8rem;">&copy; 2023 NeuroCalm. All Systems Nominal.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // =========================================
+        // 1. CUSTOM CURSOR
+        // =========================================
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorTrail = document.querySelector('.cursor-trail');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Trail follows with slight delay
+            cursorTrail.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 300, fill: "forwards" });
+        });
+
+        document.querySelectorAll('a, button, .stat-card, .feature-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorTrail.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorTrail.classList.remove('hovered'));
+        });
+
+        // =========================================
+        // 2. PULSE CANVAS (EKG Wave Animation)
+        // =========================================
+        const canvas = document.getElementById('pulse-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        let waveY = canvas.height / 2;
+        let increment = 0;
+        let speed = 0.05;
+
+        function animateWave() {
+            ctx.fillStyle = 'rgba(3, 4, 6, 0.1)'; // Fade effect for trails
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+
+            for (let i = 0; i < canvas.width; i++) {
+                // Create a sine wave that spikes periodically (like a heartbeat)
+                let freq = 0.01;
+                let amp = 50;
+                
+                // Heartbeat logic
+                let time = Date.now() * 0.002;
+                let beat = (Math.sin(time * 3) > 0.8) ? 200 : 0; // Spike
+                
+                // Complex wave
+                let y = (canvas.height / 2) + Math.sin(i * freq + increment) * amp + beat;
+
+                // Add secondary wave for complexity
+                y += Math.sin(i * 0.02 - increment * 2) * 20;
+
+                ctx.lineTo(i, y);
+            }
+
+            ctx.strokeStyle = 'rgba(255, 77, 0, 0.2)'; // Orange trace
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            increment += speed;
+            requestAnimationFrame(animateWave);
+        }
+
+        animateWave();
+
+        // =========================================
+        // 3. SCROLL ANIMATIONS (Progress Bars)
+        // =========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    
+                    // Specific logic for progress bars
+                    const bars = entry.target.querySelectorAll('.progress-bar');
+                    bars.forEach(bar => {
+                        bar.style.width = bar.getAttribute('data-width');
+                    });
+                }
+            });
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        // Also observe stat cards to trigger bars
+        document.querySelectorAll('.stat-card').forEach(el => observer.observe(el));
+
+        // =========================================
+        // 4. NAVBAR SCROLL EFFECT
+        // =========================================
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.style.background = 'rgba(3, 4, 6, 0.95)';
+                nav.style.backdropFilter = 'blur(10px)';
+            } else {
+                nav.style.background = 'linear-gradient(to bottom, rgba(3,4,6,0.9), transparent)';
+            }
+        });
+
+    </script>
+</body>
+</html>

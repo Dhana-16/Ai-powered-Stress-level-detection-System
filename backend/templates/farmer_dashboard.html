@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriNeuro Dashboard | Farmer Stress AI</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET (AGRI-TECH THEME)
+           ========================================= */
+        :root {
+            --bg-deep: #05140a; 
+            --bg-panel: rgba(10, 25, 15, 0.7);
+            --primary: #39ff14; /* Neon Bio-Green */
+            --secondary: #00bcd4; /* Water/Cyan */
+            --accent: #ffaa00; /* Harvest Gold */
+            --danger: #ff3333;
+            --text-main: #e0f2e0;
+            --text-muted: #7ca67c;
+            --font-display: 'Orbitron', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --glass-border: 1px solid rgba(57, 255, 20, 0.15);
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           2. CUSTOM CURSOR
+           ========================================= */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            width: 8px; height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px; height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        body:hover .cursor-outline.hovered {
+            width: 60px; height: 60px;
+            background-color: rgba(57, 255, 20, 0.1);
+        }
+
+        /* =========================================
+           3. DYNAMIC BACKGROUND
+           ========================================= */
+        #field-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg-deep) 95%);
+            z-index: 1; pointer-events: none;
+        }
+
+        /* =========================================
+           4. SIDEBAR NAVIGATION
+           ========================================= */
+        aside {
+            width: var(--sidebar-width);
+            background: rgba(5, 20, 10, 0.95);
+            backdrop-filter: blur(15px);
+            border-right: var(--glass-border);
+            position: fixed; height: 100vh; z-index: 100;
+            padding: 2rem 1.5rem;
+            display: flex; flex-direction: column;
+        }
+
+        .brand {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 3rem;
+            font-family: var(--font-display);
+            font-size: 1.4rem; color: var(--primary);
+            text-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+        }
+
+        .nav-menu { list-style: none; flex: 1; }
+
+        .nav-item { margin-bottom: 0.5rem; }
+
+        .nav-link {
+            display: flex; align-items: center; gap: 15px;
+            padding: 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px; transition: 0.3s;
+            font-family: var(--font-tech); font-size: 1.1rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: linear-gradient(90deg, rgba(57, 255, 20, 0.1), transparent);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .weather-widget {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px; padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.05); margin-top: auto;
+        }
+
+        /* =========================================
+           5. MAIN CONTENT AREA
+           ========================================= */
+        main {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            position: relative; z-index: 10;
+        }
+
+        header {
+            padding: 1.5rem 3rem;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .avatar {
+            width: 50px; height: 50px; border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        /* --- VIEW SWITCHING LOGIC --- */
+        .view-section {
+            padding: 2rem 3rem;
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .view-section.active-view {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- WIDGETS & CARDS --- */
+        .welcome-banner {
+            background: linear-gradient(135deg, rgba(57, 255, 20, 0.05), rgba(0, 188, 212, 0.05));
+            border: var(--glass-border);
+            border-radius: 24px; padding: 2.5rem;
+            margin-bottom: 3rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem; margin-bottom: 4rem;
+        }
+
+        .widget {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 20px; padding: 1.5rem;
+            transition: 0.3s;
+        }
+        .widget:hover { border-color: var(--primary); }
+
+        .col-span-2 { grid-column: span 2; }
+        .col-span-3 { grid-column: span 3; }
+
+        .btn-main {
+            background: var(--primary); color: #000;
+            padding: 1.2rem 2.5rem; border: none; border-radius: 12px;
+            font-family: var(--font-display); font-weight: 900;
+            text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+            transition: 0.3s;
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(57, 255, 20, 0.5); }
+
+        /* --- CROPS PAGE SPECIFIC --- */
+        .crop-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;
+        }
+        .crop-card {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden;
+        }
+        .crop-card::before {
+            content:''; position: absolute; top:0; left:0; width: 5px; height: 100%;
+            background: var(--primary); opacity: 0.5;
+        }
+        .crop-card.alert::before { background: var(--danger); }
+
+        /* --- IRRIGATION PAGE SPECIFIC --- */
+        .water-tank {
+            width: 100px; height: 200px; border: 4px solid #333; border-radius: 20px;
+            position: relative; overflow: hidden; background: rgba(0,0,0,0.3);
+            margin: 0 auto;
+        }
+        .water-level {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: var(--secondary); transition: height 1s;
+            box-shadow: 0 0 20px var(--secondary);
+        }
+
+        /* --- MARKET PAGE SPECIFIC --- */
+        .market-table {
+            width: 100%; border-collapse: collapse;
+            font-family: var(--font-tech);
+        }
+        .market-table th { text-align: left; padding: 1rem; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .market-table td { padding: 1.5rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .market-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* --- SETTINGS PAGE SPECIFIC --- */
+        .settings-form { max-width: 600px; }
+        .form-group { margin-bottom: 2rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; color: var(--primary); font-family: var(--font-display); }
+        .form-input {
+            width: 100%; padding: 1rem;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; border-radius: 8px; font-family: var(--font-body);
+        }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.5s;
+            backdrop-filter: blur(10px);
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .scanner-modal {
+            width: 500px; background: #05140a; border: 2px solid var(--primary);
+            border-radius: 30px; padding: 3rem; text-align: center;
+            box-shadow: 0 0 100px rgba(57, 255, 20, 0.2);
+        }
+
+        @media (max-width: 900px) {
+            aside { transform: translateX(-100%); }
+            main { margin-left: 0; width: 100%; }
+            .grid-container { grid-template-columns: 1fr; }
+            .col-span-2, .col-span-3 { grid-column: span 1; }
+            .welcome-banner { flex-direction: column; text-align: center; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background Animation -->
+    <canvas id="field-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Sidebar -->
+    <aside>
+        <div class="brand">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.23,6.23,0,0,0,1.75,3.79C3.87,17.11,5.44,17,5.44,17a4.59,4.59,0,0,1,1.5-1.5A16.45,16.45,0,0,0,5,13.5C5,12,13,10.5,17,8Z"/>
+            </svg>
+            AgriNeuro
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" data-target="view-dashboard">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-target="view-crops">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9-4.03-9-9 0 4.97-4.03 9-9-4.03 0-9-4.03-9-9 0 4.97 4.03 9 9 4.03 0 9 4.03 9 9zm-5.5-9c.83 0 1.5-.67 1.5-1.5S7.33 10 6.5 10 5 10.67 5 11.5 5.67 13 6.5 13zm9 2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM12 17.5c-2.33 0-4.31-1.46-5.11-3.5h10.22c-.8 2.04-2.78 3.5-5.11 3.5z"/></svg>
+                    Crop Health
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-target="view-irrigation">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8zm0 18c-3.35 0-6-2.57-6-6.2 0-2.34 1.95-5.44 6-9.14 4.05 3.7 6 6.79 6 9.14 0 3.63-2.65 6.2-6 6.2z"/></svg>
+                    Irrigation
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-target="view-market">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                    Market Prices
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-target="view-settings">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.04.64.09.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    Settings
+                </a>
+            </li>
+        </ul>
+
+        <div class="weather-widget">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.8rem;">
+                <span>LOCAL WEATHER</span>
+                <span style="color:var(--primary)">●</span>
+            </div>
+            <div style="font-size:2rem; font-family:var(--font-display); color:var(--accent)">24°C</div>
+            <div style="font-size:0.8rem; color:#888;">Partly Cloudy</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Header (Fixed on all views) -->
+        <header>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=JohnFarmer&backgroundColor=b6e3f4" class="avatar" alt="Farmer">
+                <div>
+                    <div style="font-family:var(--font-tech); font-size:1.2rem; color:#fff;">Dhana</div>
+                    <div style="color:var(--text-muted); font-size:0.9rem;">Green Valley Farm</div>
+                </div>
+            </div>
+            <div style="color:var(--text-muted);" id="current-time">12:00 PM</div>
+        </header>
+
+        <!-- ======================= VIEW 1: DASHBOARD ======================= -->
+        <section id="view-dashboard" class="view-section active-view">
+            <div class="welcome-banner">
+                <div>
+                    <h1 style="font-family:var(--font-display); font-size:2.5rem; margin-bottom:0.5rem;">Monitor Your Well-Being</h1>
+                    <p style="color:var(--text-muted); max-width:600px;">Farming involves both physical labor and market risks. Our AI analyzes your biometric data against environmental stressors.</p>
+                </div>
+                <button class="btn-main" onclick="startScan()">Detect Stress Level</button>
+            </div>
+
+            <div class="grid-container">
+                <div class="widget col-span-2">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:0.9rem; margin-bottom:1rem;">
+                        <span>Heart Rate Variability</span>
+                        <span>♥</span>
+                    </div>
+                    <div style="font-family:var(--font-display); font-size:2rem;">68 <span style="font-size:1rem; color:#666;">BPM</span></div>
+                    <div style="height:60px; background:rgba(0,0,0,0.2); margin-top:10px; border-radius:10px; overflow:hidden;">
+                        <svg width="100%" height="100%" preserveAspectRatio="none"><path d="M0,30 Q50,0 100,30 T200,30" fill="none" stroke="var(--primary)" stroke-width="2"/></svg>
+                    </div>
+                </div>
+                <div class="widget">
+                    <div style="color:var(--text-muted); font-size:0.9rem;">Labor Load</div>
+                    <div style="font-family:var(--font-display); font-size:2rem; color:var(--accent);">HIGH</div>
+                    <div style="width:100%; height:4px; background:#222; margin-top:10px; border-radius:2px;"><div style="width:75%; height:100%; background:var(--accent);"></div></div>
+                </div>
+                <div class="widget">
+                    <div style="color:var(--text-muted); font-size:0.9rem;">Market Anxiety</div>
+                    <div style="font-family:var(--font-display); font-size:2rem; color:var(--primary);">LOW</div>
+                    <div style="width:100%; height:4px; background:#222; margin-top:10px; border-radius:2px;"><div style="width:30%; height:100%; background:var(--primary);"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= VIEW 2: CROP HEALTH ======================= -->
+        <section id="view-crops" class="view-section">
+            <h1 style="font-family:var(--font-display); margin-bottom:2rem;">Crop Health Monitor</h1>
+            <div class="crop-grid">
+                <div class="crop-card alert">
+                    <h3 style="font-family:var(--font-tech); color:var(--danger);">⚠ Wheat Field A</h3>
+                    <p style="color:var(--text-muted); margin:10px 0;">Potential Rust Infection Detected</p>
+                    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;">68%</div>
+                    <div style="width:100%; height:4px; background:#222;"><div style="width:68%; height:100%; background:var(--danger);"></div></div>
+                    <button style="margin-top:15px; padding:5px 10px; background:rgba(255,51,51,0.1); border:1px solid var(--danger); color:var(--danger); border-radius:5px; font-family:var(--font-tech);">Schedule Drone</button>
+                </div>
+
+                <div class="crop-card">
+                    <h3 style="font-family:var(--font-tech); color:var(--primary);">Corn Field B</h3>
+                    <p style="color:var(--text-muted); margin:10px 0;">Optimal Growth Conditions</p>
+                    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;">94%</div>
+                    <div style="width:100%; height:4px; background:#222;"><div style="width:94%; height:100%; background:var(--primary);"></div></div>
+                    <div style="margin-top:15px; color:var(--success); font-size:0.9rem;">Next Harvest: 14 Days</div>
+                </div>
+
+                <div class="crop-card">
+                    <h3 style="font-family:var(--font-tech); color:var(--primary);">Soybean Section C</h3>
+                    <p style="color:var(--text-muted); margin:10px 0;">Moisture Levels Slightly Low</p>
+                    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;">82%</div>
+                    <div style="width:100%; height:4px; background:#222;"><div style="width:82%; height:100%; background:var(--accent);"></div></div>
+                    <button style="margin-top:15px; padding:5px 10px; background:rgba(255,170,0,0.1); border:1px solid var(--accent); color:var(--accent); border-radius:5px; font-family:var(--font-tech);">Adjust Irrigation</button>
+                </div>
+
+                <div class="crop-card">
+                    <h3 style="font-family:var(--font-tech); color:var(--secondary);">Rice Paddy</h3>
+                    <p style="color:var(--text-muted); margin:10px 0;">Flood Stage: Normal</p>
+                    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;">100%</div>
+                    <div style="width:100%; height:4px; background:#222;"><div style="width:100%; height:100%; background:var(--success);"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= VIEW 3: IRRIGATION ======================= -->
+        <section id="view-irrigation" class="view-section">
+            <h1 style="font-family:var(--font-display); margin-bottom:2rem;">Smart Irrigation Control</h1>
+            <div class="grid-container">
+                <div class="widget col-span-2">
+                    <h3 style="font-family:var(--font-tech); margin-bottom:1rem;">Main Water Tank Status</h3>
+                    <div style="display:flex; gap:20px; align-items:center;">
+                        <div class="water-tank">
+                            <div class="water-level" style="height: 65%;"></div>
+                        </div>
+                        <div>
+                            <div style="font-size:2.5rem; font-family:var(--font-display);">65%</div>
+                            <div style="color:var(--text-muted);">Capacity</div>
+                            <div style="margin-top:10px; padding:5px 10px; background:var(--secondary); color:#000; border-radius:4px; font-weight:bold; display:inline-block;">PUMP: ACTIVE</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget col-span-2">
+                    <h3 style="font-family:var(--font-tech); margin-bottom:1rem;">Soil Moisture Map (Last Scan)</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div style="background:rgba(57,255,20,0.2); padding:20px; text-align:center; border-radius:8px;">Sector A<br><span style="font-size:1.5rem; color:var(--primary);">80%</span></div>
+                        <div style="background:rgba(255,170,0,0.2); padding:20px; text-align:center; border-radius:8px;">Sector B<br><span style="font-size:1.5rem; color:var(--accent);">45%</span></div>
+                        <div style="background:rgba(57,255,20,0.2); padding:20px; text-align:center; border-radius:8px;">Sector C<br><span style="font-size:1.5rem; color:var(--primary);">92%</span></div>
+                        <div style="background:rgba(255,170,0,0.2); padding:20px; text-align:center; border-radius:8px;">Sector D<br><span style="font-size:1.5rem; color:var(--accent);">50%</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= VIEW 4: MARKET PRICES ======================= -->
+        <section id="view-market" class="view-section">
+            <h1 style="font-family:var(--font-display); margin-bottom:2rem;">Market Prices & Trends</h1>
+            <div class="widget">
+                <table class="market-table">
+                    <thead>
+                        <tr>
+                            <th>Commodity</th>
+                            <th>Current Price (per Bushel)</th>
+                            <th>Change (24h)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="color:#fff; font-weight:bold;">Wheat</td>
+                            <td>$5.82</td>
+                            <td style="color:var(--success);">▲ +2.1%</td>
+                            <td><button style="padding:5px 10px; border:1px solid var(--primary); color:var(--primary); background:transparent; border-radius:4px;">Sell</button></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#fff; font-weight:bold;">Corn</td>
+                            <td>$4.30</td>
+                            <td style="color:var(--danger);">▼ -1.5%</td>
+                            <td><button style="padding:5px 10px; border:1px solid var(--text-muted); color:var(--text-muted); background:transparent; border-radius:4px;">Hold</button></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#fff; font-weight:bold;">Soybeans</td>
+                            <td>$13.45</td>
+                            <td style="color:var(--success);">▲ +0.8%</td>
+                            <td><button style="padding:5px 10px; border:1px solid var(--primary); color:var(--primary); background:transparent; border-radius:4px;">Sell</button></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#fff; font-weight:bold;">Rice</td>
+                            <td>$14.20</td>
+                            <td style="color:#fff;">— 0.0%</td>
+                            <td><button style="padding:5px 10px; border:1px solid var(--text-muted); color:var(--text-muted); background:transparent; border-radius:4px;">Hold</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================= VIEW 5: SETTINGS ======================= -->
+        <section id="view-settings" class="view-section">
+            <h1 style="font-family:var(--font-display); margin-bottom:2rem;">System Settings</h1>
+            <div class="widget settings-form">
+                <div class="form-group">
+                    <label class="form-label">Farm Name</label>
+                    <input type="text" class="form-input" value="Green Valley Farm">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notification Threshold</label>
+                    <select class="form-input">
+                        <option>High Priority Only</option>
+                        <option>All Alerts</option>
+                        <option>None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">AI Sensitivity</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="range" min="1" max="100" value="50" style="flex:1; accent-color:var(--primary);">
+                        <span style="font-family:var(--font-tech);">50%</span>
+                    </div>
+                </div>
+                <button class="btn-main" style="width:100%;">Save Changes</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Stress Detection Modal -->
+    <div class="modal-overlay" id="scan-modal">
+        <div class="scanner-modal">
+            <div style="width:150px; height:150px; border:4px solid #222; border-top:4px solid var(--primary); border-radius:50%; margin:0 auto 2rem; animation:spin 1s linear infinite;"></div>
+            <div id="scan-text" style="font-family:var(--font-tech); font-size:1.2rem; color:var(--primary);">Scanning...</div>
+            <div id="result-val" style="display:none; font-family:var(--font-display); font-size:4rem; color:#fff; margin-bottom:0.5rem;">32</div>
+            <button class="btn-main" id="close-btn" onclick="closeScan()" style="display:none; margin-top:20px;">Return</button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // --- 1. CUSTOM CURSOR ---
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX, posY = e.clientY;
+            cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+        });
+        document.querySelectorAll('a, button, input, select, .widget, .nav-link').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovered'));
+        });
+
+        // --- 2. TAB SWITCHING LOGIC (SPA) ---
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.view-section');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                // Update Active Link
+                navLinks.forEach(n => n.classList.remove('active'));
+                link.classList.add('active');
+
+                // Hide all sections
+                sections.forEach(sec => sec.classList.remove('active-view'));
+
+                // Show Target Section
+                const targetId = link.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active-view');
+            });
+        });
+
+        // --- 3. BACKGROUND ANIMATION ---
+        const canvas = document.getElementById('field-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const grid = [];
+        for(let i=0; i<800; i++) {
+            grid.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, h: Math.random()*20, color: Math.random()>0.8 ? '#39ff14' : '#1a5c12'});
+        }
+        function animateField() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            const time = Date.now() * 0.001;
+            grid.forEach((crop) => {
+                const offset = Math.sin(time + crop.x * 0.01) * 5;
+                ctx.save(); ctx.translate(crop.x + offset, crop.y);
+                ctx.rotate(Math.sin(time) * 0.05);
+                ctx.fillStyle = crop.color; ctx.fillRect(-1, 0, 2, crop.h);
+                ctx.restore();
+            });
+            requestAnimationFrame(animateField);
+        }
+        animateField();
+
+        // --- 4. STRESS DETECTION ---
+        function startScan() {
+            const modal = document.getElementById('scan-modal');
+            const txt = document.getElementById('scan-text');
+            const res = document.getElementById('result-val');
+            const btn = document.getElementById('close-btn');
+            modal.classList.add('active');
+            txt.style.display='block'; res.style.display='none'; btn.style.display='none';
+            setTimeout(()=>txt.innerText="Connecting...", 1000);
+            setTimeout(()=>txt.innerText="Analyzing...", 2000);
+            setTimeout(()=>txt.innerText="Calculating...", 3000);
+            setTimeout(()=>{
+                txt.style.display='none'; res.style.display='block'; btn.style.display='block';
+                res.innerText = Math.floor(Math.random()*40)+20;
+            }, 4000);
+            window.location.href = "/farmer_ques"; 
+        }
+        function closeScan() { document.getElementById('scan-modal').classList.remove('active'); }
+        
+        // --- 5. TIME UPDATE ---
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+
+    </script>
+</body>
+</html>
